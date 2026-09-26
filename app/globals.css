@@ -1,0 +1,97 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;0,9..144,800;0,9..144,900;1,9..144,400;1,9..144,600&family=Inter:wght@400;500;600;700;800&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-brand-espresso text-ink font-sans selection:bg-brand-gold selection:text-brand-espresso;
+  }
+
+  ::selection {
+    background-color: #C9A24C;
+    color: #17110D;
+  }
+}
+
+/* 3D Perspective and Transform Utilities */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.perspective-2000 {
+  perspective: 2000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+/* Subtle continuous floating animations */
+@keyframes ambientFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+
+@keyframes ambientPulseGlow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.animate-ambient-float {
+  animation: ambientFloat 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: ambientPulseGlow 4s ease-in-out infinite;
+}
+
+/* Glassmorphism helpers */
+.glass-nav {
+  background: rgba(23, 17, 13, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(246, 239, 228, 0.08);
+}
+
+.glass-card {
+  background: rgba(36, 26, 19, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(246, 239, 228, 0.08);
+}
+
+/* Organic curve mask divider */
+.curve-divider-top {
+  clip-path: ellipse(75% 100% at 50% 0%);
+}
+
+.curve-divider-bottom {
+  clip-path: ellipse(75% 100% at 50% 100%);
+}
+
+/* Text outline effect for punchy headlines */
+.text-stroke-gold {
+  -webkit-text-stroke: 1px rgba(201, 162, 76, 0.4);
+}
