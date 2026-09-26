@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chef Apedo Foods — Full Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --bg:#17110D;--surface:#241A13;--surface2:#2C2117;--line:#3A2C1F;
+ --gold:#C9A24C;--gold-soft:#E7CE96;--ink:#F6EFE4;--ink-dim:#B7AA98;
+ --ink-on-cream:#231A12;--ok:#7FAE78;--warn:#D08277;
+ --serif:'Fraunces',serif;--sans:'Inter',system-ui,sans-serif;
+ padding-top:env(safe-area-inset-top,0);padding-bottom:env(safe-area-inset-bottom,0);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);}
+.app{max-width:430px;margin:0 auto;padding:0 0 32px;min-height:100vh;background:var(--bg);}
+@media (min-width:760px){.app{max-width:900px;}}
+.topnav{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5;}
+.brand{font-family:var(--serif);font-weight:600;font-size:16px;}
+.cartpill{font-size:12px;color:var(--gold);border:1px solid var(--gold);border-radius:20px;padding:5px 12px;}
+.grp{font-size:9px;color:var(--gold);text-align:center;text-transform:uppercase;letter-spacing:.12em;margin:12px 0 6px;}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px;justify-content:center;}
+.tab{font-size:10px;padding:5px 9px;border-radius:20px;border:1px solid var(--line);color:var(--ink-dim);cursor:pointer;background:transparent;}
+.tab.active{background:var(--gold);color:var(--ink-on-cream);border-color:var(--gold);font-weight:600;}
+.screen{display:none;padding:14px 18px 8px;}
+.screen.active{display:block;}
+@media (min-width:760px){.screen.active{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start;}
+ .screen.active .full{grid-column:1/-1;}}
+.eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+h2{font-family:var(--serif);font-weight:600;font-size:24px;margin:0 0 4px;}
+h3{font-family:var(--serif);font-size:17px;margin:0;font-weight:600;}
+.sub{color:var(--ink-dim);font-size:12.5px;margin-bottom:16px;line-height:1.5;}
+.banner{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12.5px;color:var(--ink-dim);margin-bottom:14px;line-height:1.5;}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px;}
+.lbl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-bottom:10px;}
+.btn{display:block;text-align:center;border-radius:24px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--gold);}
+.btn.pri{background:var(--gold);color:var(--ink-on-cream);border-color:var(--gold);}
+.btn.ghost{background:transparent;color:var(--gold);}
+.btn.disabled{opacity:.35;pointer-events:none;border-color:var(--line);color:var(--ink-dim);}
+.btn.sm{padding:8px;font-size:11px;border-radius:18px;}
+.row{display:flex;gap:8px;}.row>*{flex:1;}
+.mealcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-bottom:16px;}
+.mealphoto{height:150px;background:radial-gradient(circle at 30% 30%,#4a3018,#1c130c);display:flex;align-items:center;justify-content:center;color:var(--ink-dim);font-size:10px;letter-spacing:.08em;text-transform:uppercase;}
+.mealphoto:after{content:"photo pending";}
+.mealbody{padding:14px 16px 16px;}
+.mealtitle{display:flex;justify-content:space-between;align-items:baseline;}
+.mealtitle h3{font-family:var(--serif);font-size:17px;margin:0;font-weight:600;}
+.mealmini{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;}
+.mealmini .mealphoto{height:90px;font-size:9px;}
+.mealmini .mb{padding:8px 10px;}
+.mealmini .mb b{font-size:11.5px;}
+.mealmini .mb .p{color:var(--gold);font-size:10.5px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.badge{font-size:9.5px;padding:3px 9px;border-radius:20px;border:1px solid var(--line);color:var(--ink-dim);}
+.badge.ok{border-color:var(--ok);color:var(--ok);}
+.badge.warn{border-color:var(--warn);color:var(--warn);}
+.price{color:var(--gold);font-size:13px;margin-top:2px;}
+.card,.mealcard{position:relative;}
+.optrow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.optrow:last-child{border-bottom:none;}
+.radio{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.dot{width:16px;height:16px;border:1.5px solid var(--ink-dim);border-radius:50%;flex:none;position:relative;}
+.dot.on{border-color:var(--gold);}
+.dot.on:after{content:"";position:absolute;inset:3px;background:var(--gold);border-radius:50%;}
+.qty{display:flex;align-items:center;gap:10px;}
+.qbtn{width:24px;height:24px;border:1px solid var(--line);border-radius:8px;text-align:center;line-height:22px;cursor:pointer;color:var(--ink);}
+input,select{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:10px;color:var(--ink);padding:11px 12px;font-size:13px;font-family:var(--sans);}
+.stepper{display:flex;gap:6px;margin-bottom:16px;font-size:10px;color:var(--ink-dim);align-items:center;}
+.stepper b{color:var(--gold);}
+.stick{position:sticky;bottom:0;background:linear-gradient(0deg,var(--bg) 60%,transparent);padding:14px 0 4px;margin-top:8px;}
+.split{background:var(--surface2);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;margin-top:10px;}
+.note{font-size:10.5px;color:var(--ink-dim);margin-top:8px;line-height:1.5;}
+.warnbox{border:1px solid var(--warn);color:var(--warn);border-radius:12px;padding:12px 14px;font-size:12px;background:rgba(208,130,119,.08);}
+.steps{display:flex;flex-direction:column;gap:14px;}
+.step{display:flex;align-items:center;gap:12px;}
+.step .n{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink-dim);flex:none;}
+.step .n.done{background:var(--gold);border-color:var(--gold);color:var(--ink-on-cream);}
+.step span{font-size:13px;color:var(--ink-dim);}
+.step.done span{color:var(--ink);}
+.stepn{display:flex;gap:12px;align-items:flex-start;}
+.stepn b{border:1.5px solid var(--gold);color:var(--gold);border-radius:50%;width:26px;height:26px;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:var(--serif);}
+.stepn span{font-size:13px;padding-top:3px;}
+ul.plain{margin:0;padding-left:18px;font-size:13px;line-height:1.9;}
+.contactrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px;}
+.contactrow:last-child{border-bottom:none;}
+.center{text-align:center;}
+.checkmark{width:56px;height:56px;border-radius:50%;background:var(--gold);color:var(--ink-on-cream);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 12px;font-family:var(--serif);}
+.statgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;}
+.stat b{display:block;font-family:var(--serif);font-size:19px;color:var(--gold);}
+.stat span{font-size:9.5px;color:var(--ink-dim);}
+.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.filters .f{font-size:10px;padding:5px 10px;border:1px solid var(--line);border-radius:14px;color:var(--ink-dim);}
+.filters .f.on{border-color:var(--gold);color:var(--gold);}
+.orderrow{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+.orderrow .top{display:flex;justify-content:space-between;font-size:12px;font-weight:600;}
+.orderrow .meta{font-size:11px;color:var(--ink-dim);margin-top:4px;}
+.statebar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.statebtn{font-size:9.5px;padding:5px 10px;border:1px dashed var(--line);border-radius:14px;cursor:pointer;color:var(--ink-dim);background:none;}
+.statebtn.on{border-style:solid;border-color:var(--gold);color:var(--gold);}
+.toggle{width:44px;height:24px;border-radius:14px;border:1.5px solid var(--gold);position:relative;cursor:pointer;flex:none;}
+.toggle .knob{position:absolute;top:2px;width:18px;height:18px;border-radius:50%;background:var(--gold);transition:.2s;left:22px;}
+.toggle.off .knob{left:2px;background:var(--ink-dim);}
+.toggle.off{border-color:var(--line);}
+</style>
+</head>
+<body>
+<div class="app">
+ <div class="topnav"><div class="brand">Chef Apedo Foods</div><div class="cartpill" id="cartCount">Cart · 0</div></div>
+
+ <div class="grp">Marketing</div>
+ <div class="tabs" id="tabsMkt"></div>
+ <div class="grp">Core Transaction — Golden Path</div>
+ <div class="tabs" id="tabsCore"></div>
+ <div class="grp">Admin</div>
+ <div class="tabs" id="tabsAdmin"></div>
+
+ <!-- MARKETING -->
+ <div class="screen" data-s="home">
+  <div class="full"><div class="eyebrow">Chef Apedo Foods</div>
+  <h2>Authentic Ghanaian meals, made with care.</h2>
+  <div class="sub">Freshly prepared and delivered straight to your doorstep.</div>
+  <div class="row"><div class="btn pri" data-go="menu">Order Now</div><div class="btn ghost" data-go="menu">View Menu</div></div>
+  <div class="lbl" style="margin-top:22px;">Featured Meals</div>
+  <div class="grid3">
+   <div class="mealmini"><div class="mealphoto"></div><div class="mb"><b>Jollof</b><div class="p">GH₵45</div></div></div>
+   <div class="mealmini"><div class="mealphoto"></div><div class="mb"><b>Fried Rice</b><div class="p">GH₵45</div></div></div>
+   <div class="mealmini"><div class="mealphoto"></div><div class="mb"><b>Rice &amp; Stew</b><div class="p">GH₵45</div></div></div>
+  </div>
+  <div class="lbl" style="margin-top:20px;">How It Works</div>
+  <div class="banner">01 Choose · 02 Customize · 03 Pay · 04 Delivered</div>
+  <div class="lbl">Why Chef Apedo Foods</div>
+  <ul class="plain"><li>Freshly Prepared</li><li>Authentic Ghanaian Flavours</li><li>Convenient Delivery</li><li>Made With Care</li></ul>
+  <div class="card" style="margin-top:16px;"><div class="lbl">Delivery</div>We deliver across Accra. Some locations are currently unavailable.
+   <div class="btn ghost sm" data-go="delivinfo" style="margin-top:10px;">Check Delivery Areas</div></div>
+  <div class="banner">Hungry? Let's fix that.</div>
+  <div class="btn pri" data-go="menu">Order Now</div></div>
+ </div>
+
+ <div class="screen" data-s="how"><div class="full">
+  <div class="eyebrow">First time here?</div><h2>How It Works</h2>
+  <div class="card"><div class="steps">
+   <div class="stepn"><b>1</b><span>Choose your meal</span></div>
+   <div class="stepn"><b>2</b><span>Customize it</span></div>
+   <div class="stepn"><b>3</b><span>Pay for your food</span></div>
+   <div class="stepn"><b>4</b><span>We prepare it</span></div>
+   <div class="stepn"><b>5</b><span>Your order is delivered</span></div>
+   <div class="stepn"><b>6</b><span>Pay the rider</span></div>
+  </div></div></div>
+ </div>
+
+ <div class="screen" data-s="about"><div class="full">
+  <div class="eyebrow">Our story</div><h2>About Chef Apedo Foods</h2>
+  <div class="sub">A love for cooking turned into something bigger.</div>
+  <div class="banner">Founder story — why the business started, what Chef Apedo Foods means, what customers can expect.</div>
+  <div class="lbl">Our Promise</div>
+  <ul class="plain"><li>Freshly prepared meals</li><li>Authentic Ghanaian flavours</li><li>Careful preparation</li><li>Reliable service</li></ul></div>
+ </div>
+
+ <div class="screen" data-s="delivinfo"><div class="full">
+  <div class="eyebrow">Practical info</div><h2>Delivery Information</h2>
+  <div class="card"><div class="lbl">Coverage</div>We currently deliver across Accra, excluding selected areas.
+   <div class="sub" style="margin:8px 0 0;">Kasoa · Teshie · Nungua · Ashaiman · Chorkor · Mamprobi · Abokobi</div></div>
+  <div class="card"><div class="lbl">Delivery Fee</div>Starting from GH₵10, depending on location. Paid directly to the rider on arrival.</div>
+  <div class="card"><div class="lbl">Ordering</div>Orders open 6:00 AM. Same-day cutoff 10:00 AM. First delivery slot 11:30 AM.</div>
+  <div class="card"><div class="lbl">Cancellation</div>Up to 1 hour before the scheduled slot; not possible once preparation has started.</div></div>
+ </div>
+
+ <div class="screen" data-s="contact"><div class="full">
+  <div class="eyebrow">Get in touch</div><h2>Let's Talk</h2>
+  <div class="card">
+   <div class="contactrow"><span>WhatsApp</span><span class="badge ok">Chat</span></div>
+   <div class="contactrow"><span>Phone</span><span class="badge ok">Call</span></div>
+   <div class="contactrow"><span>Instagram</span><span class="badge ok">Follow</span></div>
+   <div class="contactrow"><span>TikTok</span><span class="badge ok">Follow</span></div>
+  </div>
+  <div class="banner">Have a question about your order?</div>
+  <div class="btn pri">Chat on WhatsApp</div></div>
+ </div>
+
+ <!-- CORE TRANSACTION -->
+ <div class="screen" data-s="menu">
+  <div class="full">
+   <div class="eyebrow">Chef Apedo Foods</div><h2>Today's Menu</h2>
+   <div class="banner">Orders open until 10:00 AM</div>
+  </div>
+  <div class="full" id="mealGrid">
+   <div class="mealcard"><div class="mealphoto"></div>
+    <div class="mealbody"><div class="mealtitle"><h3>Jollof Rice</h3><span class="badge ok">Available</span></div>
+    <div class="price">From GH₵45</div>
+    <div class="btn pri" data-go="custom" style="margin-top:12px;">Customize</div></div></div>
+   <div class="mealcard"><div class="mealphoto"></div>
+    <div class="mealbody"><div class="mealtitle"><h3>Fried Rice</h3><span class="badge warn">Out of stock</span></div>
+    <div class="price">From GH₵45</div>
+    <div class="btn disabled" style="margin-top:12px;">Unavailable</div></div></div>
+   <div class="mealcard"><div class="mealphoto"></div>
+    <div class="mealbody"><div class="mealtitle"><h3>Plain Rice &amp; Stew</h3><span class="badge ok">Available</span></div>
+    <div class="price">From GH₵45</div>
+    <div class="btn pri" data-go="custom" style="margin-top:12px;">Customize</div></div></div>
+  </div>
+ </div>
+
+ <div class="screen" data-s="custom">
+  <div><div class="mealphoto" style="border-radius:16px;height:180px;"></div>
+   <div class="eyebrow" style="margin-top:14px;">Jollof Rice</div><h2>Customize your order</h2>
+   <div class="sub">Ghanaian-style jollof rice</div></div>
+  <div>
+   <div class="card"><div class="lbl">Choose your size</div><div id="sizeList"></div></div>
+   <div class="card"><div class="lbl">Included protein</div><div id="proteinList"></div>
+    <div class="note">Options change automatically with size.</div></div>
+   <div class="card"><div class="lbl">Add extra protein</div><div id="extraList"></div></div>
+   <div class="stick"><div class="btn pri" data-go="cart" id="addCartBtn">Add to Cart</div></div>
+  </div>
+ </div>
+
+ <div class="screen" data-s="cart">
+  <div class="full"><div class="eyebrow">Step 1</div><h2>Your Cart</h2></div>
+  <div class="card full">
+   <div style="display:flex;justify-content:space-between;">
+    <div><div style="font-family:var(--serif);font-size:15px;">Jollof Rice</div>
+    <div class="note" style="margin-top:2px;">Medium · Chicken + Egg · Extra Chicken · Qty 1</div></div>
+    <div class="price" style="font-size:15px;">GH₵85</div></div>
+   <div class="row" style="margin-top:12px;"><div class="btn ghost sm">Edit</div><div class="btn ghost sm">Remove</div></div>
+  </div>
+  <div class="card full">
+   <div class="optrow"><span>Food subtotal</span><span>GH₵85</span></div>
+   <div class="optrow"><span>Delivery fee</span><span id="cartDelivery">Calculated at checkout</span></div>
+   <div class="btn ghost sm" id="toggleAddr" style="margin-top:8px;">Simulate: address entered</div>
+   <div class="split" id="cartSplit" style="display:none;">
+    <div class="optrow"><b>Pay now</b><b>GH₵85</b></div>
+    <div class="optrow"><b>Pay rider on arrival</b><b>GH₵20</b></div></div>
+  </div>
+  <div class="stick full"><div class="btn pri" data-go="details">Continue to Checkout</div></div>
+ </div>
+
+ <div class="screen" data-s="details">
+  <div class="full"><div class="stepper"><b>1 Cart</b> · <b>2 Details</b> · 3 Delivery · 4 Payment</div><h2>Your Details</h2></div>
+  <div class="card full">
+   <div class="lbl">Full name</div><input placeholder="e.g. Godwin Apedo">
+   <div class="lbl" style="margin-top:14px;">Phone number</div><input placeholder="e.g. 024 000 0000">
+   <div class="note">No account creation, no password — guest checkout only.</div></div>
+  <div class="stick full"><div class="btn pri" data-go="delivery">Continue</div></div>
+ </div>
+
+ <div class="screen" data-s="delivery">
+  <div class="full"><div class="stepper">1 Cart · <b>2 Delivery</b> · 3 Slot · 4 Payment</div><h2>Delivery Details</h2></div>
+  <div class="card full">
+   <div class="statebar" id="areaStates"></div>
+   <div class="lbl">Area</div><select><option id="areaVal">East Legon</option></select>
+   <div class="lbl" style="margin-top:14px;">Delivery address</div><input placeholder="Street, house number">
+   <div class="lbl" style="margin-top:14px;">Landmark / directions</div><input placeholder="Optional">
+   <div class="banner" id="areaOK" style="margin-top:14px;">Delivery fee: <b style="color:var(--gold)">GH₵20</b> — next, choose a slot</div>
+   <div class="warnbox" id="areaWarn" style="display:none;margin-top:14px;">We currently don't deliver to this area. Please choose another location or contact us on WhatsApp.</div></div>
+  <div class="stick full"><div class="btn pri" data-go="slot">Continue</div></div>
+ </div>
+
+ <div class="screen" data-s="slot">
+  <div class="full"><div class="stepper">1 Cart · 2 Delivery · <b>3 Slot</b> · 4 Payment</div><h2>Choose Delivery Time</h2></div>
+  <div class="card full">
+   <div class="optrow"><div class="radio"><div class="dot on"></div>11:30 AM</div><span class="badge ok">Available</span></div>
+   <div class="optrow"><div class="radio"><div class="dot"></div>12:30 PM</div><span class="badge ok">Available</span></div>
+   <div class="optrow"><div class="radio"><div class="dot"></div>1:30 PM</div><span class="badge ok">Available</span></div>
+   <div class="optrow" style="opacity:.4;"><div class="radio"><div class="dot"></div>2:30 PM</div><span class="badge warn">Fully booked</span></div></div>
+  <div class="stick full"><div class="btn pri" data-go="payment">Continue</div></div>
+ </div>
+
+ <div class="screen" data-s="payment">
+  <div class="full"><div class="stepper">1 Cart · 2 Delivery · 3 Slot · <b>4 Payment</b></div><h2>Payment</h2></div>
+  <div class="card full"><div class="lbl">Food payment</div>
+   <div class="sub" style="margin-bottom:12px;">Your food is paid for in advance to secure the order.</div>
+   <div class="optrow"><div class="radio"><div class="dot on"></div>MTN MoMo</div></div>
+   <div class="optrow"><div class="radio"><div class="dot"></div>Telecel Cash</div></div></div>
+  <div class="card full">
+   <div class="optrow"><span>Food subtotal</span><span>GH₵85</span></div>
+   <div class="optrow"><span>Delivery</span><span>GH₵20</span></div>
+   <div class="split"><div class="optrow"><b>Pay now</b><b>GH₵85</b></div><div class="optrow"><b>Pay rider on delivery</b><b>GH₵20</b></div></div></div>
+  <div class="stick full"><div class="btn pri" data-go="pstate">Pay GH₵85</div></div>
+ </div>
+
+ <div class="screen" data-s="pstate">
+  <div class="full"><h2>Payment Status</h2><div class="statebar" id="payStates"></div></div>
+  <div class="card full center" id="pProcessing"><div style="padding:20px 0;">Processing payment…<div class="note">Please do not close this page.</div></div></div>
+  <div class="warnbox full" id="pFailed" style="display:none;text-align:center;">Payment unsuccessful — order not confirmed.
+   <div class="row" style="margin-top:12px;"><div class="btn ghost sm">Try Again</div><div class="btn ghost sm">WhatsApp</div></div></div>
+  <div class="card full center" id="pSuccess" style="display:none;"><div style="padding:16px 0;color:var(--gold);">Payment successful<div class="note">Redirecting to confirmation…</div></div>
+   <div class="btn pri full" data-go="confirm" style="margin-top:6px;">View Confirmation</div></div>
+ </div>
+
+ <div class="screen" data-s="confirm">
+  <div class="full center"><div class="checkmark">✓</div><h2>Order Confirmed</h2><div class="sub">Thank you, Godwin — Order #CAF-000123</div></div>
+  <div class="card full"><div style="display:flex;justify-content:space-between;"><div><div style="font-family:var(--serif);font-size:14px;">Jollof Rice</div><div class="note">Medium · Chicken + Egg</div></div><div class="price">GH₵70</div></div></div>
+  <div class="card full"><div class="lbl">Delivery</div><div class="banner">11:30 AM · East Legon</div>
+   <div class="optrow" style="margin-top:8px;"><span>Paid now</span><span>GH₵70</span></div>
+   <div class="optrow"><span>To rider</span><span>GH₵20</span></div></div>
+  <div class="row full"><div class="btn pri" data-go="status">Track Order</div><div class="btn ghost">WhatsApp</div></div>
+ </div>
+
+ <div class="screen" data-s="status">
+  <div class="full"><h2>Order #CAF-000123</h2></div>
+  <div class="card full"><div class="steps">
+   <div class="step done"><div class="n done">✓</div><span>Order Confirmed</span></div>
+   <div class="step done"><div class="n done">✓</div><span>Preparing</span></div>
+   <div class="step"><div class="n">3</div><span>Ready for Dispatch</span></div>
+   <div class="step"><div class="n">4</div><span>Dispatched</span></div>
+   <div class="step"><div class="n">5</div><span>Delivered</span></div></div></div>
+  <div class="banner full">Estimated delivery: 11:30 AM – 12:30 PM</div>
+  <div class="btn ghost full">WhatsApp Help</div>
+ </div>
+
+ <!-- ADMIN -->
+ <div class="screen" data-s="login"><div class="full">
+  <div class="eyebrow">Chef Apedo Foods</div><h2>Admin Login</h2>
+  <div class="card"><div class="lbl">Email / phone</div><input placeholder="you@example.com">
+   <div class="lbl" style="margin-top:14px;">Password</div><input type="password" placeholder="••••••••">
+   <div class="btn pri" data-go="dash" style="margin-top:16px;">Login</div>
+   <div class="sub" style="margin-top:10px;margin-bottom:0;">No customer accounts exist in MVP — this login is for the chef only.</div></div></div>
+ </div>
+
+ <div class="screen" data-s="dash"><div class="full">
+  <div class="eyebrow">Today</div><h2>Dashboard</h2>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;"><span>Kitchen</span><span style="color:var(--ok);font-weight:600;">● OPEN</span></div>
+  <div class="statgrid">
+   <div class="stat"><b>12</b><span>Orders</span></div><div class="stat"><b>2</b><span>Pending</span></div>
+   <div class="stat"><b>4</b><span>Preparing</span></div><div class="stat"><b>3</b><span>Ready</span></div>
+   <div class="stat"><b>3</b><span>Dispatched</span></div><div class="stat"><b>12/15</b><span>Capacity</span></div></div>
+  <div class="lbl">Incoming Orders</div>
+  <div class="orderrow" data-go="orderdet"><div class="top"><span>#CAF-000123</span><span>GH₵70</span></div><div class="meta">Jollof · Medium · 11:30 AM</div></div></div>
+ </div>
+
+ <div class="screen" data-s="orders"><div class="full">
+  <h2>Orders</h2>
+  <div class="filters"><div class="f on">All</div><div class="f">Pending</div><div class="f">Preparing</div><div class="f">Ready</div><div class="f">Dispatched</div><div class="f">Delivered</div><div class="f">Cancelled</div></div>
+  <div class="orderrow"><div class="top"><span>#CAF-000123</span><span class="badge ok">Confirmed</span></div>
+   <div class="meta">Godwin Apedo · Jollof Medium · Chicken+Egg · 11:30 AM · GH₵70 Paid</div>
+   <div class="btn ghost sm" data-go="orderdet" style="margin-top:8px;">View</div></div></div>
+ </div>
+
+ <div class="screen" data-s="orderdet"><div class="full">
+  <h2>Order #CAF-000123</h2>
+  <div class="statebar" id="statusStates"></div>
+  <div class="card"><div class="lbl">Customer</div>Godwin Apedo · 024 000 0000</div>
+  <div class="card"><div class="lbl">Delivery</div>East Legon · [address] · Slot 11:30 AM</div>
+  <div class="card"><div class="lbl">Food</div>Jollof · Medium · Chicken + Egg</div>
+  <div class="card"><div class="lbl">Payment</div>
+   <div class="optrow"><span>Paid</span><span>GH₵70 ✓</span></div>
+   <div class="optrow"><span>To rider</span><span>GH₵20</span></div></div>
+  <div class="card"><div class="lbl">Actions for current status</div><div class="row" id="actionBtns"></div></div></div>
+ </div>
+
+ <div class="screen" data-s="kitchen"><div class="full">
+  <h2>Kitchen Controls</h2>
+  <div class="card" style="display:flex;justify-content:space-between;align-items:center;">
+   <div><b>Kitchen</b><div class="sub" style="margin:2px 0 0;">Accepting new orders</div></div>
+   <div class="toggle" id="kitchenToggle"><div class="knob"></div></div></div>
+  <div class="card"><div class="optrow"><span>Daily capacity</span><span>15</span></div>
+   <div class="optrow"><span>Orders today</span><span>12</span></div>
+   <div class="optrow"><span>Remaining</span><span>3</span></div></div>
+  <div class="card"><div class="lbl">Menu availability</div>
+   <div class="optrow"><span>Jollof Rice</span><span class="badge ok">Available</span></div>
+   <div class="optrow"><span>Fried Rice</span><span class="badge ok">Available</span></div>
+   <div class="optrow"><span>Plain Rice &amp; Stew</span><span class="badge ok">Available</span></div>
+   <div class="optrow"><span>Chicken</span><span class="badge ok">Available</span></div>
+   <div class="optrow"><span>Sausage</span><span class="badge ok">Available</span></div>
+   <div class="optrow"><span>Egg</span><span class="badge warn" id="eggBadge" style="cursor:pointer;">Out of stock</span></div>
+   <div class="optrow"><span>Fish</span><span class="badge ok">Available</span></div></div></div>
+ </div>
+
+</div>
+<script>
+const GROUPS={tabsMkt:["home","how","about","delivinfo","contact"],
+ tabsCore:["menu","custom","cart","details","delivery","slot","payment","pstate","confirm","status"],
+ tabsAdmin:["login","dash","orders","orderdet","kitchen"]};
+const LABELS={home:"Home",how:"How It Works",about:"About",delivinfo:"Delivery Info",contact:"Contact",
+ menu:"1 Menu",custom:"2 Customize",cart:"3 Cart",details:"4 Details",delivery:"5 Delivery",slot:"6 Slot",
+ payment:"7 Payment",pstate:"8 Pay Status",confirm:"9 Confirm",status:"10 Status",
+ login:"Login",dash:"Dashboard",orders:"Orders",orderdet:"Order Details",kitchen:"Kitchen Controls"};
+function goTo(s){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+ document.querySelectorAll('.screen').forEach(t=>t.classList.remove('active'));
+ const tab=document.querySelector('.tab[data-s="'+s+'"]');if(tab)tab.classList.add('active');
+ document.querySelector('.screen[data-s="'+s+'"]').classList.add('active');
+ window.scrollTo(0,0);}
+Object.keys(GROUPS).forEach(elId=>{const el=document.getElementById(elId);
+ GROUPS[elId].forEach((s,i)=>{const d=document.createElement('div');d.className='tab'+(elId==='tabsMkt'&&i===0?' active':'');
+ d.textContent=LABELS[s];d.dataset.s=s;d.onclick=()=>goTo(s);el.appendChild(d);});});
+document.querySelectorAll('[data-go]').forEach(el=>{el.style.cursor='pointer';el.onclick=(e)=>{if(el.tagName!=='INPUT')goTo(el.dataset.go);};});
+goTo('home');
+
+const SIZES={Small:{price:45,proteins:["2 Sausages","2 Eggs"]},Medium:{price:70,proteins:["Chicken + Egg","Chicken + Sausage"]},Large:{price:90,proteins:["Chicken + 2 Sausages","Chicken + 2 Eggs","Chicken + Sausage + Egg","2 Chickens"]}};
+const EXTRAS={Chicken:15,Sausage:4,Egg:4,Fish:4};
+let curSize="Small",curProtein="2 Sausages",extraQty={Chicken:0,Sausage:0,Egg:0,Fish:0};
+function renderSizes(){const el=document.getElementById('sizeList');el.innerHTML='';
+ Object.keys(SIZES).forEach(sz=>{const r=document.createElement('div');r.className='optrow';
+ r.innerHTML='<div class="radio"><div class="dot'+(sz===curSize?' on':'')+'"></div>'+sz+'</div><span style="color:var(--gold)">GH₵'+SIZES[sz].price+'</span>';
+ r.onclick=()=>{curSize=sz;curProtein=SIZES[sz].proteins[0];renderSizes();renderProteins();updateTotal();};el.appendChild(r);});}
+function renderProteins(){const el=document.getElementById('proteinList');el.innerHTML='';
+ SIZES[curSize].proteins.forEach(p=>{const r=document.createElement('div');r.className='optrow';
+ r.innerHTML='<div class="radio"><div class="dot'+(p===curProtein?' on':'')+'"></div>'+p+'</div>';
+ r.onclick=()=>{curProtein=p;renderProteins();};el.appendChild(r);});}
+function renderExtras(){const el=document.getElementById('extraList');el.innerHTML='';
+ Object.keys(EXTRAS).forEach(name=>{const r=document.createElement('div');r.className='optrow';
+ r.innerHTML='<span>'+name+' <span style="color:var(--gold)">+'+EXTRAS[name]+'</span></span><div class="qty"><div class="qbtn">−</div><span id="q_'+name+'">'+extraQty[name]+'</span><div class="qbtn">+</div></div>';
+ const qbtns=r.querySelectorAll('.qbtn');
+ qbtns[0].onclick=()=>{if(extraQty[name]>0){extraQty[name]--;r.querySelector('#q_'+name).textContent=extraQty[name];updateTotal();}};
+ qbtns[1].onclick=()=>{extraQty[name]++;r.querySelector('#q_'+name).textContent=extraQty[name];updateTotal();};
+ el.appendChild(r);});}
+function updateTotal(){let t=SIZES[curSize].price;Object.keys(extraQty).forEach(n=>t+=extraQty[n]*EXTRAS[n]);
+ document.getElementById('addCartBtn').textContent='Add to Cart • GH₵'+t;}
+renderSizes();renderProteins();renderExtras();updateTotal();
+
+document.getElementById('toggleAddr').onclick=function(){
+ const split=document.getElementById('cartSplit');const show=split.style.display==='none';
+ split.style.display=show?'block':'none';document.getElementById('cartDelivery').textContent=show?'GH₵20':'Calculated at checkout';
+ this.textContent=show?'Address entered ✓':'Simulate: address entered';};
+
+const areas={"East Legon":true,"Kasoa (excluded)":false};
+const asBar=document.getElementById('areaStates');
+Object.keys(areas).forEach((a,i)=>{const b=document.createElement('div');b.className='statebtn'+(i===0?' on':'');b.textContent=a;
+ b.onclick=()=>{document.querySelectorAll('#areaStates .statebtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+ document.getElementById('areaVal').textContent=a;
+ document.getElementById('areaOK').style.display=areas[a]?'block':'none';
+ document.getElementById('areaWarn').style.display=areas[a]?'none':'block';};asBar.appendChild(b);});
+
+const pay={Processing:'pProcessing',Failed:'pFailed',Success:'pSuccess'};
+const psBar=document.getElementById('payStates');
+Object.keys(pay).forEach((k,i)=>{const b=document.createElement('div');b.className='statebtn'+(i===0?' on':'');b.textContent=k;
+ b.onclick=()=>{document.querySelectorAll('#payStates .statebtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+ Object.values(pay).forEach(id=>document.getElementById(id).style.display='none');
+ document.getElementById(pay[k]).style.display='block';};psBar.appendChild(b);});
+
+document.getElementById('kitchenToggle').onclick=function(){this.classList.toggle('off');};
+document.getElementById('eggBadge').onclick=function(){const on=this.textContent==='Out of stock';
+ this.textContent=on?'Available':'Out of stock';this.className='badge '+(on?'ok':'warn');};
+
+const ACTIONS={Confirmed:["Accept","Reject"],Preparing:["Mark Ready"],Ready:["Dispatch"],Dispatched:["Mark Delivered"]};
+const sBar=document.getElementById('statusStates');
+Object.keys(ACTIONS).forEach((k,i)=>{const b=document.createElement('div');b.className='statebtn'+(i===0?' on':'');b.textContent=k;
+ b.onclick=()=>{document.querySelectorAll('#statusStates .statebtn').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderActions(k);};sBar.appendChild(b);});
+function renderActions(status){const el=document.getElementById('actionBtns');el.innerHTML='';
+ ACTIONS[status].forEach((a,i)=>{const d=document.createElement('div');d.className='btn '+(i===0?'pri':'ghost')+' sm';d.textContent=a;el.appendChild(d);});}
+renderActions('Confirmed');
+</script>
+</body>
+</html>
