@@ -3,202 +3,155 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Sparkles, Flame, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export function FeaturedMealsSection() {
-  return (
-    <section
-      id="menu-showcase"
-      className="w-full bg-brand-cream text-ink-light py-20 sm:py-28 relative overflow-hidden"
-    >
-      {/* Background design accents */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-brand-yellow/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-brand-red/10 rounded-full blur-3xl pointer-events-none" />
+  const categories = [
+    {
+      name: "Smoky Jollof",
+      label: "Accra's Favorite",
+      bgClass: "bg-brand-red text-white",
+      href: "/menu/jollof-rice",
+      tag: "Best Seller",
+    },
+    {
+      name: "Seasoned Fried Rice",
+      label: "Garden Fresh",
+      bgClass: "bg-brand-yellow text-brand-dark",
+      href: "/menu/fried-rice",
+      tag: "Chef Specialty",
+    },
+    {
+      name: "Plain Rice & Stew",
+      label: "Classic Comfort",
+      bgClass: "bg-[#7A150F] text-white",
+      href: "/menu/plain-rice-and-stew",
+      tag: "Traditional",
+    },
+  ];
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
-        <div className="max-w-3xl mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-red/10 text-brand-red text-xs font-bold tracking-widest uppercase mb-3">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Today&apos;s Fresh Selection</span>
+  const meals = [
+    {
+      id: "jollof-rice",
+      name: "Smoky Fire Jollof",
+      description: "Slow-simmered spiced tomato sauce with firewood smoke aromatics, shito & fresh salad.",
+      price: "GH₵45.00",
+      image: "/images/meals/jollof-rice.jpg",
+      badge: "Signature",
+    },
+    {
+      id: "fried-rice",
+      name: "Ghanaian Fried Rice",
+      description: "Jasmine rice tossed with crisp sweet carrots, spring onions, eggs & house seasoning blend.",
+      price: "GH₵45.00",
+      image: "/images/meals/fried-rice.jpg",
+      badge: "Popular",
+    },
+    {
+      id: "plain-rice-and-stew",
+      name: "Plain Rice & Rich Stew",
+      description: "Fluffy white jasmine rice served with rich, slow-braised Ghanaian tomato stew and fresh herbs.",
+      price: "GH₵45.00",
+      image: "/images/meals/plain-rice-and-stew.jpg",
+      badge: "Homestyle",
+    },
+  ];
+
+  return (
+    <section id="featured-menu" className="w-full bg-brand-cream text-brand-dark pt-16 pb-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Heading */}
+        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+          <div className="text-xs uppercase font-extrabold tracking-[0.2em] text-brand-red">
+            Today&apos;s Kitchen Selection
           </div>
-          <h2 className="font-serif font-black text-3xl sm:text-4xl md:text-5xl text-brand-espresso tracking-tight leading-tight mb-4">
-            Pick your meal. <br />
-            <span className="italic font-light text-brand-red">
-              Make it yours.
-            </span>
+          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-brand-dark">
+            Fresh, Hot &amp; Made To Crave.
           </h2>
-          <p className="text-base text-ink-dim-light leading-relaxed">
-            All meals are prepared to order in small batches. Choose your size,
-            select your included protein package, and add extra meats as you crave.
+          <p className="text-sm sm:text-base text-brand-muted max-w-lg mx-auto">
+            Choose your favorite base, select your portion size, and pick your included protein package.
           </p>
         </div>
 
-        {/* Asymmetrical Featured Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          {/* Card 1: Large Featured Hero Card (Jollof Rice) - 7 Cols */}
-          <div className="lg:col-span-7 bg-brand-cream-light rounded-3xl overflow-hidden border border-brand-espresso/10 shadow-card-elevation flex flex-col justify-between group hover:shadow-2xl transition-all duration-300">
-            {/* Top Photography with Badge Overlay */}
-            <div className="relative w-full h-[280px] sm:h-[340px] overflow-hidden">
-              <Image
-                src="/images/meals/jollof-rice.jpg"
-                alt="Chef Apedo Jollof Rice"
-                fill
-                sizes="(max-width: 1024px) 100vw, 60vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-espresso/70 via-transparent to-transparent opacity-80" />
-
-              <div className="absolute top-4 left-4 flex gap-2">
-                <span className="px-3.5 py-1.5 rounded-full bg-brand-red text-white text-xs font-bold shadow-md uppercase tracking-wider flex items-center gap-1.5">
-                  <Flame className="w-3.5 h-3.5" />
-                  Signature Dish
+        {/* 3 Color-Coded Category Highlight Blocks (Matching Reference Image 2) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-12">
+          {categories.map((cat) => (
+            <Link
+              key={cat.name}
+              href={cat.href}
+              className={`${cat.bgClass} rounded-2xl p-6 sm:p-7 flex flex-col justify-between transition-transform duration-200 hover:-translate-y-1 shadow-card-depth group`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[11px] uppercase tracking-wider font-extrabold opacity-90">
+                  {cat.tag}
                 </span>
-                <span className="px-3.5 py-1.5 rounded-full bg-brand-yellow text-brand-espresso text-xs font-bold shadow-md uppercase tracking-wider">
-                  Accra #1 Craving
+                <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+              </div>
+              <div>
+                <h3 className="font-display font-extrabold text-2xl sm:text-3xl leading-none uppercase mb-1">
+                  {cat.name}
+                </h3>
+                <p className="text-xs font-medium opacity-85">{cat.label}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* 3 White Product Cards with Large Real Food Photography (Reference Image 2) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          {meals.map((meal) => (
+            <div
+              key={meal.id}
+              className="bg-white rounded-2xl p-6 border border-brand-cream-dark shadow-card-depth flex flex-col justify-between group transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
+            >
+              {/* Image Frame */}
+              <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden mb-6 bg-brand-cream-dark">
+                <Image
+                  src={meal.image}
+                  alt={meal.name}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 360px"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  {meal.badge}
                 </span>
               </div>
 
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <div className="font-serif font-bold text-2xl sm:text-3xl text-ink">
-                  Smoky Jollof Rice
-                </div>
-                <div className="text-xs sm:text-sm text-brand-gold-soft font-medium">
-                  Fire-simmered Ghanaian gold with deep spice aromatics
+              {/* Title & Description */}
+              <div className="space-y-2 mb-6">
+                <h3 className="font-display font-extrabold text-xl sm:text-2xl text-brand-dark uppercase tracking-tight">
+                  {meal.name}
+                </h3>
+                <p className="text-xs sm:text-sm text-brand-muted leading-relaxed line-clamp-2">
+                  {meal.description}
+                </p>
+                <div className="text-[11px] text-brand-red font-semibold pt-1">
+                  Includes protein package (Chicken, Sausage, or Eggs)
                 </div>
               </div>
-            </div>
 
-            {/* Card Content & CTAs */}
-            <div className="p-6 sm:p-8 flex flex-col justify-between flex-1 gap-6">
-              <p className="text-sm text-ink-dim-light leading-relaxed">
-                Ghanaian-style fragrant rice cooked in slow-simmered spiced tomato
-                sauce with rich herbs and subtle firewood smoke. Accompanied by
-                shito and fresh vegetables.
-              </p>
-
-              <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-brand-espresso/10">
+              {/* Price & Yellow Pill Button (Reference Image 2) */}
+              <div className="pt-4 border-t border-brand-cream-dark flex items-center justify-between">
                 <div>
-                  <div className="text-xs uppercase tracking-wider text-ink-dim-light font-medium">
-                    Starting from
+                  <div className="text-[10px] uppercase font-bold text-brand-muted tracking-wider">
+                    Starts at
                   </div>
-                  <div className="font-serif font-black text-2xl text-brand-red">
-                    GH₵45
+                  <div className="font-display font-extrabold text-xl text-brand-dark">
+                    {meal.price}
                   </div>
                 </div>
 
                 <Link
-                  href="/menu/jollof-rice"
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-red hover:bg-brand-red-dark text-white font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
+                  href={`/menu/${meal.id}`}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs uppercase tracking-wider transition-colors shadow-button-yellow"
                 >
-                  <span>Customize Jollof</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span>Customize</span>
+                  <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </Link>
               </div>
             </div>
-          </div>
-
-          {/* Right Column: Stacked Cards (Fried Rice & Plain Rice & Stew) - 5 Cols */}
-          <div className="lg:col-span-5 flex flex-col gap-8">
-            {/* Card 2: Fried Rice */}
-            <div className="bg-brand-cream-light rounded-3xl overflow-hidden border border-brand-espresso/10 shadow-card-elevation flex flex-col group hover:shadow-xl transition-all duration-300">
-              <div className="relative w-full h-[180px] sm:h-[200px] overflow-hidden">
-                <Image
-                  src="/images/meals/fried-rice.jpg"
-                  alt="Chef Apedo Fried Rice"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-espresso/60 via-transparent to-transparent" />
-                <div className="absolute top-3 left-3">
-                  <span className="px-3 py-1 rounded-full bg-brand-yellow text-brand-espresso text-xs font-bold shadow-sm uppercase tracking-wider">
-                    Chef Specialty
-                  </span>
-                </div>
-                <div className="absolute bottom-3 left-4 right-4 text-white">
-                  <div className="font-serif font-bold text-xl text-ink">
-                    Ghanaian Fried Rice
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-5 sm:p-6 flex flex-col justify-between flex-1 gap-4">
-                <p className="text-xs sm:text-sm text-ink-dim-light line-clamp-2">
-                  Wok-tossed seasoned rice with sweet carrots, green peas, scallions,
-                  and authentic house-made shito.
-                </p>
-
-                <div className="flex items-center justify-between pt-2 border-t border-brand-espresso/10">
-                  <span className="font-serif font-bold text-lg text-brand-espresso">
-                    From GH₵45
-                  </span>
-                  <Link
-                    href="/menu/fried-rice"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-espresso text-brand-gold font-bold text-xs hover:bg-brand-espresso-light transition-all active:scale-95"
-                  >
-                    <span>Customize</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            {/* Card 3: Plain Rice & Stew */}
-            <div className="bg-brand-cream-light rounded-3xl overflow-hidden border border-brand-espresso/10 shadow-card-elevation flex flex-col group hover:shadow-xl transition-all duration-300">
-              <div className="relative w-full h-[180px] sm:h-[200px] overflow-hidden">
-                <Image
-                  src="/images/meals/plain-rice-and-stew.jpg"
-                  alt="Chef Apedo Plain Rice & Stew"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-espresso/60 via-transparent to-transparent" />
-                <div className="absolute top-3 left-3">
-                  <span className="px-3 py-1 rounded-full bg-brand-gold text-brand-espresso text-xs font-bold shadow-sm uppercase tracking-wider">
-                    Comfort Classic
-                  </span>
-                </div>
-                <div className="absolute bottom-3 left-4 right-4 text-white">
-                  <div className="font-serif font-bold text-xl text-ink">
-                    Plain Rice & Stew
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-5 sm:p-6 flex flex-col justify-between flex-1 gap-4">
-                <p className="text-xs sm:text-sm text-ink-dim-light line-clamp-2">
-                  Fluffy steamed jasmine rice served with rich, savory Ghanaian beef
-                  and chicken stew slow-braised to tenderness.
-                </p>
-
-                <div className="flex items-center justify-between pt-2 border-t border-brand-espresso/10">
-                  <span className="font-serif font-bold text-lg text-brand-espresso">
-                    From GH₵45
-                  </span>
-                  <Link
-                    href="/menu/plain-rice-and-stew"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-brand-espresso text-brand-gold font-bold text-xs hover:bg-brand-espresso-light transition-all active:scale-95"
-                  >
-                    <span>Customize</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Menu Anchor */}
-        <div className="mt-12 text-center">
-          <Link
-            href="/menu"
-            className="inline-flex items-center gap-2 text-sm font-bold text-brand-red hover:text-brand-red-dark transition-colors border-b-2 border-brand-red/30 pb-1"
-          >
-            <span>View Full Menu & All Protein Package Combinations</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          ))}
         </div>
       </div>
     </section>

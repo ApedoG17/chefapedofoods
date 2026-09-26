@@ -35,11 +35,11 @@ export function Button({
       "bg-transparent text-ink-dim border border-line opacity-35 pointer-events-none";
   } else if (variant === "ghost") {
     variantStyles =
-      "bg-transparent text-gold border-[1.5px] border-gold hover:bg-gold/10 active:bg-gold/20";
+      "bg-surface2 text-ink border border-line hover:border-brand-gold/60 hover:text-brand-gold active:bg-surface2/80";
   } else {
     // primary
     variantStyles =
-      "bg-gold text-ink-on-cream border-[1.5px] border-gold hover:bg-gold-soft hover:border-gold-soft active:opacity-90";
+      "bg-gold text-ink-on-cream border-[1.5px] border-gold hover:bg-gold-soft hover:border-gold-soft active:opacity-90 shadow-warm-sm";
   }
 
   return (

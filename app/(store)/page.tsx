@@ -1,9 +1,9 @@
 import React from "react";
 import { HeroSection } from "@/components/home/HeroSection";
 import { FeaturedMealsSection } from "@/components/home/FeaturedMealsSection";
-import { BrandStorySection } from "@/components/home/BrandStorySection";
 import { BuildYourPlateSection } from "@/components/home/BuildYourPlateSection";
 import { DeliveryCoverageSection } from "@/components/home/DeliveryCoverageSection";
+import { BrandStorySection } from "@/components/home/BrandStorySection";
 import { StatementCTASection } from "@/components/home/StatementCTASection";
 
 export const metadata = {
@@ -15,22 +15,22 @@ export const metadata = {
 export default function HomePage() {
   return (
     <main className="w-full flex flex-col overflow-hidden">
-      {/* 1. Hero: Deep Espresso with 3D Parallax & Real Food Photography */}
+      {/* 1. Hero: Deep Red Block with High-Impact Typography, Yellow Pill CTA, and 3D Tilt Food Photo */}
       <HeroSection />
 
-      {/* 2. Featured Meals: Warm Cream with Asymmetric Editorial Cards */}
+      {/* 2. Featured Meals: Warm Cream Canvas with 3 Color Category Highlights & Crisp White Food Cards */}
       <FeaturedMealsSection />
 
-      {/* 3. Artisan Story: Rich Ghanaian Red with Cooking Commitments */}
-      <BrandStorySection />
-
-      {/* 4. Build Your Plate: Warm Golden Yellow with Interactive Customization */}
+      {/* 3. Build Your Plate: Vibrant Golden Yellow Color Block with Interactive Portion Architecture */}
       <BuildYourPlateSection />
 
-      {/* 5. Accra Coverage: Deep Espresso with Zone Cards & Split Payment Policy */}
+      {/* 4. Accra Coverage: Dual Visual Feature Blocks (Rider Dispatch & Two-Part Payment Split) */}
       <DeliveryCoverageSection />
 
-      {/* 6. Statement CTA: Deep Espresso with Oversized Typography & Gold Glow */}
+      {/* 5. Kitchen Promise: Deep Charcoal Block with 3 High-Impact Pillars & Chef Godwin Statement */}
+      <BrandStorySection />
+
+      {/* 6. Statement CTA: Deep Red Block with Oversized Headline & Yellow Pill CTA Button */}
       <StatementCTASection />
     </main>
   );
