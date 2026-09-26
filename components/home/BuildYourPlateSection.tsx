@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { MEAL_SIZES, INCLUDED_PROTEIN_OPTIONS, EXTRA_PROTEIN_PESEWAS } from "@/config/business";
 import { formatGHS } from "@/lib/pricing";
-import { Check, ArrowRight, Utensils, Plus, Sparkles } from "lucide-react";
+import { Check, ArrowRight, Plus } from "lucide-react";
 
 type SizeKey = keyof typeof MEAL_SIZES;
 
@@ -15,27 +15,23 @@ export function BuildYourPlateSection() {
   const includedProteins = INCLUDED_PROTEIN_OPTIONS[activeSize];
 
   return (
-    <section className="w-full bg-brand-yellow text-brand-espresso py-20 sm:py-28 relative overflow-hidden">
-      {/* Decorative background shape */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-brand-yellow-dark/20 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="max-w-3xl mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-espresso text-brand-gold text-xs font-bold tracking-widest uppercase mb-3">
-            <Utensils className="w-3.5 h-3.5" />
-            <span>Interactive Customization</span>
+    <section className="w-full bg-brand-yellow text-brand-dark py-16 sm:py-24">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+          <div className="text-xs font-black uppercase tracking-[0.2em] text-brand-red">
+            Portion Architecture
           </div>
-          <h2 className="font-serif font-black text-3xl sm:text-4xl md:text-5xl text-brand-espresso tracking-tight leading-tight mb-4">
-            How your plate comes together.
+          <h2 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tight text-brand-dark">
+            How Your Plate Comes Together.
           </h2>
-          <p className="text-base text-brand-espresso/80 leading-relaxed">
-            Every meal size includes premium proteins at no extra cost. Select a
-            size below to see exactly what comes with your order:
+          <p className="text-sm sm:text-base text-brand-dark/85 font-medium max-w-lg mx-auto">
+            Every size comes with generous proteins included in the base price. Select your portion below:
           </p>
         </div>
 
-        {/* Size Selection Tabs */}
-        <div className="grid grid-cols-3 gap-3 sm:gap-6 mb-8 max-w-2xl">
+        {/* Portion Size Tabs */}
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-10">
           {(Object.keys(MEAL_SIZES) as SizeKey[]).map((sizeKey) => {
             const size = MEAL_SIZES[sizeKey];
             const isSelected = activeSize === sizeKey;
@@ -43,100 +39,101 @@ export function BuildYourPlateSection() {
               <button
                 key={sizeKey}
                 onClick={() => setActiveSize(sizeKey)}
-                className={`py-4 px-3 sm:px-6 rounded-2xl sm:rounded-3xl text-center transition-all duration-200 border-2 ${
+                className={`py-3.5 px-6 sm:px-8 rounded-full font-display uppercase tracking-wider text-xs sm:text-sm font-extrabold transition-all duration-200 ${
                   isSelected
-                    ? "bg-brand-espresso text-ink border-brand-espresso shadow-xl scale-[1.03]"
-                    : "bg-brand-yellow-light/60 text-brand-espresso border-brand-espresso/15 hover:bg-white/40"
+                    ? "bg-brand-dark text-white shadow-lg scale-105"
+                    : "bg-white/80 text-brand-dark hover:bg-white"
                 }`}
               >
-                <div
-                  className={`text-xs uppercase font-bold tracking-wider mb-1 ${
-                    isSelected ? "text-brand-gold" : "text-brand-espresso/70"
-                  }`}
-                >
-                  {size.label}
-                </div>
-                <div className="font-serif font-black text-xl sm:text-2xl">
+                <span>{size.label}</span>
+                <span className="ml-2 text-brand-yellow font-black">
                   {formatGHS(size.basePesewas)}
-                </div>
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* Interactive Breakdown Card */}
-        <div className="bg-brand-cream-light rounded-3xl p-6 sm:p-10 border border-brand-espresso/10 shadow-2xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Left Column: What's included in this size */}
-          <div className="lg:col-span-7 space-y-6">
+        {/* Breakdown Card Grid (Crisp white containers on vibrant yellow background) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          {/* Left Column: Included Proteins (7 Cols) */}
+          <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 shadow-card-depth border border-black/5 flex flex-col justify-between">
             <div>
-              <div className="text-xs font-bold uppercase tracking-wider text-brand-red mb-1">
-                Included with {sizeInfo.label} Size
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[11px] font-black uppercase tracking-wider text-brand-red">
+                  Step 1: Choose Included Protein
+                </span>
+                <span className="bg-brand-cream text-brand-dark text-[11px] font-bold px-3 py-1 rounded-full">
+                  Included in {formatGHS(sizeInfo.basePesewas)}
+                </span>
               </div>
-              <h3 className="font-serif font-black text-2xl sm:text-3xl text-brand-espresso">
-                Choose 1 of these included protein packages:
+              <h3 className="font-display font-extrabold text-2xl sm:text-3xl text-brand-dark uppercase tracking-tight mb-2">
+                Included with {sizeInfo.label}
               </h3>
-            </div>
+              <p className="text-xs sm:text-sm text-brand-muted mb-6">
+                Pick 1 of the following protein packages to accompany your rice:
+              </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {includedProteins.map((proteinName, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-brand-espresso/10 shadow-sm"
-                >
-                  <div className="w-7 h-7 rounded-full bg-brand-gold/20 flex items-center justify-center text-brand-espresso flex-none">
-                    <Check className="w-4 h-4 text-brand-espresso font-bold" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                {includedProteins.map((proteinName, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 p-3.5 rounded-xl bg-brand-cream border border-brand-cream-dark"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-brand-red text-white flex items-center justify-center flex-none">
+                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    </div>
+                    <span className="font-bold text-xs sm:text-sm text-brand-dark">
+                      {proteinName}
+                    </span>
                   </div>
-                  <span className="font-medium text-xs sm:text-sm text-brand-espresso">
-                    {proteinName}
-                  </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            <p className="text-xs text-ink-dim-light italic">
-              All included protein packages are covered in the base price of{" "}
-              {formatGHS(sizeInfo.basePesewas)}.
+            <p className="text-xs text-brand-muted italic">
+              All included protein packages are cooked fresh with your meal and covered in the base price.
             </p>
           </div>
 
-          {/* Right Column: Optional extra proteins */}
-          <div className="lg:col-span-5 bg-white p-6 sm:p-8 rounded-3xl border border-brand-espresso/10 space-y-5">
-            <div className="flex items-center justify-between border-b border-brand-espresso/10 pb-3">
-              <div>
-                <div className="font-serif font-bold text-lg text-brand-espresso">
-                  Extra Protein Add-ons
-                </div>
-                <div className="text-[11px] text-ink-dim-light">
-                  Want more meat? Add extras at checkout:
-                </div>
+          {/* Right Column: Optional Extra Add-ons (5 Cols) */}
+          <div className="lg:col-span-5 bg-brand-dark text-white rounded-3xl p-6 sm:p-8 shadow-card-depth flex flex-col justify-between">
+            <div>
+              <div className="text-[11px] font-black uppercase tracking-wider text-brand-yellow mb-2">
+                Step 2: Add Extra Meats
               </div>
-              <Plus className="w-5 h-5 text-brand-red" />
-            </div>
+              <h3 className="font-display font-extrabold text-2xl sm:text-3xl text-white uppercase tracking-tight mb-4">
+                Extra Meats
+              </h3>
+              <p className="text-xs text-white/70 mb-6">
+                Craving extra protein? Stack extra pieces onto any meal:
+              </p>
 
-            <div className="space-y-2.5">
-              {(Object.keys(EXTRA_PROTEIN_PESEWAS) as (keyof typeof EXTRA_PROTEIN_PESEWAS)[]).map(
-                (extraKey) => (
-                  <div
-                    key={extraKey}
-                    className="flex justify-between items-center text-xs sm:text-sm py-1.5 border-b border-brand-espresso/5"
-                  >
-                    <span className="font-medium capitalize text-brand-espresso">
-                      Extra {extraKey}
-                    </span>
-                    <span className="font-serif font-bold text-brand-red">
-                      +{formatGHS(EXTRA_PROTEIN_PESEWAS[extraKey])}
-                    </span>
-                  </div>
-                )
-              )}
+              <div className="divide-y divide-white/10 mb-6">
+                {(Object.keys(EXTRA_PROTEIN_PESEWAS) as (keyof typeof EXTRA_PROTEIN_PESEWAS)[]).map(
+                  (extraKey) => (
+                    <div
+                      key={extraKey}
+                      className="py-2.5 flex items-center justify-between text-xs sm:text-sm"
+                    >
+                      <span className="capitalize font-semibold text-white/90">
+                        Extra {extraKey}
+                      </span>
+                      <span className="font-display font-extrabold text-brand-yellow">
+                        +{formatGHS(EXTRA_PROTEIN_PESEWAS[extraKey])}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
             </div>
 
             <Link
               href="/menu"
-              className="inline-flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-brand-espresso text-brand-gold font-bold text-sm hover:bg-brand-espresso-light transition-all shadow-md active:scale-95"
+              className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-colors shadow-button-yellow"
             >
-              <span>Build Your Order</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Build Your Order Now</span>
+              <ArrowRight className="w-4 h-4 stroke-[3]" />
             </Link>
           </div>
         </div>

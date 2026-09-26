@@ -1,62 +1,80 @@
 import type { Config } from "tailwindcss";
 
-// Color tokens mirror docs/DESIGN_SYSTEM.md — evolved for the art-directed Ghanaian culinary brand.
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        // Core Legacy Aliases (preserved for existing UI)
-        bg: "#17110D",
-        surface: "#241A13",
-        surface2: "#2C2117",
-        line: "#3A2C1F",
-        gold: "#C9A24C",
-        "gold-soft": "#E7CE96",
-        "bg-light": "#F8F0DF",
-        ok: "#7FAE78",
-        warn: "#D08277",
+        // Core Legacy Aliases (preserved for existing store components)
+        bg: "#18110E",
+        surface: "#251C18",
+        surface2: "#2E231E",
+        line: "#3D302A",
+        gold: "#F5A623",
+        "gold-soft": "#F2CE8A",
+        "bg-light": "#FAF5EE",
+        ok: "#6B8E67",
+        warn: "#C46558",
 
-        // Evolved Brand Palette Tokens
+        // Art-Directed Visual Brand System (Inspired by Reference Images)
         brand: {
-          espresso: "#17110D",
-          "espresso-light": "#241A13",
-          cream: "#F8F0DF",
-          "cream-light": "#FAF5EB",
-          "cream-dark": "#EDE2CB",
-          red: "#A91D1D",
-          "red-dark": "#881515",
-          "red-light": "#C32B2B",
-          gold: "#C9A24C",
-          "gold-soft": "#E7CE96",
-          yellow: "#F2B632",
-          "yellow-dark": "#D6991D",
-          "yellow-light": "#FCD975",
-          orange: "#E87524",
+          // Deep red / burgundy for Hero and primary feature blocks
+          red: "#9E1B15",
+          "red-dark": "#7C130E",
+          "red-light": "#B8251E",
+          "red-accent": "#D32F2F",
+
+          // Warm cream / off-white for main content areas
+          cream: "#FAF5EE",
+          "cream-light": "#FFFDF9",
+          "cream-dark": "#EFE6D8",
+
+          // Vibrant golden yellow for CTAs, prices, and highlight blocks
+          yellow: "#F5A623",
+          "yellow-dark": "#D98E16",
+          "yellow-light": "#F8C158",
+          gold: "#F5A623",
+
+          // Deep charcoal / near-black for dark sections and high contrast
+          dark: "#18110E",
+          charcoal: "#1F1512",
+          espresso: "#18110E",
+          "dark-surface": "#241A16",
+
+          // Pure white for cards and floating containers
+          white: "#FFFFFF",
+
+          // Restrained earth / terracotta tones
+          terracotta: "#A8362B",
+          sand: "#EFE5D5",
+          muted: "#6E6259",
         },
         ink: {
-          dark: "#F6EFE4",
-          light: "#17110D",
-          dim: "#B7AA98",
-          "dim-light": "#6E5D4F",
-          "on-cream": "#231A12",
-          DEFAULT: "#F6EFE4",
+          dark: "#FFFFFF",
+          light: "#18110E",
+          dim: "#A39587",
+          "dim-light": "#6E6259",
+          "on-cream": "#18110E",
+          DEFAULT: "#FFFFFF",
         },
       },
       fontFamily: {
-        serif: ["Fraunces", "serif"],
-        sans: ["Inter", "system-ui", "sans-serif"],
+        display: ["Syne", "Plus Jakarta Sans", "system-ui", "sans-serif"],
+        sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"],
       },
       borderRadius: {
-        card: "18px",
         pill: "9999px",
-        "3xl": "28px",
+        "2xl": "16px",
+        "3xl": "24px",
       },
       boxShadow: {
-        "gold-glow": "0 0 25px -4px rgba(201, 162, 76, 0.4)",
-        "red-glow": "0 0 30px -5px rgba(169, 29, 29, 0.5)",
-        "food-depth": "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-        "card-elevation": "0 10px 30px -8px rgba(23, 17, 13, 0.12)",
+        "card-depth": "0 12px 32px -4px rgba(24, 17, 14, 0.08), 0 4px 12px -2px rgba(24, 17, 14, 0.04)",
+        "food-depth": "0 28px 56px -12px rgba(0, 0, 0, 0.45)",
+        "button-yellow": "0 6px 20px -2px rgba(245, 166, 35, 0.4)",
+        "button-red": "0 6px 20px -2px rgba(158, 27, 21, 0.35)",
+        "warm-sm": "0 2px 8px -2px rgba(24, 17, 14, 0.06)",
+        "warm-md": "0 8px 24px -4px rgba(24, 17, 14, 0.10)",
+        "warm-lg": "0 16px 40px -8px rgba(24, 17, 14, 0.16)",
       },
     },
   },

@@ -2,44 +2,38 @@ export interface MealMedia {
   id: string;
   name: string;
   image: string;
+  isolatedImage: string;
   alt: string;
-  tagline: string;
-  accentBadge: string;
   description: string;
-  spiciness: number; // 1-3
+  tagline?: string;
+  accentBadge?: string;
 }
 
 export const JOLLOF_MEDIA: MealMedia = {
   id: "jollof-rice",
   name: "Jollof Rice",
   image: "/images/meals/jollof-rice.jpg",
-  alt: "Authentic Ghanaian smoky fire Jollof Rice topped with red onion and fresh herbs",
-  tagline: "Fire-simmered Ghanaian gold with deep spice aromatics",
-  accentBadge: "Accra's Favorite",
-  description: "Ghanaian-style fragrant jollof rice cooked in rich spiced tomato sauce with subtle smoky undertones.",
-  spiciness: 2,
+  isolatedImage: "/images/meals/jollof-isolated.png",
+  alt: "Chef Apedo Jollof Rice",
+  description: "Ghanaian-style jollof rice prepared fresh daily.",
 };
 
 export const FRIED_RICE_MEDIA: MealMedia = {
   id: "fried-rice",
   name: "Fried Rice",
   image: "/images/meals/fried-rice.jpg",
-  alt: "Ghanaian style wok fried rice with seasoned vegetables and rich artisanal shito",
-  tagline: "Tossed with garden aromatics and our signature savory glaze",
-  accentBadge: "Chef Specialty",
-  description: "Seasoned Ghanaian fried rice loaded with sweet carrots, green peas, and local seasonings.",
-  spiciness: 1,
+  isolatedImage: "/images/meals/fried-rice-isolated.png",
+  alt: "Chef Apedo Fried Rice",
+  description: "Ghanaian-style fried rice.",
 };
 
 export const PLAIN_RICE_MEDIA: MealMedia = {
   id: "plain-rice-and-stew",
   name: "Plain Rice & Stew",
   image: "/images/meals/plain-rice-and-stew.jpg",
-  alt: "Steaming white jasmine rice paired with authentic slow-simmered Ghanaian beef and chicken stew",
-  tagline: "Slow-braised rich tomato stew with meltingly tender meat cuts",
-  accentBadge: "Comfort Classic",
-  description: "Fluffy white jasmine rice served with rich, savory Ghanaian beef and chicken stew, seasoned to perfection.",
-  spiciness: 2,
+  isolatedImage: "/images/meals/plain-rice-isolated.png",
+  alt: "Chef Apedo Plain Rice & Stew",
+  description: "Plain rice served with stew.",
 };
 
 export const MEAL_MEDIA_MAP: Record<string, MealMedia> = {
@@ -49,7 +43,7 @@ export const MEAL_MEDIA_MAP: Record<string, MealMedia> = {
 };
 
 /**
- * Resolves a meal identifier (slug, name, or UUID) to its corresponding rich media data.
+ * Resolves a meal identifier (slug, name, or UUID) to its corresponding real media data.
  */
 export function getMealMedia(identifier: string | null | undefined): MealMedia {
   if (!identifier) {

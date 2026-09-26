@@ -3,13 +3,23 @@
 import { useEffect, useState } from "react";
 import { formatGHS } from "@/lib/pricing";
 
+export interface CartItemConfiguration {
+  size: { name: string; priceModifier: number };
+  protein: { id: string; name: string; priceModifier: number };
+  extras: Array<{ id: string; name: string; quantity: number; unitPrice: number }>;
+}
+
 export interface CartItem {
   id: string;
+  cartItemId: string; // Unique ID to allow multiple of same meal with different configs
   mealId: string;
+  name: string;
   mealName: string;
+  basePrice: number;
+  basePricePesewas: number;
+  quantity: number;
   size: "small" | "medium" | "large";
   sizeLabel: string;
-  basePricePesewas: number;
   includedProteinPackageName: string;
   extras: {
     chicken?: number;
@@ -17,7 +27,8 @@ export interface CartItem {
     egg?: number;
     fish?: number;
   };
-  quantity: number;
+  configuration: CartItemConfiguration;
+  itemTotal: number;
   itemSubtotalPesewas: number;
 }
 
@@ -51,7 +62,27 @@ export function addToCart(item: CartItem): void {
 
 export function removeFromCart(itemId: string): void {
   const current = getCartItems();
-  const updated = current.filter((i) => i.id !== itemId);
+  const updated = current.filter((i) => i.id !== itemId && i.cartItemId !== itemId);
+  saveCartItems(updated);
+}
+
+export function updateCartItemQuantity(itemId: string, newQuantity: number): void {
+  const current = getCartItems();
+  if (newQuantity <= 0) {
+    saveCartItems(current.filter((i) => i.id !== itemId && i.cartItemId !== itemId));
+    return;
+  }
+  const updated = current.map((i) => {
+    if (i.id !== itemId && i.cartItemId !== itemId) return i;
+    const unitPrice = i.itemSubtotalPesewas / (i.quantity || 1);
+    const newTotal = Math.round(unitPrice * newQuantity);
+    return {
+      ...i,
+      quantity: newQuantity,
+      itemSubtotalPesewas: newTotal,
+      itemTotal: newTotal,
+    };
+  });
   saveCartItems(updated);
 }
 
@@ -97,6 +128,7 @@ export function useCart() {
     itemCount: items.reduce((sum, i) => sum + i.quantity, 0),
     addItem: addToCart,
     removeItem: removeFromCart,
+    updateQuantity: updateCartItemQuantity,
     clearCart,
   };
 }

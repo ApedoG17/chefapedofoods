@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     if (!secretKey) {
       // In development if Paystack keys aren't set yet, return mock URL for testing
       return NextResponse.json({
-        authorizationUrl: `/orders/${order.id}/confirmed?reference=${reference}&mock=true`,
+        authorizationUrl: `/order/${order.id}?reference=${reference}&mock=true&new=true`,
         reference,
         isMock: true,
       });
