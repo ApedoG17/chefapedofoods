@@ -23,6 +23,9 @@ export default function StoreLayout({
   const isFullWidthPage =
     pathname === "/" ||
     pathname.startsWith("/menu") ||
+    pathname.startsWith("/delivery") ||
+    pathname.startsWith("/about") ||
+    pathname.startsWith("/contact") ||
     pathname.startsWith("/order/") ||
     pathname.startsWith("/orders/");
 

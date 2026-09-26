@@ -8,52 +8,49 @@ import { ArrowRight } from "lucide-react";
 export function FeaturedMealsSection() {
   const categories = [
     {
-      name: "Smoky Jollof",
-      label: "Accra's Favorite",
+      name: "Jollof Rice",
+      label: "Smoky Tomato Base",
       bgClass: "bg-brand-red text-white",
       href: "/menu/jollof-rice",
-      tag: "Best Seller",
+      tag: "Daily Staple",
     },
     {
-      name: "Seasoned Fried Rice",
-      label: "Garden Fresh",
+      name: "Fried Rice",
+      label: "Seasoned Garden Veg",
       bgClass: "bg-brand-yellow text-brand-dark",
       href: "/menu/fried-rice",
-      tag: "Chef Specialty",
+      tag: "Daily Staple",
     },
     {
       name: "Plain Rice & Stew",
-      label: "Classic Comfort",
+      label: "Slow-Braised Tomato Stew",
       bgClass: "bg-[#7A150F] text-white",
       href: "/menu/plain-rice-and-stew",
-      tag: "Traditional",
+      tag: "Daily Staple",
     },
   ];
 
   const meals = [
     {
       id: "jollof-rice",
-      name: "Smoky Fire Jollof",
-      description: "Slow-simmered spiced tomato sauce with firewood smoke aromatics, shito & fresh salad.",
+      name: "Jollof Rice",
+      description: "Ghanaian-style smoky jollof rice prepared fresh each morning in small batches with real local aromatics.",
       price: "GH₵45.00",
       image: "/images/meals/jollof-rice.jpg",
-      badge: "Signature",
     },
     {
       id: "fried-rice",
-      name: "Ghanaian Fried Rice",
-      description: "Jasmine rice tossed with crisp sweet carrots, spring onions, eggs & house seasoning blend.",
+      name: "Fried Rice",
+      description: "Ghanaian-style seasoned wok fried rice with crisp garden vegetables and tender seasonings.",
       price: "GH₵45.00",
       image: "/images/meals/fried-rice.jpg",
-      badge: "Popular",
     },
     {
       id: "plain-rice-and-stew",
-      name: "Plain Rice & Rich Stew",
-      description: "Fluffy white jasmine rice served with rich, slow-braised Ghanaian tomato stew and fresh herbs.",
+      name: "Plain Rice & Stew",
+      description: "Fluffy steamed white jasmine rice served with Chef Apedo's authentic rich tomato and meat stew.",
       price: "GH₵45.00",
       image: "/images/meals/plain-rice-and-stew.jpg",
-      badge: "Homestyle",
     },
   ];
 
@@ -113,9 +110,6 @@ export function FeaturedMealsSection() {
                   sizes="(max-width: 768px) 100vw, 360px"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <span className="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider">
-                  {meal.badge}
-                </span>
               </div>
 
               {/* Title & Description */}

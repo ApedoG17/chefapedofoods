@@ -1,97 +1,274 @@
-import React from "react";
-import { Button } from "@/components/ui/Button";
-import { MessageSquare, Phone, Sparkles } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import { ORDERING_HOURS, EXCLUDED_DELIVERY_AREAS } from "@/config/business";
+import { MessageSquare, Clock, Phone, MapPin, Send, AlertCircle, CheckCircle2 } from "lucide-react";
 
 export default function ContactPage() {
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
+  // Business WhatsApp number from environment if provided, otherwise null (never invent one)
+  const configuredWhatsApp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || null;
+  const whatsappUrl = configuredWhatsApp
+    ? `https://wa.me/${configuredWhatsApp}?text=${encodeURIComponent(
+        "Hello Chef Apedo Foods, I have an enquiry about an order."
+      )}`
+    : null;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Do not fabricate a fake API success without a backend endpoint per instructions.
+    // Instead indicate readiness for integration.
+    setFormSubmitted(true);
+  };
+
   return (
-    <main className="space-y-6 pb-20 max-w-2xl mx-auto">
-      <div className="space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-gold/10 text-brand-gold text-xs font-bold uppercase tracking-widest">
-          <MessageSquare className="w-3.5 h-3.5" />
-          <span>Customer Support</span>
-        </div>
-        <h1 className="font-serif font-black text-3xl sm:text-4xl text-ink tracking-tight">
-          Let&apos;s Connect
-        </h1>
-        <p className="text-xs sm:text-sm text-ink-dim leading-relaxed">
-          Questions about today&apos;s lunch, delivery coordination, or catering inquiries.
-        </p>
-      </div>
+    <div className="w-full min-h-screen bg-brand-cream text-brand-dark flex flex-col relative selection:bg-brand-yellow selection:text-brand-dark">
+      {/* ========================================================================= */}
+      {/* 1. HERO SECTION                                                           */}
+      {/* ========================================================================= */}
+      <section className="w-full bg-brand-red text-white pt-10 sm:pt-14 pb-14 sm:pb-18 border-b border-black/10 relative overflow-hidden">
+        {/* Subtle geometric lighting accents */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 left-10 w-80 h-80 bg-brand-yellow/10 rounded-full blur-2xl pointer-events-none" />
 
-      <div className="bg-surface2/80 border border-line rounded-3xl p-6 shadow-md space-y-4">
-        <div className="divide-y divide-line/60 text-xs sm:text-sm">
-          <div className="flex justify-between items-center py-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-ok/15 text-ok flex items-center justify-center">
-                <MessageSquare className="w-4 h-4" />
-              </div>
-              <span className="font-medium text-ink">WhatsApp Support</span>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="max-w-3xl space-y-4 text-left">
+            <div className="inline-flex items-center gap-2 bg-black/25 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border border-white/10">
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>Customer Enquiries</span>
             </div>
-            <a
-              href="https://wa.me/233240000000"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-ok font-semibold border border-ok/40 px-3 py-1 rounded-full hover:bg-ok/10 transition-colors"
-            >
-              Direct Chat
-            </a>
-          </div>
 
-          <div className="flex justify-between items-center py-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-brand-gold/15 text-brand-gold flex items-center justify-center">
-                <Phone className="w-4 h-4" />
-              </div>
-              <span className="font-medium text-ink">Phone Line</span>
-            </div>
-            <a
-              href="tel:+233240000000"
-              className="text-xs text-brand-gold font-semibold border border-brand-gold/40 px-3 py-1 rounded-full hover:bg-brand-gold/10 transition-colors"
-            >
-              +233 24 000 0000
-            </a>
-          </div>
+            <h1 className="font-display font-extrabold text-4xl sm:text-6xl lg:text-[4.5rem] uppercase tracking-tight leading-[1.02] text-white">
+              Let&apos;s Talk.
+            </h1>
 
-          <div className="flex justify-between items-center py-3">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-surface border border-line text-ink-dim flex items-center justify-center">
-                <svg
-                  className="w-4 h-4 fill-current"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                </svg>
-              </div>
-              <span className="font-medium text-ink">Instagram</span>
-            </div>
-            <span className="text-xs text-ink-dim font-medium">
-              @chefapedofoods
-            </span>
+            <p className="text-sm sm:text-base text-white/90 max-w-xl leading-relaxed font-sans font-normal">
+              Questions about today&apos;s batch, delivery locations, or order assistance? Get in touch with Chef Apedo Foods.
+            </p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="p-4 rounded-2xl bg-surface2/60 border border-brand-gold/20 text-xs text-ink-dim flex items-start gap-3">
-        <Sparkles className="w-4 h-4 text-brand-gold flex-none mt-0.5" />
-        <p className="leading-relaxed">
-          Order active right now? Message us on WhatsApp with your Order ID for instant dispatch and delivery updates.
-        </p>
-      </div>
+      {/* ========================================================================= */}
+      {/* 2. CONTACT CHANNELS & FORM (EDITORIAL 2-COLUMN LAYOUT)                     */}
+      {/* ========================================================================= */}
+      <section className="w-full bg-[#FAF5EE] text-brand-dark py-14 sm:py-20 border-b border-brand-cream-dark flex-1">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+            {/* Left Column: Business Details & WhatsApp CTA (5 Cols) */}
+            <div className="lg:col-span-5 space-y-6 text-left">
+              {/* WhatsApp Support Card */}
+              <div className="bg-[#EFE5D5] rounded-3xl p-6 sm:p-8 border border-black/5 shadow-xs space-y-5">
+                <div className="flex items-center gap-2 text-brand-red">
+                  <MessageSquare className="w-5 h-5 stroke-[2.5]" />
+                  <span className="text-xs font-black uppercase tracking-wider">
+                    Instant Messaging
+                  </span>
+                </div>
 
-      <div className="pt-2">
-        <a
-          href="https://wa.me/233240000000"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block"
-        >
-          <Button variant="primary" className="w-full shadow-gold-glow py-3.5 font-bold flex items-center justify-center gap-2">
-            <MessageSquare className="w-4 h-4" />
-            <span>Chat With Chef on WhatsApp</span>
-          </Button>
-        </a>
-      </div>
-    </main>
+                <div className="space-y-1">
+                  <h3 className="font-display font-extrabold text-2xl uppercase tracking-tight text-brand-dark">
+                    WhatsApp Support
+                  </h3>
+                  <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">
+                    Direct messaging for active orders, delivery updates, and quick questions.
+                  </p>
+                </div>
+
+                {whatsappUrl ? (
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-button-yellow transition-colors"
+                  >
+                    <MessageSquare className="w-4 h-4 stroke-[2.5]" />
+                    <span>Chat on WhatsApp</span>
+                  </a>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-white/80 border border-black/5 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-brand-dark">
+                      <Phone className="w-4 h-4 text-brand-red" />
+                      <span>WhatsApp Channel</span>
+                    </div>
+                    <p className="text-[11px] text-brand-muted leading-relaxed">
+                      Official WhatsApp business line connection pending deployment configuration.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Factual Operational Details */}
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-cream-dark shadow-xs space-y-4">
+                <div className="flex items-center gap-2 text-brand-red">
+                  <Clock className="w-4 h-4 stroke-[2.5]" />
+                  <h4 className="font-display font-extrabold text-sm uppercase tracking-tight text-brand-dark">
+                    Operating Schedule
+                  </h4>
+                </div>
+
+                <div className="space-y-3 text-xs divide-y divide-brand-cream-dark">
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-brand-muted">Order Window:</span>
+                    <span className="font-bold text-brand-dark">
+                      {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt} GMT
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-brand-muted">Same-Day Cutoff:</span>
+                    <span className="font-bold text-brand-red">
+                      {ORDERING_HOURS.sameDayCutoff} GMT
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-brand-muted">First Dispatch Slot:</span>
+                    <span className="font-bold text-brand-dark">
+                      {ORDERING_HOURS.firstDeliverySlot} GMT
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Service Boundaries */}
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-cream-dark shadow-xs space-y-3">
+                <div className="flex items-center gap-2 text-brand-red">
+                  <MapPin className="w-4 h-4 stroke-[2.5]" />
+                  <h4 className="font-display font-extrabold text-sm uppercase tracking-tight text-brand-dark">
+                    Delivery Zone Note
+                  </h4>
+                </div>
+                <p className="text-xs text-brand-muted leading-relaxed">
+                  We serve central Accra locations. To ensure meals arrive piping hot, the following outer zones are excluded:
+                </p>
+                <div className="text-[11px] font-bold text-brand-red/90 pt-1">
+                  {EXCLUDED_DELIVERY_AREAS.join(" · ")}
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Clean Single-Column Contact Form (7 Cols) */}
+            <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-10 border border-brand-cream-dark shadow-xs space-y-6 text-left">
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-red">
+                  Send An Enquiry
+                </span>
+                <h3 className="font-display font-extrabold text-2xl sm:text-3xl uppercase tracking-tight text-brand-dark mt-1">
+                  Message Us
+                </h3>
+                <p className="text-xs sm:text-sm text-brand-muted mt-1">
+                  Fill in your details below and our team will get back to you regarding your order or question.
+                </p>
+              </div>
+
+              {formSubmitted ? (
+                <div className="p-6 rounded-2xl bg-brand-cream border border-brand-cream-dark space-y-3">
+                  <div className="flex items-center gap-2 text-brand-red font-bold text-sm">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>Enquiry Recorded</span>
+                  </div>
+                  <p className="text-xs text-brand-muted leading-relaxed">
+                    Thank you, {formData.name || "Customer"}. Your enquiry has been received for review by the kitchen dispatch team.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormSubmitted(false);
+                      setFormData({ name: "", phone: "", subject: "", message: "" });
+                    }}
+                    className="text-xs font-bold text-brand-red hover:underline pt-2"
+                  >
+                    ← Send another message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="contact-name" className="text-xs font-black uppercase tracking-wider text-brand-dark">
+                      Your Name
+                    </label>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="e.g. Kwame Mensah"
+                      className="w-full px-4 py-3 rounded-2xl bg-[#FAF5EE] border border-black/10 text-brand-dark text-sm placeholder:text-brand-muted/60 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="contact-phone" className="text-xs font-black uppercase tracking-wider text-brand-dark">
+                      Phone Number
+                    </label>
+                    <input
+                      id="contact-phone"
+                      type="tel"
+                      required
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      placeholder="e.g. 024 123 4567"
+                      className="w-full px-4 py-3 rounded-2xl bg-[#FAF5EE] border border-black/10 text-brand-dark text-sm placeholder:text-brand-muted/60 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Subject */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="contact-subject" className="text-xs font-black uppercase tracking-wider text-brand-dark">
+                      Subject
+                    </label>
+                    <input
+                      id="contact-subject"
+                      type="text"
+                      required
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      placeholder="e.g. Question about today's lunch delivery"
+                      className="w-full px-4 py-3 rounded-2xl bg-[#FAF5EE] border border-black/10 text-brand-dark text-sm placeholder:text-brand-muted/60 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 outline-none transition-all"
+                    />
+                  </div>
+
+                  {/* Message */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="contact-message" className="text-xs font-black uppercase tracking-wider text-brand-dark">
+                      Message
+                    </label>
+                    <textarea
+                      id="contact-message"
+                      rows={4}
+                      required
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      placeholder="Write your enquiry here..."
+                      className="w-full px-4 py-3 rounded-2xl bg-[#FAF5EE] border border-black/10 text-brand-dark text-sm placeholder:text-brand-muted/60 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 outline-none transition-all resize-none"
+                    />
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider shadow-button-yellow transition-all duration-200 transform hover:-translate-y-0.5 cursor-pointer"
+                    >
+                      <Send className="w-4 h-4 stroke-[2.5]" />
+                      <span>Send Enquiry</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

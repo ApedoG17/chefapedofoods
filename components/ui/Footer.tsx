@@ -40,23 +40,28 @@ export function Footer() {
             </h4>
             <ul className="space-y-2 text-xs text-white/75 font-medium">
               <li>
+                <Link href="/" className="hover:text-brand-yellow transition-colors">
+                  Home
+                </Link>
+              </li>
+              <li>
                 <Link href="/menu" className="hover:text-brand-yellow transition-colors">
                   Today&apos;s Menu &amp; Prices
                 </Link>
               </li>
               <li>
-                <Link href="/how-it-works" className="hover:text-brand-yellow transition-colors">
-                  How Ordering Works
-                </Link>
-              </li>
-              <li>
-                <Link href="/delivery-info" className="hover:text-brand-yellow transition-colors">
-                  Accra Coverage &amp; Zones
+                <Link href="/delivery" className="hover:text-brand-yellow transition-colors">
+                  Accra Coverage &amp; Delivery
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="hover:text-brand-yellow transition-colors">
-                  Our Culinary Story
+                  Founder Story &amp; Values
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-brand-yellow transition-colors">
+                  Contact &amp; Support
                 </Link>
               </li>
             </ul>
