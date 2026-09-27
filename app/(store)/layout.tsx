@@ -4,6 +4,7 @@ import React from "react";
 import { usePathname } from "next/navigation";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/ui/Footer";
+import { SplashSequence } from "@/components/SplashSequence";
 import { useCart } from "@/lib/cart/store";
 
 export default function StoreLayout({
@@ -30,20 +31,24 @@ export default function StoreLayout({
     pathname.startsWith("/orders/");
 
   return (
-    <div className="min-h-screen w-full bg-brand-dark text-white flex flex-col selection:bg-brand-yellow selection:text-brand-dark">
-      {!isFocusScreen && <Navbar />}
+    <SplashSequence>
+      <div className="min-h-screen w-full bg-brand-dark text-white flex flex-col selection:bg-brand-yellow selection:text-brand-dark">
+        {!isFocusScreen && <Navbar />}
 
-      <div
-        className={
-          isFullWidthPage
-            ? "flex-1 w-full pt-14 sm:pt-18"
-            : "flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-6 md:pb-8"
-        }
-      >
-        {children}
+        <div
+          className={
+            pathname === "/"
+              ? "flex-1 w-full"
+              : isFullWidthPage
+              ? "flex-1 w-full pt-14 sm:pt-18"
+              : "flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-6 md:pb-8"
+          }
+        >
+          {children}
+        </div>
+
+        {!isFocusScreen && <Footer />}
       </div>
-
-      {!isFocusScreen && <Footer />}
-    </div>
+    </SplashSequence>
   );
 }
