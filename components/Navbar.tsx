@@ -30,10 +30,11 @@ export function Navbar() {
   }, [itemCount]);
 
   const navLinks = [
+    { label: "Home", href: "/" },
     { label: "Menu", href: "/menu" },
-    { label: "How It Works", href: "/how-it-works" },
+    { label: "Delivery", href: "/delivery" },
     { label: "About", href: "/about" },
-    { label: "Delivery", href: "/delivery-info" },
+    { label: "Contact", href: "/contact" },
   ];
 
   return (
@@ -64,16 +65,16 @@ export function Navbar() {
         </Link>
 
         {/* Center Zone (Navigation - Desktop) */}
-        <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+        <nav className="hidden md:flex items-center gap-0.5 lg:gap-1.5">
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <motion.div key={link.href} whileHover={{ y: -2 }}>
                 <Link
                   href={link.href}
-                  className={`relative px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                  className={`relative px-3 py-1.5 rounded-full text-xs lg:text-sm font-semibold transition-colors ${
                     isActive
-                      ? "text-black bg-black/5 font-semibold"
+                      ? "text-black bg-black/5 font-bold"
                       : "text-black/70 hover:text-black hover:bg-black/5"
                   }`}
                 >

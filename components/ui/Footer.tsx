@@ -1,62 +1,54 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ORDERING_HOURS } from "@/config/business";
-import { Clock, ShieldCheck } from "lucide-react";
+import { Clock } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="w-full bg-brand-dark text-white border-t border-white/10 pt-16 pb-12">
+    <footer className="w-full bg-[#18110E] text-white border-t border-white/10 pt-16 pb-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10">
-          {/* Brand Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10 items-start">
+          {/* Brand Info with Official Light Logo */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-brand-yellow flex items-center justify-center text-brand-dark font-display font-extrabold text-sm shadow-md">
-                ca
-              </div>
-              <div>
-                <span className="font-display font-black text-lg uppercase text-white">
-                  Chef Apedo
-                  <span className="text-brand-yellow ml-1 text-xs">Foods</span>
-                </span>
-                <div className="text-[10px] tracking-widest text-brand-yellow uppercase font-bold">
-                  Accra, Ghana
-                </div>
-              </div>
-            </div>
-            <p className="text-xs text-white/70 leading-relaxed">
-              Authentic Ghanaian home cooking. Small-batch meals prepared fresh daily with local aromatics and delivered piping hot across Accra.
+            <Link href="/" className="inline-block">
+              <Image
+                src="/images/chef_apedo_logo_variations/logo-light-on-dark.png"
+                alt="Chef Apedo Foods"
+                width={200}
+                height={130}
+                className="h-14 w-auto object-contain"
+              />
+            </Link>
+            <p className="text-xs text-white/70 leading-relaxed max-w-xs">
+              Authentic Ghanaian home cooking. Small morning batches prepared fresh daily with local aromatics and delivered piping hot across Accra.
             </p>
-            <div className="flex items-center gap-2 text-xs text-brand-yellow font-bold">
-              <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
-              <span>Cooked fresh daily · Never reheated</span>
-            </div>
           </div>
 
-          {/* Quick Navigation */}
+          {/* Navigation */}
           <div className="space-y-3">
             <h4 className="font-display font-extrabold text-sm text-white uppercase tracking-wider">
-              Explore Menu
+              Navigation
             </h4>
             <ul className="space-y-2 text-xs text-white/75 font-medium">
               <li>
                 <Link href="/menu" className="hover:text-brand-yellow transition-colors">
-                  Today&apos;s Menu &amp; Prices
+                  Menu
                 </Link>
               </li>
               <li>
-                <Link href="/how-it-works" className="hover:text-brand-yellow transition-colors">
-                  How Ordering Works
-                </Link>
-              </li>
-              <li>
-                <Link href="/delivery-info" className="hover:text-brand-yellow transition-colors">
-                  Accra Coverage &amp; Zones
+                <Link href="/delivery" className="hover:text-brand-yellow transition-colors">
+                  Delivery
                 </Link>
               </li>
               <li>
                 <Link href="/about" className="hover:text-brand-yellow transition-colors">
-                  Our Culinary Story
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-brand-yellow transition-colors">
+                  Contact
                 </Link>
               </li>
             </ul>
@@ -83,27 +75,24 @@ export function Footer() {
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-brand-yellow mt-0.5 flex-none" />
                 <div>
-                  <span className="text-white font-bold">Lunch Dispatch:</span> From {ORDERING_HOURS.firstDeliverySlot} GMT
+                  <span className="text-white font-bold">First Dispatch:</span> From {ORDERING_HOURS.firstDeliverySlot} GMT
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Transparent Payment Split Notice */}
+          {/* Payment Protocol Summary */}
           <div className="space-y-3">
             <h4 className="font-display font-extrabold text-sm text-white uppercase tracking-wider">
-              Payment Policy
+              Payment Protocol
             </h4>
-            <div className="p-4 rounded-xl bg-white/5 border border-white/10 text-xs space-y-2 font-medium">
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs space-y-2 font-medium">
               <div className="text-brand-yellow font-bold">
-                1. Food Subtotal: <span className="text-white font-normal">Prepaid via Paystack</span>
+                1. Food Total: <span className="text-white font-normal">Prepaid online via Paystack</span>
               </div>
               <div className="text-brand-yellow font-bold">
-                2. Delivery Fee: <span className="text-white font-normal">Paid directly to courier</span>
+                2. Delivery Fee: <span className="text-white font-normal">Paid directly to rider upon arrival</span>
               </div>
-              <p className="text-[11px] text-white/60 pt-1 border-t border-white/10">
-                Standard delivery fee starting from GH₵10 across central Accra.
-              </p>
             </div>
           </div>
         </div>
@@ -111,10 +100,10 @@ export function Footer() {
         {/* Bottom copyright */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/50">
           <div>
-            © {new Date().getFullYear()} Chef Apedo Foods. All rights reserved.
+            © 2026 Chef Apedo Foods. All rights reserved.
           </div>
           <div className="font-display font-bold uppercase tracking-widest text-brand-yellow text-[11px]">
-            Real Ghanaian Food · Accra, Ghana
+            Ghanaian Food. Made to Order. · Accra, Ghana
           </div>
         </div>
       </div>

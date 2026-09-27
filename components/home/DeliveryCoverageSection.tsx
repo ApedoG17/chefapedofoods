@@ -48,38 +48,30 @@ export function DeliveryCoverageSection() {
                 Our kitchen organizes dedicated lunchtime dispatch routes every weekday from 11:30 AM to 2:30 PM.
               </p>
 
-              {/* Zone Fee Matrix */}
-              <div className="space-y-3 mb-8">
-                {zones.map((zone) => (
-                  <div
-                    key={zone.name}
-                    className="flex items-center justify-between p-3.5 bg-white/80 rounded-xl border border-black/5"
-                  >
-                    <div>
-                      <span className="text-xs font-black uppercase text-brand-red mr-2">
-                        {zone.name}:
-                      </span>
-                      <span className="text-xs font-bold text-brand-dark">{zone.areas}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-display font-extrabold text-brand-dark text-sm sm:text-base">
-                        {zone.fee}
-                      </span>
-                      <span className="block text-[10px] text-brand-muted">to rider</span>
-                    </div>
-                  </div>
-                ))}
+              {/* Dispatch Corridors Info */}
+              <div className="p-4 bg-white/80 rounded-2xl border border-black/5 mb-6 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-brand-red">
+                    Accra Delivery Service
+                  </span>
+                  <span className="font-display font-extrabold text-brand-dark text-sm sm:text-base">
+                    From GH₵10.00
+                  </span>
+                </div>
+                <p className="text-xs text-brand-muted leading-relaxed">
+                  Covering central Accra corridors including Legon, Airport, Osu, Cantonments, Labone, and Spintex. Exact zone fee is calculated at checkout and paid directly to your rider.
+                </p>
               </div>
 
               {/* Excluded Areas Note */}
               <div className="text-xs text-brand-muted pb-4">
-                <span className="font-bold text-brand-dark">Note:</span> We currently do not serve{" "}
+                <span className="font-bold text-brand-dark">Excluded Areas:</span> We do not serve{" "}
                 {EXCLUDED_DELIVERY_AREAS.join(", ")} to ensure food arrives hot.
               </div>
             </div>
 
             <Link
-              href="/delivery-info"
+              href="/delivery"
               className="inline-flex items-center justify-center gap-2 w-full py-4 rounded-full bg-brand-red hover:bg-brand-red-dark text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-colors shadow-button-red"
             >
               <span>View Full Delivery Policy</span>
