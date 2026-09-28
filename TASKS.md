@@ -37,14 +37,19 @@ Ordered per the "core transaction first" decision in the planning doc (§27): do
 - [x] Order Details — full order view, status-appropriate action buttons only
 - [x] Kitchen Controls — open/closed toggle, daily capacity setting, per-item/protein availability toggle
 
-## 4. Marketing pages (designed around the working transaction, not before it)
+## 4. Marketing & Editorial Experience
 
-- [x] Home
-- [x] Menu (browse-only entry point into customization)
+- [x] Home (cinematic hero, statement section, featured meals, delivery coverage map, review testimonials)
+- [x] Menu (browse & direct customization entry point, adaptive sticky category dock)
 - [x] How It Works
 - [x] About
-- [x] Delivery Information
-- [x] Contact
+- [x] Delivery Information (interactive coverage map, zone pricing guide, cutoff rules)
+- [x] Contact (direct WhatsApp and customer support channels)
+- [x] Cinematic Splash Sequence (`components/SplashSequence.tsx` with stew bubbling physics, video b-roll, and session memory)
+- [x] Infinite Brand Marquee Ticker (seamless 60fps loop across duplicated tracks)
+- [x] 2-Column Balanced Editorial Heroes with 3D Floating Assets (Menu Jollof bowl & Delivery packaging bowl)
+- [x] Interactive Fly-to-Cart Trajectory Animation
+- [x] 3-Column Global Footer with social brand SVGs & phone integration
 
 ## 5. Testing
 

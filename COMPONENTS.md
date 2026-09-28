@@ -42,9 +42,26 @@ Extracted from the high-fidelity core-transaction build (Menu → Customize → 
 
 **Confirmation Checkmark** — a single large gold circle with a check, serif-adjacent weight, used once at the top of the Confirmation screen as the "this worked" moment.
 
-## What's still undecided
+## Editorial & Motion Enhancements
 
-- Icon set (none used yet — badges and text carry all status meaning so far; icons would be additive, not required)
-- Empty-cart state (Cart screen currently assumes at least one item)
-- Multi-item cart layout (only a single line item has been designed)
-- Admin-side adaptation of these components (Kitchen Controls toggles, Order Details status buttons) — likely reuses Button/Card/Badge but hasn't been designed yet
+**Cinematic Splash Sequence** (`components/SplashSequence.tsx`) — A high-end welcome overlay rendered at root storefront layout. Features a simulated boiling broth particle animation (dynamic SVG bubbling bubbles), gold typography brand reveal, HTML5 kitchen video playback (`/videos/kitchen-broll.mp4`), and instant skip button. Persists display state via `sessionStorage` (`chefApedoSplashSeen`) so it only plays once per session.
+
+**Infinite Brand Marquee** (`app/(store)/page.tsx`, `tailwind.config.ts`) — A continuous 60fps GPU-accelerated horizontal brand ribbon sliding at `-50%` over 30s across duplicated item tracks, eliminating layout seams or visual snapping.
+
+**2-Column Editorial Heroes with Floating 3D Assets** — Replaces monolithic hero blocks with balanced 50/50 responsive CSS grids:
+- **Menu Hero** (`app/(store)/menu/page.tsx`): Display typography & operational badges on the left; signature 3D isolated Jollof bowl (`/images/meals/jollof-isolated.png`) floating on the right with Framer Motion vertical bobbing (`y: [-10, 10, -10]`).
+- **Delivery Hero** (`app/(store)/delivery/page.tsx`): Dispatch guidelines & zone notices on the left; 3D isolated Kraft paper takeout packaging (`/images/packaging/takeout-paper-bowl.png`) floating on the right with matching physics.
+- Fully responsive: Centers gracefully under headlines on mobile viewports; expands to 2 columns on `md:` breakpoints.
+
+**Interactive Fly-to-Cart System** (`app/(store)/menu/page.tsx`) — When meals or sides are added directly from the menu, a miniaturized circular thumbnail springs into flight along a Bezier-curved trajectory from the item's DOM position directly to the navbar cart pill badge (`#global-cart-target`), delivering immediate visual feedback before store dispatch.
+
+**Adaptive Category Dock** (`app/(store)/menu/page.tsx`) — Sticky category filter pill dock with dynamic scrollspy intersection tracking. Theme adapts smoothly between categories (Rice Dishes, Deep Burgundy Extras, Dark Refreshments).
+
+**3-Column Global Storefront Footer** (`components/ui/Footer.tsx`) — Structured 3-column bottom bar: copyright notice on the left, centered social & phone links (with custom SVG brand paths for Instagram, Snapchat, and TikTok, plus Phone), and the brand tagline anchored on the right.
+
+## Status of Previously Open Items
+
+- **Icon set**: Resolved — Standardized on `lucide-react` across customer & admin flows, supplemented with optimized custom inline SVGs for brand socials (Instagram, Snapchat, TikTok).
+- **Empty-cart state**: Resolved — Clean empty state with custom illustration, helpful messaging, and direct return-to-menu CTA.
+- **Multi-item cart layout**: Resolved — Supports arbitrary combinations of rice sizes, custom protein selections, and side extras with persistent local storage and live pricing breakdowns.
+- **Admin UI**: Resolved — Complete standalone operational suite (`/admin/dashboard`, `/admin/orders`, `/admin/kitchen`, `/admin/login`) with kitchen open/close controls, live order lifecycle actions, and daily capacity meters.

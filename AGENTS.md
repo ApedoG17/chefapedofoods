@@ -26,3 +26,13 @@ If you're an AI coding agent (e.g. Claude Code) working in this repo, read `MEMO
 ## Keeping docs in sync
 
 If you make an architecture or scope decision while building (e.g. the stack gets chosen, a payment gateway is picked), update the relevant doc (`ARCHITECTURE.md`, `TASKS.md` §0, `RULES.md`) in the same change — don't let this doc set drift from what the code actually does.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
