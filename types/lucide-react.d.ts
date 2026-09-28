@@ -49,5 +49,6 @@ declare module "lucide-react" {
   export const Star: LucideIcon;
   export const Utensils: LucideIcon;
   export const UtensilsCrossed: LucideIcon;
+  export const Wallet: LucideIcon;
   export const X: LucideIcon;
 }

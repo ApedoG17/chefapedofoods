@@ -12,7 +12,7 @@ Tech stack is **locked**. This doc captures the data model, system shape, and th
 | Styling | Tailwind CSS |
 | Backend / database | Supabase (PostgreSQL, Auth, Edge Functions, Storage) |
 | Hosting | Vercel |
-| Payments | Paystack (covers MTN MoMo, Telecel, AirtelTigo mobile money, plus card, at ~1.95% per local transaction) |
+| Payments | Hubtel (MTN MoMo, Telecel Cash, ATMoney, and card) & Manual MoMo/Cash dual-lane |
 
 Customer site and admin interface live in **one Next.js application**, not separate apps:
 
@@ -59,25 +59,33 @@ Chef Apedo Foods
 
 MVP does **not** need a courier/rider-dispatch API — Phase 1 delivery is manual ("API-less"): a rider is requested from a local courier once an order is confirmed. Automated dispatch (Yango/Quik-style) is a Later item.
 
-## Payment Flow (Paystack)
+## Payment Flow (Hubtel & Dual-Lane)
 
 ```
+Option A: Hubtel Online Prepayment (food amount)
 Order placed → Order.status = Awaiting Payment
       ↓
-Paystack checkout (food amount only)
+Hubtel Checkout URL initialized (/api/payments/hubtel)
       ↓
-Customer authorizes via MTN / Telecel / AirtelTigo (or card)
+Customer authorizes via MTN MoMo / Telecel Cash / ATMoney / Card
       ↓
-Paystack webhook fires
+Hubtel Webhook fires (/api/webhooks/hubtel)
       ↓
-Server verifies the webhook and payment status
+Server verifies responseCode === '0000' or status === 'Success'
       ↓
-Order.payment_status = paid, Order.status = Confirmed
+Order.payment_status = paid, Order.order_status = Confirmed
       ↓
 Chef dashboard shows the order
+
+Option B: Manual MoMo / Cash on Delivery
+Order placed → /api/orders/manual
+      ↓
+Order.order_status = awaiting_payment, Order.payment_status = unpaid
+      ↓
+Customer redirected to live order tracking with direct MoMo merchant line instructions & Cash on Delivery breakdown
 ```
 
-**Critical rule:** the order is marked `Confirmed` only when the server verifies a successful Paystack webhook — never because the customer merely reached or submitted the payment page. This is the same "server-side, not client-trusted" rule already in `SECURITY.md`, now tied to a concrete implementation.
+**Critical rule:** For online payments, the order is marked `Confirmed` only when the server verifies a successful Hubtel webhook (`responseCode: '0000'` / `status: 'Success'`) — never because the customer merely reached or submitted the payment page.
 
 ## Data Model
 

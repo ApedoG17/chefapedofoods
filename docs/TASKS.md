@@ -5,7 +5,7 @@ Ordered per the "core transaction first" decision in the planning doc (§27): do
 ## 0. Pre-build decisions (blockers)
 
 - [x] Choose frontend stack/framework — **Next.js + TypeScript + Tailwind CSS**
-- [x] Choose payment integration — **Paystack** (covers MTN MoMo, Telecel, AirtelTigo, and card via one integration)
+- [x] Choose payment integration — **Hubtel & Manual MoMo/Cash** (dual-lane payment selection: Hubtel for online payment, plus manual MoMo / cash fallback)
 - [x] Choose hosting/backend — **Vercel (app) + Supabase (Postgres, Auth, Edge Functions, Storage)**
 - [x] Set the actual daily order capacity to launch with — **12 orders/day**, configurable, expected to increase with experience
 - [ ] Set real delivery-zone fees — **still genuinely open**; only the GH₵10 starting point and the excluded-area list are locked. The software model (admin-configurable `DeliveryZone` table) is built to support this once real dispatch economics are known — see `ARCHITECTURE.md`

@@ -70,7 +70,7 @@ export interface Order {
   subtotal_pesewas: number;
   delivery_fee_pesewas: number;
   amount_paid_pesewas: number;
-  payment_method: "paystack";
+  payment_method: "paystack" | "hubtel" | "manual";
   payment_status: PaymentStatus;
   order_status: OrderStatus;
   paystack_reference: string | null;
