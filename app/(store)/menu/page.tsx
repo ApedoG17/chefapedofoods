@@ -289,32 +289,58 @@ export default function MenuStorefrontPage() {
         <div className="absolute -bottom-10 left-10 w-80 h-80 bg-brand-yellow/10 rounded-full blur-2xl pointer-events-none" />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl space-y-4 text-left">
-            {/* Cutoff pill badge */}
-            <div className="inline-flex items-center gap-2 bg-black/25 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border border-white/10">
-              <Clock className="w-3.5 h-3.5" />
-              <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff} GMT</span>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-center">
+            {/* Left Column: Text */}
+            <div className="space-y-4 text-left">
+              {/* Cutoff pill badge */}
+              <div className="inline-flex items-center gap-2 bg-black/25 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border border-white/10">
+                <Clock className="w-3.5 h-3.5" />
+                <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff} GMT</span>
+              </div>
+
+              <h1 className="font-display font-extrabold text-4xl sm:text-6xl lg:text-[4.5rem] uppercase tracking-tight leading-[1.02] text-white">
+                The Daily Menu.
+              </h1>
+
+              <p className="text-sm sm:text-base text-white/90 max-w-md leading-relaxed font-sans font-normal">
+                Authentic Ghanaian staples simmered fresh each morning in small batches. Choose your base size, customize included proteins, and have it delivered piping hot across Accra.
+              </p>
+
+              {/* Quick Factual Operational Strip */}
+              <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-6 text-xs text-white/80 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <Flame className="w-3.5 h-3.5 text-brand-yellow" />
+                  <span>Morning Batch Cooking</span>
+                </span>
+                <span>·</span>
+                <span>First Delivery Slot: {ORDERING_HOURS.firstDeliverySlot} GMT</span>
+                <span>·</span>
+                <span>Rider fee from GH₵10 on delivery</span>
+              </div>
             </div>
 
-            <h1 className="font-display font-extrabold text-4xl sm:text-6xl lg:text-[4.5rem] uppercase tracking-tight leading-[1.02] text-white">
-              The Daily Menu.
-            </h1>
-
-            <p className="text-sm sm:text-base text-white/90 max-w-xl leading-relaxed font-sans font-normal">
-              Authentic Ghanaian staples simmered fresh each morning in small batches. Choose your base size, customize included proteins, and have it delivered piping hot across Accra.
-            </p>
-
-            {/* Quick Factual Operational Strip */}
-            <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-6 text-xs text-white/80 font-medium">
-              <span className="flex items-center gap-1.5">
-                <Flame className="w-3.5 h-3.5 text-brand-yellow" />
-                <span>Morning Batch Cooking</span>
-              </span>
-              <span>·</span>
-              <span>First Delivery Slot: {ORDERING_HOURS.firstDeliverySlot} GMT</span>
-              <span>·</span>
-              <span>Rider fee from GH₵10 on delivery</span>
-            </div>
+            {/* Right Column: Floating Image */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="flex justify-center md:justify-end relative w-full h-[280px] sm:h-[350px] md:h-[380px] lg:h-[420px] mt-4 md:mt-0"
+            >
+              <motion.div
+                animate={{ y: [-10, 10, -10] }}
+                transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                className="relative w-full max-w-[340px] sm:max-w-[420px] md:max-w-none h-full"
+              >
+                <Image
+                  src="/images/meals/jollof-isolated.png"
+                  alt="Signature Jollof"
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 340px, (max-width: 1024px) 450px, 550px"
+                  className="object-contain drop-shadow-2xl scale-105 sm:scale-110 lg:scale-120 origin-center"
+                />
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </section>

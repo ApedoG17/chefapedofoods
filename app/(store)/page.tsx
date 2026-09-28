@@ -124,16 +124,26 @@ export default function HomePage() {
         {/* ========================================================================= */}
         {/* PHASE 2 — BRAND MARQUEE (BOTTOM OF HERO)                                  */}
         {/* ========================================================================= */}
-        <div className="w-full mt-10 sm:mt-12 -mx-4 sm:-mx-6 lg:-mx-8 border-t border-b border-white/10 bg-[#140D0A]/90 py-3 overflow-hidden">
-          <div className="flex whitespace-nowrap animate-marquee">
-            {[...marqueeItems, ...marqueeItems, ...marqueeItems, ...marqueeItems].map((item, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center text-[11px] sm:text-xs font-display font-extrabold uppercase tracking-[0.25em] text-brand-yellow px-4 select-none"
-              >
-                <span>{item}</span>
-                <span className="ml-8 text-white/40">•</span>
-              </span>
+        <div className="w-full mt-10 sm:mt-12 -mx-4 sm:-mx-6 lg:-mx-8 overflow-hidden bg-[#18110E] py-4 border-y border-white/10 flex">
+          <div className="flex whitespace-nowrap animate-marquee items-center shrink-0">
+            {/* FIRST SET OF ITEMS */}
+            {marqueeItems.map((item, index) => (
+              <div key={`set1-${index}`} className="flex items-center">
+                <span className="text-brand-yellow font-black tracking-widest text-sm md:text-base px-8 font-display uppercase">
+                  {item}
+                </span>
+                <span className="text-white/30 text-xs">■</span>
+              </div>
+            ))}
+
+            {/* SECOND SET OF ITEMS (Exact Duplicate for the seamless loop) */}
+            {marqueeItems.map((item, index) => (
+              <div key={`set2-${index}`} className="flex items-center">
+                <span className="text-brand-yellow font-black tracking-widest text-sm md:text-base px-8 font-display uppercase">
+                  {item}
+                </span>
+                <span className="text-white/30 text-xs">■</span>
+              </div>
             ))}
           </div>
         </div>

@@ -76,6 +76,15 @@ const config: Config = {
         "warm-md": "0 8px 24px -4px rgba(24, 17, 14, 0.10)",
         "warm-lg": "0 16px 40px -8px rgba(24, 17, 14, 0.16)",
       },
+      keyframes: {
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+      },
+      animation: {
+        marquee: "marquee 30s linear infinite",
+      },
     },
   },
   plugins: [],

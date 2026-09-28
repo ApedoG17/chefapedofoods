@@ -16,7 +16,7 @@ Read this first for a 30-second summary; go to `PRD.md`/`ARCHITECTURE.md`/`DESIG
 
 **MVP has no customer accounts** — guest checkout only. Kitchen/admin dashboard IS in MVP (moved forward from "later" deliberately — solo chef needs it from day one).
 
-**Visual direction:** dark, warm background + gold/amber accent, real food photography, elegant/bold serif or display headline + clean sans body/UI. See `DESIGN_SYSTEM.md` for tokens. Component library locked — see `COMPONENTS.md`.
+**Visual direction & editorial polish:** dark, warm background + gold/amber accent, real food photography, bold display headlines (`font-display`) + clean sans body/UI. High-end motion layer: cinematic splash intro (`SplashSequence`), 60fps infinite marquee ticker, 2-column balanced heroes with floating 3D isolated food/packaging bowls, fly-to-cart physics, and a 3-column global footer with verified social SVGs. See `DESIGN_SYSTEM.md` for tokens and `COMPONENTS.md` for component library details.
 
 **Stack (locked):** Next.js + TypeScript + Tailwind CSS, one app for customer + admin. Supabase (Postgres, Auth, Edge Functions, Storage). Hosted on Vercel. Payments via Paystack. See `ARCHITECTURE.md` for the full diagram and payment flow.
 
