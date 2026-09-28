@@ -9,7 +9,7 @@ import { isAreaServiceable } from "@/lib/delivery";
 import { formatGHS } from "@/lib/pricing";
 import { EXCLUDED_DELIVERY_AREAS, ORDERING_HOURS } from "@/config/business";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard } from "lucide-react";
+import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard, Wallet } from "lucide-react";
 
 interface ZoneOption {
   name: string;
@@ -36,6 +36,9 @@ export default function CheckoutPage() {
 
   // Step tracking ("cart", "details", "delivery", "payment")
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("details");
+
+  // Dual-lane payment method selection ('hubtel' | 'manual')
+  const [paymentMethod, setPaymentMethod] = useState<"hubtel" | "manual">("hubtel");
 
   // Form State
   const [fullName, setFullName] = useState("");
@@ -143,60 +146,86 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      // 1. Submit order to /api/orders
-      const orderPayload = {
-        customerName: fullName.trim(),
-        phone: phone.trim(),
-        area: activeArea.trim(),
-        deliveryAddress: deliveryAddress.trim(),
-        landmark: landmark.trim() || undefined,
-        deliverySlot,
-        items: items.map((i) => ({
-          mealId: i.mealId,
-          size: i.size,
-          includedProteinPackageName: i.includedProteinPackageName,
-          extras: i.extras || {},
-          quantity: i.quantity,
-        })),
-      };
+      if (paymentMethod === "manual") {
+        // --- PHASE 2: MANUAL BYPASS ---
+        const response = await fetch("/api/orders/manual", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((i) => ({
+              mealId: i.mealId,
+              name: i.name,
+              size: i.size,
+              includedProteinPackageName: i.includedProteinPackageName,
+              extras: i.extras || {},
+              quantity: i.quantity,
+              price: i.basePricePesewas || 0,
+            })),
+            customerDetails: {
+              name: fullName.trim(),
+              phone: phone.trim(),
+              address: deliveryAddress.trim(),
+              area: activeArea.trim(),
+              notes: landmark.trim() || "",
+              deliverySlot,
+            },
+            subtotal: subtotalPesewas,
+            deliveryFee: deliveryFeePesewas,
+          }),
+        });
 
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      });
+        const result = await response.json();
 
-      const orderResult = await res.json();
+        if (result.success && result.orderId) {
+          clearCart();
+          // Redirect directly to the live tracking page
+          router.push(`/order/${result.orderId}`);
+        } else {
+          throw new Error(result.message || "Failed to create order.");
+        }
+      } else {
+        // --- PHASE 3: HUBTEL API CALL ---
+        const response = await fetch("/api/payments/hubtel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((i) => ({
+              mealId: i.mealId,
+              name: i.name,
+              size: i.size,
+              includedProteinPackageName: i.includedProteinPackageName,
+              extras: i.extras || {},
+              quantity: i.quantity,
+              price: i.basePricePesewas || 0,
+            })),
+            customerDetails: {
+              name: fullName.trim(),
+              phone: phone.trim(),
+              address: deliveryAddress.trim(),
+              area: activeArea.trim(),
+              notes: landmark.trim() || "",
+              deliverySlot,
+            },
+            subtotal: subtotalPesewas,
+            deliveryFee: deliveryFeePesewas,
+          }),
+        });
 
-      if (!res.ok) {
-        setErrorMessage(orderResult.error || "Failed to create order");
-        setIsSubmitting(false);
-        return;
+        const result = await response.json();
+
+        if (result.success && result.checkoutUrl) {
+          clearCart();
+          // Redirect the user to the secure Hubtel payment page
+          window.location.href = result.checkoutUrl;
+        } else {
+          throw new Error(
+            result.message || "Failed to initialize Hubtel checkout. Please try Manual MoMo / Cash."
+          );
+        }
       }
-
-      // 2. Initialize Paystack payment for food subtotal
-      const payRes = await fetch("/api/payments/initialize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: orderResult.orderId,
-        }),
-      });
-
-      const payResult = await payRes.json();
-
-      if (!payRes.ok || !payResult.authorizationUrl) {
-        setErrorMessage(payResult.error || "Payment gateway initialization failed");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // 3. Clear cart and redirect to Paystack authorization
-      clearCart();
-      window.location.href = payResult.authorizationUrl;
     } catch (err: any) {
       console.error("Checkout submission failed:", err);
-      setErrorMessage("An unexpected error occurred. Please try again.");
+      setErrorMessage(err?.message || "Something went wrong processing your order. Please try again.");
       setIsSubmitting(false);
     }
   };
@@ -484,8 +513,63 @@ export default function CheckoutPage() {
                 </span>
               </div>
               <p className="text-xs text-brand-muted pt-1">
-                Processed with 256-bit bank encryption via Paystack in Ghanaian Cedis (GHS).
+                Processed with 256-bit bank encryption via Hubtel in Ghanaian Cedis (GHS).
               </p>
+            </div>
+
+            {/* --- PAYMENT METHOD SELECTION --- */}
+            <div className="mt-8 mb-4">
+              <h3 className="text-sm font-black tracking-wide text-[#18110E] mb-3 uppercase">
+                Payment Method
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Option A: Hubtel */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('hubtel')}
+                  className={`relative p-5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                    paymentMethod === 'hubtel' 
+                      ? 'border-brand-yellow bg-brand-yellow/15 shadow-xs' 
+                      : 'border-black/10 hover:border-black/20 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <CreditCard className={paymentMethod === 'hubtel' ? 'text-brand-yellow-dark' : 'text-black/40'} size={24} />
+                    <span className="font-bold text-[#18110E]">Pay Online (Hubtel)</span>
+                  </div>
+                  <p className="text-xs text-black/60 pl-9 leading-relaxed">
+                    Securely pay via MTN MoMo, Telecel Cash, ATMoney, or Bank Card right now.
+                  </p>
+                  {/* Active Indicator */}
+                  {paymentMethod === 'hubtel' && (
+                    <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-brand-yellow" />
+                  )}
+                </button>
+
+                {/* Option B: Manual / Cash on Delivery */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('manual')}
+                  className={`relative p-5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
+                    paymentMethod === 'manual' 
+                      ? 'border-brand-yellow bg-brand-yellow/15 shadow-xs' 
+                      : 'border-black/10 hover:border-black/20 bg-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <Wallet className={paymentMethod === 'manual' ? 'text-brand-yellow-dark' : 'text-black/40'} size={24} />
+                    <span className="font-bold text-[#18110E]">Manual MoMo / Cash</span>
+                  </div>
+                  <p className="text-xs text-black/60 pl-9 leading-relaxed">
+                    Send MoMo directly to our merchant line, or pay the rider exact cash upon delivery.
+                  </p>
+                  {/* Active Indicator */}
+                  {paymentMethod === 'manual' && (
+                    <div className="absolute top-4 right-4 w-3 h-3 rounded-full bg-brand-yellow" />
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* Main Action CTA */}
@@ -496,12 +580,17 @@ export default function CheckoutPage() {
                 onClick={handleProceedToPayment}
                 className="w-full inline-flex items-center justify-center gap-3 py-4 sm:py-5 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-50 text-brand-dark font-extrabold text-sm sm:text-base uppercase tracking-wider transition-all duration-200 transform hover:-translate-y-0.5 shadow-button-yellow cursor-pointer"
               >
-                <span>
-                  {isSubmitting
-                    ? "Connecting to Paystack…"
-                    : `Pay ${formatGHS(subtotalPesewas)} for Food`}
-                </span>
-                <ArrowRight className="w-4 h-4 stroke-[3]" />
+                {isSubmitting ? (
+                  <span>Processing...</span>
+                ) : paymentMethod === "hubtel" ? (
+                  <>
+                    <span>Proceed to Secure Payment ➔</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Confirm Order &amp; View Instructions ➔</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -540,7 +629,7 @@ export default function CheckoutPage() {
           {/* Trust Elements */}
           <div className="flex items-center justify-center gap-2 text-xs text-brand-muted pt-2">
             <Lock className="w-3.5 h-3.5" />
-            <span>256-bit bank encryption · Secure Paystack Ghana Checkout</span>
+            <span>256-bit bank encryption · Secure Hubtel &amp; Direct Ghana Checkout</span>
           </div>
 
           {/* Back Button */}

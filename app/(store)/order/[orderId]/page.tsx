@@ -23,6 +23,7 @@ import {
   AlertCircle,
   HelpCircle,
   ArrowRight,
+  Wallet,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatGHS } from "@/lib/pricing";
@@ -51,6 +52,8 @@ export interface OrderDetails {
   rider?: { name: string; phone: string };
   createdAt: string;
   paystackReference: string;
+  paymentMethod?: string;
+  paymentStatus?: string;
   items: OrderItemCustomization[];
 }
 
@@ -97,6 +100,7 @@ export default function OrderTrackingPage() {
             id,
             order_status,
             payment_status,
+            payment_method,
             paystack_reference,
             subtotal_pesewas,
             delivery_fee_pesewas,
@@ -180,6 +184,8 @@ export default function OrderTrackingPage() {
               year: "numeric",
             }),
             paystackReference: data.paystack_reference || `CAF-${data.id.slice(0, 8).toUpperCase()}`,
+            paymentMethod: (data as any)?.payment_method || (searchParams.get("payment") === "manual" ? "manual" : "paystack"),
+            paymentStatus: data.payment_status || "unpaid",
             rider:
               mappedStatus === "OUT_FOR_DELIVERY" || mappedStatus === "DELIVERED"
                 ? { name: "Kwame Mensah", phone: "+233 24 555 0192" }
@@ -213,6 +219,8 @@ export default function OrderTrackingPage() {
               year: "numeric",
             }),
             paystackReference: `CAF-${(orderId || "MOCK").slice(0, 8).toUpperCase()}`,
+            paymentMethod: searchParams.get("payment") === "manual" ? "manual" : "manual",
+            paymentStatus: "unpaid",
             rider: undefined,
             items: [
               {
@@ -544,15 +552,23 @@ export default function OrderTrackingPage() {
           <div className="relative z-10 space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-red/10 text-brand-red text-[10px] font-black uppercase tracking-[0.2em]">
               <Sparkles className="w-3 h-3" />
-              <span>Payment Verified · Paystack</span>
+              <span>
+                {order?.paymentMethod === "manual"
+                  ? "Order Received · Payment Pending"
+                  : "Payment Verified · Online"}
+              </span>
             </div>
 
             <h1 className="font-display font-extrabold text-2xl sm:text-4xl uppercase tracking-tight text-brand-dark leading-tight">
-              Woohoo! Your order is confirmed, {order?.customerName}.
+              {order?.paymentMethod === "manual"
+                ? `Order Received, ${order?.customerName}!`
+                : `Woohoo! Your order is confirmed, ${order?.customerName}.`}
             </h1>
 
             <p className="text-xs sm:text-sm text-brand-muted max-w-md mx-auto leading-relaxed">
-              We&apos;ve received your order and the kitchen is heating up.
+              {order?.paymentMethod === "manual"
+                ? "Your order is logged and awaiting payment via Mobile Money or Cash on Delivery."
+                : "We've received your order and the kitchen is heating up."}
             </p>
 
             <div className="pt-2 text-[11px] font-mono font-bold text-brand-muted">
@@ -560,6 +576,100 @@ export default function OrderTrackingPage() {
             </div>
           </div>
         </section>
+
+        {/* ===================================================================== */}
+        {/* HIGH-VISIBILITY MANUAL PAYMENT INSTRUCTION BLOCK                      */}
+        {/* ===================================================================== */}
+        {order?.paymentMethod === "manual" && currentStatus === "PENDING" && (
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-brand-yellow/15 border-2 border-brand-yellow rounded-3xl p-6 sm:p-8 space-y-5 shadow-sm text-left"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-brand-yellow flex items-center justify-center text-brand-dark flex-none shadow-xs">
+                <Wallet className="w-6 h-6 stroke-[2.5]" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-red">
+                  Action Required · Manual MoMo / Cash
+                </span>
+                <h2 className="font-display font-black text-xl sm:text-2xl text-brand-dark uppercase tracking-tight">
+                  How to Complete Your Payment
+                </h2>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">
+              Your order has been logged in our kitchen. Please choose one of the two payment options below:
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+              {/* Option A: MoMo Transfer */}
+              <div className="bg-white p-5 rounded-2xl border border-brand-yellow/50 shadow-xs space-y-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-brand-dark">
+                      Option 1: MoMo Transfer
+                    </span>
+                    <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-brand-yellow/20 text-brand-dark">
+                      Recommended
+                    </span>
+                  </div>
+                  <p className="text-xs text-brand-muted mt-1.5 leading-relaxed">
+                    Transfer the food amount of <strong className="text-brand-dark font-bold">{formatGHS(order.foodTotal)}</strong> to our official merchant MoMo line:
+                  </p>
+                  <div className="mt-3 p-3 rounded-xl bg-brand-cream border border-brand-cream-dark flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-brand-muted block">Merchant Line (MTN / Telecel)</span>
+                      <span className="font-mono text-base font-black text-brand-dark">055 000 0000</span>
+                    </div>
+                    <span className="text-[11px] font-display font-extrabold text-brand-red uppercase">Chef Apedo Foods</span>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-[11px] text-brand-muted border-t border-brand-cream-dark">
+                  Use Order Reference: <strong className="font-mono text-brand-dark font-bold">{order.paystackReference}</strong>
+                </div>
+              </div>
+
+              {/* Option B: Cash on Delivery */}
+              <div className="bg-white p-5 rounded-2xl border border-black/10 shadow-xs space-y-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-brand-dark">
+                      Option 2: Cash Upon Delivery
+                    </span>
+                    <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-black/5 text-brand-dark">
+                      Pay Rider
+                    </span>
+                  </div>
+                  <p className="text-xs text-brand-muted mt-1.5 leading-relaxed">
+                    Pay the dispatch courier directly upon arrival at your doorstep:
+                  </p>
+                  <div className="mt-3 p-3 rounded-xl bg-brand-cream border border-brand-cream-dark text-xs space-y-1.5">
+                    <div className="flex justify-between text-brand-muted">
+                      <span>Food Total:</span>
+                      <span className="font-bold text-brand-dark">{formatGHS(order.foodTotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-brand-muted">
+                      <span>Delivery Fee:</span>
+                      <span className="font-bold text-brand-dark">{formatGHS(order.deliveryFee)}</span>
+                    </div>
+                    <div className="flex justify-between pt-1.5 border-t border-brand-cream-dark font-extrabold text-sm text-brand-dark">
+                      <span>Total Due on Arrival:</span>
+                      <span className="text-brand-red font-display font-black">{formatGHS(order.foodTotal + order.deliveryFee)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-[11px] text-brand-muted border-t border-brand-cream-dark">
+                  Riders accept exact cash or direct Mobile Money on arrival.
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* ===================================================================== */}
         {/* CONDITIONAL SWITCH: IF DELIVERED -> PHASE 4 (UNBOXING & RATING)       */}
