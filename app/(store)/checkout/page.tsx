@@ -10,6 +10,10 @@ import { formatGHS } from "@/lib/pricing";
 import { EXCLUDED_DELIVERY_AREAS, ORDERING_HOURS } from "@/config/business";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard, Wallet } from "lucide-react";
+import { useLoadScript, Autocomplete } from "@react-google-maps/api";
+
+// Define the libraries array outside the component to prevent re-renders
+const libraries: ("places")[] = ["places"];
 
 interface ZoneOption {
   name: string;
@@ -32,7 +36,25 @@ const DELIVERY_SLOTS = [
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, subtotalPesewas, clearCart, isLoaded } = useCart();
+  const { items, subtotalPesewas, clearCart, isLoaded: isCartLoaded } = useCart();
+
+  // Google Maps Autocomplete setup
+  const [autocompleteRef, setAutocompleteRef] = useState<google.maps.places.Autocomplete | null>(null);
+
+  const { isLoaded: isMapLoaded, loadError: mapLoadError } = useLoadScript({
+    googleMapsApiKey: (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string) || "",
+    libraries,
+  });
+
+  const handlePlaceChanged = () => {
+    if (autocompleteRef !== null) {
+      const place = autocompleteRef.getPlace();
+      const formatted = place.formatted_address || place.name;
+      if (formatted) {
+        setDeliveryAddress(formatted);
+      }
+    }
+  };
 
   // Step tracking ("cart", "details", "delivery", "payment")
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("details");
@@ -55,6 +77,8 @@ export default function CheckoutPage() {
   const [isServiceable, setIsServiceable] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const formattedTotal = formatGHS(subtotalPesewas);
 
   // Fetch active delivery zones from Supabase
   useEffect(() => {
@@ -104,7 +128,7 @@ export default function CheckoutPage() {
     setDeliveryFeePesewas(fee);
   }, [selectedArea, customArea, zones]);
 
-  if (!isLoaded) {
+  if (!isCartLoaded) {
     return <main className="py-20 text-center text-brand-muted text-sm font-medium">Loading checkout…</main>;
   }
 
@@ -381,14 +405,41 @@ export default function CheckoutPage() {
               <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
                 Street Address &amp; House Number <span className="text-brand-red">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="e.g. 14 Boundary Road, East Legon"
-                value={deliveryAddress}
-                onChange={(e) => setDeliveryAddress(e.target.value)}
-                className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
-                required
-              />
+
+              {isMapLoaded ? (
+                <Autocomplete
+                  onLoad={(ref) => setAutocompleteRef(ref)}
+                  onPlaceChanged={handlePlaceChanged}
+                  // Restrict autocomplete to Ghana
+                  options={{ componentRestrictions: { country: "gh" } }}
+                >
+                  <input
+                    type="text"
+                    placeholder="e.g. 14 Boundary Road, East Legon"
+                    value={deliveryAddress}
+                    onChange={(e) => setDeliveryAddress(e.target.value)}
+                    className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
+                    required
+                  />
+                </Autocomplete>
+              ) : mapLoadError || !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.includes("your_actual") ? (
+                <input
+                  type="text"
+                  placeholder="e.g. 14 Boundary Road, East Legon"
+                  value={deliveryAddress}
+                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
+                  required
+                />
+              ) : (
+                // Fallback while loading
+                <input
+                  type="text"
+                  placeholder="Loading map data..."
+                  disabled
+                  className="w-full bg-brand-cream/50 border border-brand-cream-dark rounded-xl p-3.5 text-sm text-brand-muted bg-black/5 cursor-not-allowed"
+                />
+              )}
             </div>
 
             {/* Landmark */}
@@ -475,6 +526,34 @@ export default function CheckoutPage() {
             <div className="font-bold text-brand-red flex-none pl-2">
               Slot: {deliverySlot}
             </div>
+          </div>
+
+          {/* Payment Clarity Box */}
+          <div className="bg-[#FAF5EE] border border-black/5 rounded-xl p-5 mb-6 text-sm text-[#18110E]">
+            <h4 className="font-black uppercase tracking-wider mb-2 text-xs text-black/50">
+              Payment Clarity:
+            </h4>
+            <ol className="space-y-2 list-decimal list-inside text-black/80 font-medium">
+              {paymentMethod === 'hubtel' ? (
+                <>
+                  <li>
+                    You pay <span className="font-bold text-black">{formattedTotal}</span> now online via Hubtel (MoMo or Card) to secure kitchen preparation.
+                  </li>
+                  <li>
+                    You pay the delivery fee directly to the courier when your food arrives.
+                  </li>
+                </>
+              ) : (
+                <>
+                  <li>
+                    You pay <span className="font-bold text-black">{formattedTotal}</span> either by manual MoMo transfer or cash directly to the dispatch rider upon arrival.
+                  </li>
+                  <li>
+                    The delivery fee is settled with the courier along with your meal.
+                  </li>
+                </>
+              )}
+            </ol>
           </div>
 
           {/* CARD 1: PAY NOW (Food Total) */}

@@ -200,7 +200,7 @@ export default function CartPage() {
         <div className="p-3 bg-brand-cream rounded-xl text-xs text-brand-muted space-y-1">
           <div className="font-bold text-brand-dark">Payment Clarity:</div>
           <div>
-            1. You pay <strong>{formatGHS(subtotalPesewas)}</strong> now via Paystack to secure kitchen preparation.
+            1. You pay <strong>{formatGHS(subtotalPesewas)}</strong> online via Hubtel (MoMo or Card) to secure kitchen preparation.
           </div>
           <div>
             2. You pay the delivery fee directly to the courier when your food arrives.
