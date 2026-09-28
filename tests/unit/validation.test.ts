@@ -76,4 +76,17 @@ describe("Order Validation Schemas (lib/validation/orders)", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("validates full name and rejects pure numeric inputs like 8584", () => {
+    expect(createOrderSchema.safeParse({ ...validOrder, customerName: "8584" }).success).toBe(false);
+    expect(createOrderSchema.safeParse({ ...validOrder, customerName: "A" }).success).toBe(false);
+    expect(createOrderSchema.safeParse({ ...validOrder, customerName: "Kwame Mensah" }).success).toBe(true);
+    expect(createOrderSchema.safeParse({ ...validOrder, customerName: "Aba K." }).success).toBe(true);
+  });
+
+  it("validates Ghana phone and rejects alphabetic inputs like fhbfsfs", () => {
+    expect(createOrderSchema.safeParse({ ...validOrder, phone: "fhbfsfs" }).success).toBe(false);
+    expect(createOrderSchema.safeParse({ ...validOrder, phone: "0241234567" }).success).toBe(true);
+    expect(createOrderSchema.safeParse({ ...validOrder, phone: "055 987 6543" }).success).toBe(true);
+  });
 });
