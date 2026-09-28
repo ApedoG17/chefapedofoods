@@ -9,11 +9,18 @@ import { isAreaServiceable } from "@/lib/delivery";
 import { formatGHS } from "@/lib/pricing";
 import { EXCLUDED_DELIVERY_AREAS, ORDERING_HOURS } from "@/config/business";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard, Wallet } from "lucide-react";
-import { useLoadScript, Autocomplete } from "@react-google-maps/api";
+import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard, Wallet, MapPin } from "lucide-react";
+import dynamic from "next/dynamic";
 
-// Define the libraries array outside the component to prevent re-renders
-const libraries: ("places")[] = ["places"];
+// Dynamically import the Leaflet OpenStreetMap picker to avoid SSR "window is not defined" errors
+const MapPicker = dynamic(() => import("@/components/MapPicker"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[320px] rounded-2xl bg-brand-cream/50 border-2 border-brand-cream-dark flex items-center justify-center text-xs font-semibold text-brand-muted">
+      Loading interactive map...
+    </div>
+  ),
+});
 
 interface ZoneOption {
   name: string;
@@ -38,23 +45,11 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotalPesewas, clearCart, isLoaded: isCartLoaded } = useCart();
 
-  // Google Maps Autocomplete setup
-  const [autocompleteRef, setAutocompleteRef] = useState<google.maps.places.Autocomplete | null>(null);
-
-  const { isLoaded: isMapLoaded, loadError: mapLoadError } = useLoadScript({
-    googleMapsApiKey: (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY as string) || "",
-    libraries,
+  // Pinpoint delivery location on OpenStreetMap (Accra default: East Legon / Legon campus vicinity)
+  const [deliveryLocation, setDeliveryLocation] = useState<{ lat: number; lng: number } | null>({
+    lat: 5.6505,
+    lng: -0.1870,
   });
-
-  const handlePlaceChanged = () => {
-    if (autocompleteRef !== null) {
-      const place = autocompleteRef.getPlace();
-      const formatted = place.formatted_address || place.name;
-      if (formatted) {
-        setDeliveryAddress(formatted);
-      }
-    }
-  };
 
   // Step tracking ("cart", "details", "delivery", "payment")
   const [currentStep, setCurrentStep] = useState<CheckoutStep>("details");
@@ -156,9 +151,15 @@ export default function CheckoutPage() {
   const handleProceedToPayment = async () => {
     setErrorMessage(null);
     const activeArea = selectedArea === "Other" ? customArea : selectedArea;
+    const gpsCoords = deliveryLocation
+      ? `GPS: ${deliveryLocation.lat.toFixed(5)}, ${deliveryLocation.lng.toFixed(5)}`
+      : "";
+    const resolvedAddress = landmark.trim()
+      ? (gpsCoords ? `${landmark.trim()} (${gpsCoords})` : landmark.trim())
+      : gpsCoords;
 
-    if (!fullName.trim() || !phone.trim() || !deliveryAddress.trim() || !activeArea.trim()) {
-      setErrorMessage("Please fill in all required fields.");
+    if (!fullName.trim() || !phone.trim() || !landmark.trim() || !activeArea.trim()) {
+      setErrorMessage("Please fill in all required fields (Name, Phone, Area, and Hostel/House Name).");
       return;
     }
 
@@ -188,7 +189,7 @@ export default function CheckoutPage() {
             customerDetails: {
               name: fullName.trim(),
               phone: phone.trim(),
-              address: deliveryAddress.trim(),
+              address: resolvedAddress,
               area: activeArea.trim(),
               notes: landmark.trim() || "",
               deliverySlot,
@@ -225,7 +226,7 @@ export default function CheckoutPage() {
             customerDetails: {
               name: fullName.trim(),
               phone: phone.trim(),
-              address: deliveryAddress.trim(),
+              address: resolvedAddress,
               area: activeArea.trim(),
               notes: landmark.trim() || "",
               deliverySlot,
@@ -400,60 +401,52 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* Street Address */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
-                Street Address &amp; House Number <span className="text-brand-red">*</span>
-              </label>
-
-              {isMapLoaded ? (
-                <Autocomplete
-                  onLoad={(ref) => setAutocompleteRef(ref)}
-                  onPlaceChanged={handlePlaceChanged}
-                  // Restrict autocomplete to Ghana
-                  options={{ componentRestrictions: { country: "gh" } }}
-                >
-                  <input
-                    type="text"
-                    placeholder="e.g. 14 Boundary Road, East Legon"
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
-                    required
-                  />
-                </Autocomplete>
-              ) : mapLoadError || !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.includes("your_actual") ? (
-                <input
-                  type="text"
-                  placeholder="e.g. 14 Boundary Road, East Legon"
-                  value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
-                  className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
-                  required
-                />
-              ) : (
-                // Fallback while loading
-                <input
-                  type="text"
-                  placeholder="Loading map data..."
-                  disabled
-                  className="w-full bg-brand-cream/50 border border-brand-cream-dark rounded-xl p-3.5 text-sm text-brand-muted bg-black/5 cursor-not-allowed"
-                />
-              )}
+            {/* The Interactive OpenStreetMap */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-black uppercase tracking-wider text-brand-dark flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-brand-red" />
+                  <span>Pinpoint Your Location <span className="text-brand-red">*</span></span>
+                </label>
+                {deliveryLocation && (
+                  <span className="text-[10px] font-mono text-brand-muted bg-brand-cream-dark/40 px-2 py-0.5 rounded">
+                    GPS: {deliveryLocation.lat.toFixed(4)}, {deliveryLocation.lng.toFixed(4)}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-brand-muted">
+                Tap on the map to drop a pin exactly where you want your food delivered in Accra.
+              </p>
+              
+              <MapPicker
+                initialLocation={deliveryLocation}
+                onLocationSelect={(loc) => setDeliveryLocation(loc)}
+              />
+              
+              {/* Hidden input to ensure form validation catches missing location */}
+              <input 
+                type="hidden" 
+                required 
+                value={deliveryLocation ? `${deliveryLocation.lat},${deliveryLocation.lng}` : ""} 
+              />
             </div>
 
-            {/* Landmark */}
+            {/* Hostel / House Name & Landmark */}
             <div className="space-y-1.5">
               <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
-                Landmark / Directions
+                Hostel / House Name &amp; Landmark <span className="text-brand-red">*</span>
               </label>
               <input
                 type="text"
-                placeholder="e.g. Near Starbites, opposite yellow gate"
+                placeholder="e.g. Evandy Hostel, Room 402 (Near the main gate)"
                 value={landmark}
                 onChange={(e) => setLandmark(e.target.value)}
                 className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
+                required
               />
+              <p className="text-[11px] text-brand-muted">
+                Specific room number, gate description, or building name for your dispatch rider.
+              </p>
             </div>
           </div>
 
@@ -503,7 +496,7 @@ export default function CheckoutPage() {
 
             <button
               type="button"
-              disabled={!isServiceable || !deliveryAddress.trim()}
+              disabled={!isServiceable || !landmark.trim()}
               onClick={() => setCurrentStep("payment")}
               className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-40 disabled:pointer-events-none text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 transform hover:-translate-y-0.5 shadow-button-yellow"
             >
@@ -521,7 +514,7 @@ export default function CheckoutPage() {
           <div className="bg-white rounded-2xl p-5 border border-brand-cream-dark shadow-sm flex items-center justify-between text-xs">
             <div>
               <span className="font-bold text-brand-dark">Delivering to:</span>{" "}
-              <span className="text-brand-muted">{fullName} ({phone}) · {deliveryAddress}, {selectedArea === "Other" ? customArea : selectedArea}</span>
+              <span className="text-brand-muted">{fullName} ({phone}) · {landmark}, {selectedArea === "Other" ? customArea : selectedArea}</span>
             </div>
             <div className="font-bold text-brand-red flex-none pl-2">
               Slot: {deliverySlot}
