@@ -27,16 +27,16 @@ export default function DeliveryPage() {
   const startingFeeGHS = formatGHS(DELIVERY_FEE_STARTING_PESEWAS);
 
   return (
-    <div className="w-full min-h-screen bg-brand-cream text-brand-dark flex flex-col relative selection:bg-brand-yellow selection:text-brand-dark">
+    <div className="w-full min-h-screen bg-brand-cream text-brand-dark flex flex-col relative selection:bg-brand-yellow selection:text-brand-dark overflow-x-clip">
       {/* ========================================================================= */}
       {/* 1. EDITORIAL DELIVERY HERO                                               */}
       {/* ========================================================================= */}
-      <section className="w-full bg-brand-red text-white pt-10 sm:pt-14 pb-16 sm:pb-20 border-b border-black/10 relative overflow-hidden">
+      <section className="w-full bg-brand-red text-white pt-10 sm:pt-14 pb-16 sm:pb-20 px-4 sm:px-6 md:px-12 lg:px-24 border-b border-black/10 relative overflow-hidden">
         {/* Subtle geometric lighting accents */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-10 left-10 w-80 h-80 bg-brand-yellow/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-6xl mx-auto relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12 items-center">
             {/* Left Column: Text */}
             <div className="space-y-4 text-left">
@@ -45,8 +45,8 @@ export default function DeliveryPage() {
                 <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff} GMT</span>
               </div>
 
-              <h1 className="font-display font-extrabold text-4xl sm:text-6xl lg:text-[4.5rem] uppercase tracking-tight leading-[1.02] text-white">
-                Delivered Across Accra.
+              <h1 className="font-display font-black text-6xl md:text-[6rem] leading-[0.85] uppercase mb-6 tracking-tighter text-white">
+                DELIVERED<br/>ACROSS ACCRA.
               </h1>
 
               <p className="text-sm sm:text-base text-white/90 max-w-md leading-relaxed font-sans font-normal">
@@ -74,20 +74,20 @@ export default function DeliveryPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.7, ease: "easeOut" }}
-              className="flex justify-center md:justify-end relative w-full h-[280px] sm:h-[350px] md:h-[380px] lg:h-[420px] mt-4 md:mt-0"
+              className="flex justify-center md:justify-end relative w-full h-[280px] sm:h-[350px] md:h-[380px] lg:h-[420px] mt-4 md:mt-0 overflow-hidden"
             >
               <motion.div
                 animate={{ y: [-10, 10, -10] }}
                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                className="relative w-full max-w-[340px] sm:max-w-[420px] md:max-w-none h-full"
+                className="relative w-full max-w-[300px] sm:max-w-[420px] md:max-w-none h-full"
               >
                 <Image
                   src="/images/packaging/takeout-paper-bowl.png"
                   alt="Secure Packaging"
                   fill
                   priority
-                  sizes="(max-width: 768px) 340px, (max-width: 1024px) 450px, 550px"
-                  className="object-contain drop-shadow-2xl scale-105 sm:scale-110 lg:scale-120 origin-center"
+                  sizes="(max-width: 768px) 300px, (max-width: 1024px) 450px, 550px"
+                  className="object-contain drop-shadow-2xl scale-100 sm:scale-105 lg:scale-110 origin-center"
                 />
               </motion.div>
             </motion.div>
