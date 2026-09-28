@@ -394,7 +394,7 @@ export default function HomePage() {
                   Pay Food Online
                 </h3>
                 <p className="text-xs text-white/75 leading-relaxed">
-                  Prepay your food subtotal securely during checkout via Paystack with MTN MoMo, Telecel Cash, or card before cooking begins.
+                  Prepay your food subtotal securely during checkout via Hubtel with MTN MoMo, Telecel Cash, or card before cooking begins.
                 </p>
               </div>
               <div className="text-[10px] font-bold text-brand-yellow uppercase tracking-wider">
