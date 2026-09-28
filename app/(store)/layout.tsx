@@ -31,7 +31,7 @@ export default function StoreLayout({
     pathname.startsWith("/orders/");
 
   return (
-    <div className="min-h-screen w-full bg-brand-dark text-white flex flex-col selection:bg-brand-yellow selection:text-brand-dark">
+    <div className="relative min-h-screen w-full bg-brand-dark text-white flex flex-col selection:bg-brand-yellow selection:text-brand-dark overflow-x-hidden">
       <SplashSequence />
       {!isFocusScreen && <Navbar />}
 

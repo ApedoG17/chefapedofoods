@@ -9,10 +9,14 @@
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   body {
     @apply bg-brand-dark text-white font-sans;
+    overflow-x: hidden;
+    max-width: 100vw;
   }
 
   ::selection {
