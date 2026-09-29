@@ -35,7 +35,7 @@ export function SplitPaymentCard({
               Pay Now (Food Subtotal)
             </div>
             <div className="text-[11px] text-ink-dim font-light">
-              Prepaid securely via Paystack
+              Prepaid securely online (Hubtel / MoMo)
             </div>
           </div>
         </div>

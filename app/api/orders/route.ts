@@ -289,7 +289,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate unique internal Paystack reference ahead of time (e.g. CAF-<timestamp>-<random>)
+    // Generate unique internal payment reference ahead of time (e.g. CAF-<timestamp>-<random>)
     const generatedReference = `CAF-${Date.now()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
 
     const { data: order, error: orderErr } = await adminSupabase
@@ -301,7 +301,7 @@ export async function POST(request: Request) {
         subtotal_pesewas: calculatedSubtotalPesewas,
         delivery_fee_pesewas: deliveryFeePesewas,
         amount_paid_pesewas: 0,
-        payment_method: "paystack",
+        payment_method: "hubtel",
         payment_status: "unpaid",
         order_status: "awaiting_payment",
         paystack_reference: generatedReference,

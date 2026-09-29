@@ -21,7 +21,7 @@ export default function HowItWorksPage() {
       num: 3,
       icon: <CreditCard className="w-5 h-5 text-brand-gold" />,
       title: "Prepay food subtotal online",
-      desc: "Pay securely with MTN MoMo, Telecel Cash, or Card via Paystack. Upfront prepayment guarantees your spot in our limited daily batch.",
+      desc: "Pay securely with MTN MoMo, Telecel Cash, or Card via Hubtel. Upfront prepayment guarantees your spot in our limited daily batch.",
     },
     {
       num: 4,

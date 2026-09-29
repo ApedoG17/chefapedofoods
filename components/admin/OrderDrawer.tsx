@@ -445,7 +445,7 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
                   ) : (
                     <>
                       <CreditCard size={13} className="text-green-400" />
-                      <span>Online (Hubtel / Paystack)</span>
+                      <span>Online (Hubtel MoMo)</span>
                     </>
                   )}
                 </span>

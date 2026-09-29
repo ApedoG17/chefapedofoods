@@ -1,101 +1,92 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Card } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { FormField } from "@/components/ui/FormField";
-import { WarningBox } from "@/components/ui/WarningBox";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createBrowserClient } from '@supabase/ssr';
 
-export default function AdminLoginPage() {
+export default function AdminLogin() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg(null);
-    setLoading(true);
+    setIsLoading(true);
+    setError('');
 
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password: password.trim(),
-      });
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (error) {
-        setErrorMsg(error.message || "Invalid email or password");
-        setLoading(false);
-        return;
-      }
-
-      if (data.session) {
-        router.push("/admin/dashboard");
-      }
-    } catch (err: any) {
-      console.error("Login unexpected error:", err);
-      setErrorMsg("An unexpected error occurred. Please try again.");
-    } finally {
-      setLoading(false);
+    if (authError) {
+      setError('Invalid admin credentials. Please try again.');
+      setIsLoading(false);
+    } else {
+      router.push('/admin');
+      router.refresh();
     }
   };
 
   return (
-    <main className="min-h-[80vh] flex flex-col justify-center max-w-sm mx-auto">
-      <div>
-        <p className="text-[10px] tracking-[0.14em] uppercase text-gold font-medium mb-1">
-          Chef Apedo Foods
-        </p>
-        <h1 className="font-serif font-semibold text-[24px] text-ink mb-1">
-          Admin Login
-        </h1>
-        <p className="text-[12.5px] text-ink-dim mb-4">
-          Kitchen operations &amp; order lifecycle management.
-        </p>
-      </div>
-
-      {errorMsg && (
-        <WarningBox className="mb-4">{errorMsg}</WarningBox>
-      )}
-
-      <Card>
-        <form onSubmit={handleLogin} className="space-y-3">
-          <FormField
-            label="Email"
-            type="email"
-            placeholder="chef@chefapedofoods.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <FormField
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          <Button
-            type="submit"
-            variant="primary"
-            className="w-full mt-4"
-            disabled={loading || !email.trim() || !password.trim()}
-          >
-            {loading ? "Authenticating…" : "Login"}
-          </Button>
-
-          <p className="text-[11px] text-ink-dim leading-relaxed pt-2">
-            No customer accounts exist in MVP — this login is strictly for the chef and kitchen administration.
+    <div className="min-h-screen bg-[#0D0D0D] flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-md bg-[#141414] border border-white/5 rounded-2xl p-8 shadow-2xl">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-black tracking-widest text-white uppercase">
+            Chef <span className="text-[#FFB800]">Apedo</span>
+          </h1>
+          <p className="text-xs text-white/40 mt-2 uppercase tracking-wider">
+            Kitchen Display System Login
           </p>
+        </div>
+
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 text-sm rounded-xl text-center font-medium">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold uppercase text-white/50 mb-2">Admin Email</label>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-[#FFB800] focus:ring-1 focus:ring-[#FFB800] outline-none transition-all"
+              placeholder="kds@chefapedofoods.com"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold uppercase text-white/50 mb-2">Password</label>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:border-[#FFB800] focus:ring-1 focus:ring-[#FFB800] outline-none transition-all"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-[#FFB800] text-[#18110E] font-black uppercase tracking-wider py-4 rounded-xl hover:bg-[#FFB800]/90 transition-colors mt-4 disabled:opacity-50 cursor-pointer"
+          >
+            {isLoading ? 'Authenticating...' : 'Secure Login'}
+          </button>
         </form>
-      </Card>
-    </main>
+      </div>
+    </div>
   );
 }

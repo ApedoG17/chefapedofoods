@@ -31,7 +31,7 @@ Chef Apedo Foods
     └── Kitchen
 ```
 
-**Why this stack:** Next.js handles customer UI, admin UI, and server-side logic (API routes / server actions) in one app, so there's no separate frontend/backend to stand up for an MVP. Supabase gives Postgres + Auth + Edge Functions + Storage on one platform, comfortably inside its free tier for MVP scale. Vercel is the natural deploy target for Next.js. Paystack means **one** payment integration covers MTN MoMo, Telecel, and AirtelTigo, rather than building and maintaining two separate direct mobile-money integrations for a solo-run business.
+**Why this stack:** Next.js handles customer UI, admin UI, and server-side logic (API routes / server actions) in one app, so there's no separate frontend/backend to stand up for an MVP. Supabase gives Postgres + Auth + Edge Functions + Storage on one platform, comfortably inside its free tier for MVP scale. Vercel is the natural deploy target for Next.js. Hubtel means **one** payment integration covers Ghanaian mobile money (MTN MoMo, Telecel Cash, ATMoney) and cards, alongside a zero-friction Manual MoMo/Cash fallback and an automated SMS dispatch notification pipeline.
 
 ## System Diagram
 
@@ -43,15 +43,15 @@ Chef Apedo Foods
                     │      VERCEL       │
                     │    Next.js App    │
                     │  Customer UI      │
-                    │  Admin UI         │
+                    │  Admin UI (KDS)   │
                     │  Checkout         │
                     └─────────┬─────────┘
               ┌───────────────┼────────────────┐
               ↓                ↓                ↓
        ┌────────────┐  ┌─────────────┐  ┌──────────────┐
-       │  Supabase  │  │  Paystack   │  │   WhatsApp   │
-       │ PostgreSQL │  │ MoMo/Card   │  │   Support    │
-       │ Auth       │  │ Webhooks    │  │              │
+       │  Supabase  │  │   Hubtel    │  │  SMS Gateway │
+       │ PostgreSQL │  │ MoMo/Card   │  │  (Arkesel /  │
+       │ Auth       │  │ Webhooks    │  │   Hubtel)    │
        │ Functions  │  │             │  │              │
        │ Storage    │  │             │  │              │
        └────────────┘  └─────────────┘  └──────────────┘

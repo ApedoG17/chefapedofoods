@@ -103,7 +103,7 @@ export function DeliveryCoverageSection() {
                     <span>Prepaid</span>
                   </div>
                   <p className="text-xs text-white/80">
-                    Paid upfront securely via Paystack (MTN MoMo, Telecel Cash, or Card).
+                    Paid upfront securely via Hubtel (MTN MoMo, Telecel Cash, or Card).
                   </p>
                 </div>
 

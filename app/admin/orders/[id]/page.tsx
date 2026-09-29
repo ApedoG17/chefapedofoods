@@ -225,7 +225,7 @@ export default function AdminOrderDetailPage({ params }: PageProps) {
             <span className="text-ink font-semibold">{formatGHS(order.delivery_fee_pesewas)}</span>
           </div>
           <div className="flex justify-between py-1.5 text-[11.5px] text-ink-dim">
-            <span>Paystack Reference</span>
+            <span>Payment Reference</span>
             <span className="font-mono">{ref}</span>
           </div>
         </div>

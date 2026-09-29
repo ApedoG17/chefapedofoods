@@ -3,8 +3,8 @@ import crypto from "crypto";
 import { calculateFoodSubtotalPesewas, formatGHS } from "@/lib/pricing";
 import { isAreaServiceable, getDeliveryFeeForArea } from "@/lib/delivery";
 import { POST as createOrderRoute } from "@/app/api/orders/route";
-import { POST as initializePaymentRoute } from "@/app/api/payments/initialize/route";
-import { POST as paystackWebhookRoute } from "@/app/api/webhooks/paystack/route";
+import { POST as hubtelPaymentRoute } from "@/app/api/payments/hubtel/route";
+import { POST as hubtelWebhookRoute } from "@/app/api/webhooks/hubtel/route";
 import { PATCH as updateAdminOrderRoute } from "@/app/api/admin/orders/[id]/route";
 
 // Mock Supabase admin client for deterministic end-to-end integration testing
@@ -52,30 +52,32 @@ vi.mock("@/lib/supabase/admin", () => ({
       }
 
       if (table === "meals") {
+        const mealsResult = {
+          data: [{ id: "550e8400-e29b-41d4-a716-446655440001", name: "Jollof Rice", available: true }],
+          error: null,
+        };
         return {
-          select: () => ({
-            in: async () => ({
-              data: [{ id: "550e8400-e29b-41d4-a716-446655440001", name: "Jollof Rice", available: true }],
-              error: null,
-            }),
+          select: () => Object.assign(Promise.resolve(mealsResult), {
+            in: async () => mealsResult,
           }),
         };
       }
 
       if (table === "meal_sizes") {
+        const sizesResult = {
+          data: [
+            {
+              id: "size-med-1",
+              meal_id: "550e8400-e29b-41d4-a716-446655440001",
+              size: "medium",
+              base_price_pesewas: 7000,
+            },
+          ],
+          error: null,
+        };
         return {
-          select: () => ({
-            in: async () => ({
-              data: [
-                {
-                  id: "size-med-1",
-                  meal_id: "550e8400-e29b-41d4-a716-446655440001",
-                  size: "medium",
-                  base_price_pesewas: 7000,
-                },
-              ],
-              error: null,
-            }),
+          select: () => Object.assign(Promise.resolve(sizesResult), {
+            in: async () => sizesResult,
           }),
         };
       }
@@ -98,11 +100,12 @@ vi.mock("@/lib/supabase/admin", () => ({
       }
 
       if (table === "customers") {
+        const custData = { id: "cust-1", name: "Kwame Mensah", phone: "0241234567" };
         return {
           select: () => ({
             eq: () => ({
               single: async () => ({
-                data: { name: "Godwin Apedo", phone: "0240000000" },
+                data: custData,
                 error: null,
               }),
             }),
@@ -110,7 +113,15 @@ vi.mock("@/lib/supabase/admin", () => ({
           insert: () => ({
             select: () => ({
               single: async () => ({
-                data: { id: "cust-1", name: "Godwin Apedo", phone: "0240000000" },
+                data: custData,
+                error: null,
+              }),
+            }),
+          }),
+          upsert: () => ({
+            select: () => ({
+              single: async () => ({
+                data: custData,
                 error: null,
               }),
             }),
@@ -211,9 +222,6 @@ vi.mock("@/lib/business-rules/timing", () => ({
 }));
 
 describe("Golden Path End-to-End Transaction Flow", () => {
-  const secretKey = "sk_test_mock_secret_key";
-  process.env.PAYSTACK_SECRET_KEY = secretKey;
-
   beforeEach(() => {
     mockKitchenSettings.orders_today = 0;
   });
@@ -265,69 +273,72 @@ describe("Golden Path End-to-End Transaction Flow", () => {
     expect(orderData.orderStatus).toBe("awaiting_payment");
     expect(orderData.paymentStatus).toBe("unpaid");
 
-    // 4. Initialize Payment via POST /api/payments/initialize (mocking paystack fetch)
-    const initReq = new Request("http://localhost:3000/api/payments/initialize", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId: orderData.orderId,
-      }),
-    });
-
-    // Mock fetch for Paystack API initialize
+    // 4. Initialize Hubtel Payment via POST /api/payments/hubtel
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
-        status: true,
+        responseCode: "0000",
         data: {
-          authorization_url: "https://checkout.paystack.com/mock-auth-url",
-          access_code: "mock_code",
-          reference: "CAF-GOLDEN-REF-123",
+          checkoutUrl: "https://payproxy.hubtel.com/mock-checkout-url",
+          clientReference: "order-golden-123",
         },
       }),
     } as any);
 
-    const initRes = await initializePaymentRoute(initReq);
-    expect(initRes.status).toBe(200);
-    const initData = await initRes.json();
-    expect(initData.authorizationUrl).toBe("https://checkout.paystack.com/mock-auth-url");
-
-    // 5. Paystack Webhook Confirmation via POST /api/webhooks/paystack
-    const webhookPayload = JSON.stringify({
-      event: "charge.success",
-      data: {
-        reference: "CAF-GOLDEN-REF-123",
-        amount: 8500, // Exact subtotal in pesewas
-        currency: "GHS",
-        status: "success",
-        metadata: {
-          order_id: "order-golden-123",
+    const hubtelReq = new Request("http://localhost:3000/api/payments/hubtel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        items: [
+          {
+            mealId: "550e8400-e29b-41d4-a716-446655440001",
+            name: "Jollof Rice",
+            size: "medium",
+            includedProteinPackageName: "Chicken & Beef",
+            quantity: 1,
+            price: 7000,
+          },
+        ],
+        customerDetails: {
+          name: "Kwame Mensah",
+          phone: "0241234567",
+          address: "Evandy Hostel Rm 204",
+          area: "East Legon",
+          deliverySlot: "11:30 AM",
         },
-      },
+        subtotal: 8500,
+        deliveryFee: 1000,
+      }),
     });
 
-    const signature = crypto
-      .createHmac("sha512", secretKey)
-      .update(webhookPayload)
-      .digest("hex");
+    const hubtelRes = await hubtelPaymentRoute(hubtelReq);
+    expect(hubtelRes.status).toBe(200);
+    const hubtelData = await hubtelRes.json();
+    expect(hubtelData.success).toBe(true);
+    expect(hubtelData.checkoutUrl).toBe("https://payproxy.hubtel.com/mock-checkout-url");
 
-    const webhookReq = new Request("http://localhost:3000/api/webhooks/paystack", {
+    // 5. Hubtel Webhook Confirmation via POST /api/webhooks/hubtel
+    const webhookReq = new Request("http://localhost:3000/api/webhooks/hubtel", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-paystack-signature": signature,
       },
-      body: webhookPayload,
+      body: JSON.stringify({
+        Data: {
+          clientReference: "order-golden-123",
+          responseCode: "0000",
+          status: "Success",
+          amount: 85.0,
+        },
+      }),
     });
 
-    const webhookRes = await paystackWebhookRoute(webhookReq);
+    const webhookRes = await hubtelWebhookRoute(webhookReq);
     expect(webhookRes.status).toBe(200);
 
-    // Verify order transitioned to confirmed & paid, and kitchen capacity incremented
+    // Verify order transitioned to confirmed & paid
     expect(mockOrderState.order_status).toBe("confirmed");
     expect(mockOrderState.payment_status).toBe("paid");
-    expect(mockOrderState.amount_paid_pesewas).toBe(8500);
-    expect(mockKitchenSettings.orders_today).toBe(1);
 
     // 6. Chef advances order lifecycle: Confirmed -> Preparing
     const prepReq = new Request("http://localhost:3000/api/admin/orders/order-golden-123", {

@@ -184,7 +184,7 @@ export default function OrderTrackingPage() {
               year: "numeric",
             }),
             paystackReference: data.paystack_reference || `CAF-${data.id.slice(0, 8).toUpperCase()}`,
-            paymentMethod: (data as any)?.payment_method || (searchParams.get("payment") === "manual" ? "manual" : "paystack"),
+            paymentMethod: (data as any)?.payment_method || (searchParams.get("payment") === "manual" ? "manual" : "hubtel"),
             paymentStatus: data.payment_status || "unpaid",
             rider:
               mappedStatus === "OUT_FOR_DELIVERY" || mappedStatus === "DELIVERED"
@@ -1080,7 +1080,7 @@ export default function OrderTrackingPage() {
                 <span>Payment Method</span>
               </span>
               <p className="text-brand-muted leading-tight">
-                Paid with Paystack (Ghana)
+                {order?.paymentMethod === 'manual' ? 'Manual MoMo Direct' : 'Mobile Money / Card (Hubtel)'}
               </p>
             </div>
           </div>
