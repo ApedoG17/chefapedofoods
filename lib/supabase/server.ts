@@ -4,7 +4,7 @@ import type { Database } from "@/types/database";
 
 /**
  * Server-only client for user sessions and customer-facing queries.
- * Privileged writes (order creation, Paystack webhooks) use createAdminClient() from lib/supabase/admin.ts.
+ * Privileged writes (order creation, Hubtel webhooks) use createAdminClient() from lib/supabase/admin.ts.
  */
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies();

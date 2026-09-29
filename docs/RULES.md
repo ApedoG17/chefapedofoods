@@ -1,6 +1,6 @@
 # Chef Apedo Foods — Coding Rules & Conventions
 
-Stack is locked (Next.js + TypeScript + Tailwind, Supabase, Vercel, Paystack — see `ARCHITECTURE.md`). Conventions below apply from the first commit.
+Stack is locked (Next.js + TypeScript + Tailwind, Supabase, Vercel, Hubtel + Manual MoMo — see `ARCHITECTURE.md`). Conventions below apply from the first commit.
 
 ## Stack-agnostic rules
 
@@ -18,6 +18,6 @@ Stack is locked (Next.js + TypeScript + Tailwind, Supabase, Vercel, Paystack —
 - **File/folder structure:** customer routes and admin routes are separate route groups in the same Next.js app (e.g. `app/(customer)/...` and `app/(admin)/...`), sharing the same component library from `COMPONENTS.md` rather than duplicating UI.
 - **Components map to `COMPONENTS.md` 1:1 where possible** — `MealCard`, `OptionRow`, `SplitPaymentCard`, `Badge`, `Button` (variant prop: `primary`/`ghost`/`disabled`), etc. A new visual pattern should be added to `COMPONENTS.md` before it's built, not after.
 - **Tailwind tokens mirror `DESIGN_SYSTEM.md`** — define the color tokens (`bg-primary`, `surface`, `accent-gold`, etc.) in `tailwind.config` rather than using raw hex values inline.
-- **Paystack webhook handling** is a server-only route; verify the webhook signature before trusting any payload, and treat `Order.payment_status` as unset until that verification succeeds (see the payment flow in `ARCHITECTURE.md`).
+- **Hubtel webhook handling** is a server-only route; verify the client credentials / auth before trusting any payload, and treat `Order.payment_status` as unset until that verification succeeds (see the payment flow in `ARCHITECTURE.md`).
 - **Supabase access:** the admin dashboard uses Supabase Auth for the single chef login; customer-facing writes (placing an order) should go through a server action / API route, not direct client-side Supabase calls, so business-rule checks can't be bypassed.
 - Linting/formatting (ESLint + Prettier), commit message convention, and branching model are not yet fixed — default to conventional commits and a simple trunk-based flow unless the founder has a preference.

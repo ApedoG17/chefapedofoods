@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { createBrowserClient } from '@supabase/ssr';
 import { 
   LayoutDashboard, 
   ClipboardList, 
@@ -13,6 +14,23 @@ import {
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/admin/login');
+    router.refresh();
+  };
+
+  // Do not render the admin navigation sidebar when on the login screen
+  if (pathname === '/admin/login') {
+    return <div className="min-h-screen bg-[#0D0D0D] text-white font-sans">{children}</div>;
+  }
 
   const navItems = [
     { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -55,7 +73,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="p-4 border-t border-white/5">
-          <button className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl text-white/60 hover:text-brand-red hover:bg-brand-red/10 transition-all">
+          <button 
+            onClick={handleLogout}
+            className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl text-white/60 hover:text-brand-red hover:bg-brand-red/10 transition-all cursor-pointer"
+          >
             <LogOut size={20} />
             <span className="text-sm font-medium">Secure Logout</span>
           </button>

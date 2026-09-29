@@ -6,13 +6,13 @@ Ordering website for Chef Apedo Foods — a home-based Ghanaian food delivery bu
 
 ## Stack
 
-Next.js + TypeScript + Tailwind CSS · Supabase (Postgres, Auth, Edge Functions, Storage) · Vercel · Paystack. See `docs/ARCHITECTURE.md` for the full picture.
+Next.js + TypeScript + Tailwind CSS · Supabase (Postgres, Auth, Edge Functions, Storage) · Vercel · Hubtel + Manual MoMo. See `docs/ARCHITECTURE.md` for the full picture.
 
 ## Getting started
 
 ```bash
 npm install
-cp .env.example .env.local   # fill in Supabase + Paystack (test) keys
+cp .env.example .env.local   # fill in Supabase + Hubtel / SMS keys
 npm run dev
 ```
 
@@ -20,10 +20,10 @@ Database: run the migration and seed in `supabase/migrations/` and `supabase/see
 
 ## Current status
 
-Phase F (development) just started. Repository is scaffolded per `docs/TASKS.md` §1; the core transaction (Menu → Customize → Cart → Checkout → Payment → Confirmation → Order Status) has not been implemented yet — the `app/(store)/` pages are placeholders describing what belongs on each screen.
+Phase F (development) active. The core transaction (Menu → Customize → Cart → Checkout → Hubtel / MoMo Payment → Confirmation → Order Status), realtime Kitchen Display System (KDS), SMS notification dispatch, and finance ledger are fully wired and functional.
 
 ## Build order
 
-Follow `docs/TASKS.md` in order: data layer → core transaction → kitchen/admin → order status wiring → marketing pages → testing (golden path + 7 edge cases in `docs/TESTING.md`) → deployment.
+Follow `docs/TASKS.md` in order: data layer → core transaction → kitchen/admin → order status wiring → marketing pages → testing (golden path + edge cases in `docs/TESTING.md`) → deployment.
 
-**First milestone:** not "site looks done" — a real test order placed start to finish, paid successfully via Paystack, and received/processed by the chef from the admin side.
+**Milestone:** a real test order placed start to finish, paid successfully via Hubtel / MoMo, and received/processed by the chef from the admin side with automated customer SMS updates.

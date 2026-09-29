@@ -88,7 +88,7 @@ export function Footer() {
             </h4>
             <div className="p-4 rounded-2xl bg-white/5 border border-white/10 text-xs space-y-2 font-medium">
               <div className="text-brand-yellow font-bold">
-                1. Food Total: <span className="text-white font-normal">Prepaid online via Paystack</span>
+                1. Food Total: <span className="text-white font-normal">Prepaid securely online (Hubtel MoMo / Card)</span>
               </div>
               <div className="text-brand-yellow font-bold">
                 2. Delivery Fee: <span className="text-white font-normal">Paid directly to rider upon arrival</span>

@@ -273,7 +273,7 @@ export default function AboutPage() {
                 </div>
 
                 <p className="text-sm sm:text-base text-white/80 leading-relaxed font-sans">
-                  The custom-built digital storefront eliminates chaotic direct messages and order mistakes. Designed with exact meal customizers, small-batch stock limits, and transparent Paystack integration, customers experience zero hidden fees and real-time status updates as cooking transitions directly to courier dispatch.
+                  The custom-built digital storefront eliminates chaotic direct messages and order mistakes. Designed with exact meal customizers, small-batch stock limits, and transparent Hubtel Mobile Money integration, customers experience zero hidden fees and real-time status updates as cooking transitions directly to courier dispatch.
                 </p>
               </div>
 
@@ -282,7 +282,7 @@ export default function AboutPage() {
                   Next.js + TypeScript
                 </span>
                 <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
-                  Paystack Integration
+                  Hubtel MoMo Integration
                 </span>
                 <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
                   Real-time Batch Logic
@@ -376,7 +376,7 @@ export default function AboutPage() {
                   Transparent Pricing
                 </h3>
                 <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">
-                  What you see is what you pay. Food is secured online via Paystack before cooking begins, and the delivery fee is paid directly to the courier on arrival. Zero disguised markups or hidden convenience fees.
+                  What you see is what you pay. Food is secured online via Hubtel MoMo before cooking begins, and the delivery fee is paid directly to the courier on arrival. Zero disguised markups or hidden convenience fees.
                 </p>
               </div>
             </div>

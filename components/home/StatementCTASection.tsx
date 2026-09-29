@@ -43,7 +43,7 @@ export function StatementCTASection() {
 
         {/* Small trust footer */}
         <div className="pt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-white/70 font-medium">
-          <span>✓ Prepaid via Paystack</span>
+          <span>✓ Prepaid via Hubtel MoMo</span>
           <span>✓ Dedicated rider delivery</span>
           <span>✓ Fresh daily batch</span>
         </div>

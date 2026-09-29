@@ -265,7 +265,7 @@ export default function DeliveryPage() {
                 </div>
 
                 <p className="text-xs sm:text-sm text-white/80 leading-relaxed">
-                  Your meal portion, included protein packages, and any extra additions are paid online during checkout via Paystack.
+                  Your meal portion, included protein packages, and any extra additions are paid online during checkout via Hubtel (Mobile Money / Card).
                 </p>
 
                 <div className="space-y-2 pt-2 text-xs text-white/70">

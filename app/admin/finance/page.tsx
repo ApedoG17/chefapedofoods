@@ -166,7 +166,7 @@ export default function FinancePage() {
           <h3 className="text-3xl font-black text-white font-mono">
             GH₵ {(onlineRevenuePesewas / 100).toFixed(2)}
           </h3>
-          <p className="text-[11px] text-white/40 mt-1">Settled via Hubtel / Paystack</p>
+          <p className="text-[11px] text-white/40 mt-1">Settled via Hubtel</p>
         </div>
 
         <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl relative overflow-hidden group">
