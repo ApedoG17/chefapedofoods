@@ -7,8 +7,8 @@ export async function GET() {
 
     const [settingsRes, mealsRes, proteinsRes] = await Promise.all([
       adminSupabase.from("kitchen_settings").select("*").limit(1).single(),
-      adminSupabase.from("meals").select("id, name, available").order("name"),
-      adminSupabase.from("protein_options").select("id, name, available").order("name"),
+      adminSupabase.from("meals").select("id, name, description, available, meal_sizes(id, size, base_price_pesewas)").order("name"),
+      adminSupabase.from("protein_options").select("id, name, additional_price_pesewas, available").order("name"),
     ]);
 
     return NextResponse.json({
