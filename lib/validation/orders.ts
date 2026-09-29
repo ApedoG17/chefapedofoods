@@ -3,6 +3,26 @@ import { isAreaServiceable } from "@/lib/delivery";
 
 export const ghanaPhoneRegex = /^(?:\+233|0)[25]\d{8}$/;
 
+/**
+ * Validates a Ghanaian mobile phone number against national telecom formats
+ * (MTN 024/054/055/059/053, Telecel 020/050, AT 027/057/026/056)
+ */
+export function isValidGhanaPhone(input: string): boolean {
+  if (!input) return false;
+  const cleaned = input.replace(/[\s\-()]/g, "");
+  return ghanaPhoneRegex.test(cleaned);
+}
+
+/**
+ * Validates that a customer full name has realistic length, contains alphabetic characters,
+ * and is not pure numbers (e.g. "8584") or random punctuation.
+ */
+export function isValidFullName(name: string): boolean {
+  if (!name) return false;
+  const trimmed = name.trim();
+  return trimmed.length >= 2 && /[a-zA-Z]/.test(trimmed) && !/^\d+$/.test(trimmed);
+}
+
 export const orderItemExtrasSchema = z.object({
   chicken: z.number().int().nonnegative().optional().default(0),
   sausage: z.number().int().nonnegative().optional().default(0),
@@ -28,11 +48,14 @@ export const createOrderSchema = z.object({
     .string()
     .trim()
     .min(2, "Name must be at least 2 characters")
-    .max(100, "Name is too long"),
+    .max(100, "Name is too long")
+    .refine((val) => isValidFullName(val), {
+      message: "Please enter a valid full name with letters (e.g. Kwame Mensah)",
+    }),
   phone: z
     .string()
     .trim()
-    .refine((val) => ghanaPhoneRegex.test(val.replace(/\s+/g, "")), {
+    .refine((val) => isValidGhanaPhone(val), {
       message: "Please enter a valid Ghana phone number (e.g. 024 000 0000)",
     }),
   area: z

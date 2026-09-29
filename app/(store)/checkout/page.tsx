@@ -11,6 +11,7 @@ import { EXCLUDED_DELIVERY_AREAS, ORDERING_HOURS } from "@/config/business";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard, Wallet, MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
+import { isValidGhanaPhone, isValidFullName } from "@/lib/validation/orders";
 
 // Dynamically import the Leaflet OpenStreetMap picker to avoid SSR "window is not defined" errors
 const MapPicker = dynamic(() => import("@/components/MapPicker"), {
@@ -62,9 +63,17 @@ export default function CheckoutPage() {
   const [phone, setPhone] = useState("");
   const [selectedArea, setSelectedArea] = useState("East Legon");
   const [customArea, setCustomArea] = useState("");
-  const [deliveryAddress, setDeliveryAddress] = useState("");
   const [landmark, setLandmark] = useState("");
   const [deliverySlot, setDeliverySlot] = useState("11:30 AM");
+
+  // Step 1 Validation & Touched States
+  const [hasAttemptedStep1, setHasAttemptedStep1] = useState(false);
+  const [fullNameTouched, setFullNameTouched] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
+
+  const isNameValid = isValidFullName(fullName);
+  const isPhoneValid = isValidGhanaPhone(phone);
+  const isStep1Valid = isNameValid && isPhoneValid;
 
   // Operational / Zone State
   const [zones, setZones] = useState<ZoneOption[]>(DEFAULT_ZONES);
@@ -290,35 +299,82 @@ export default function CheckoutPage() {
         <div className="bg-white rounded-2xl p-6 sm:p-8 border border-brand-cream-dark shadow-sm space-y-5">
           {/* Full Name */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
-              Full Name <span className="text-brand-red">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
+                Full Name <span className="text-brand-red">*</span>
+              </label>
+              {(fullNameTouched || hasAttemptedStep1) && !isNameValid && (
+                <span className="text-[11px] text-brand-red font-semibold">
+                  Invalid name format
+                </span>
+              )}
+            </div>
             <input
               type="text"
               placeholder="e.g. Kwame Mensah"
               value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
+              onBlur={() => setFullNameTouched(true)}
+              onChange={(e) => {
+                setFullName(e.target.value);
+                if (errorMessage) setErrorMessage(null);
+              }}
+              className={`w-full bg-brand-cream/50 border rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50 ${
+                (fullNameTouched || hasAttemptedStep1) && !isNameValid
+                  ? "border-brand-red focus:border-brand-red bg-brand-red/5 ring-1 ring-brand-red/20"
+                  : "border-brand-cream-dark focus:border-brand-yellow focus:bg-white"
+              }`}
               required
             />
+            {(fullNameTouched || hasAttemptedStep1) && !isNameValid ? (
+              <p className="text-[11px] text-brand-red font-medium">
+                Please enter a real name (at least 2 letters, no numbers like 8584).
+              </p>
+            ) : (
+              <p className="text-[11px] text-brand-muted">
+                Your full name for order pickup and kitchen delivery identification.
+              </p>
+            )}
           </div>
 
           {/* Phone Number */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
-              Ghana Phone Number <span className="text-brand-red">*</span>
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
+                Ghana Phone Number <span className="text-brand-red">*</span>
+              </label>
+              {(phoneTouched || hasAttemptedStep1) && !isPhoneValid && (
+                <span className="text-[11px] text-brand-red font-semibold">
+                  Valid Ghana number required
+                </span>
+              )}
+            </div>
             <input
               type="tel"
-              placeholder="e.g. 024 123 4567"
+              placeholder="e.g. 024 123 4567 or 050 123 4567"
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
+              onBlur={() => setPhoneTouched(true)}
+              onChange={(e) => {
+                // Sanitize input in real-time: keep only digits, spaces, +, and -
+                const clean = e.target.value.replace(/[^0-9+\s\-]/g, "");
+                setPhone(clean);
+                if (errorMessage) setErrorMessage(null);
+              }}
+              className={`w-full bg-brand-cream/50 border rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50 ${
+                (phoneTouched || hasAttemptedStep1) && !isPhoneValid
+                  ? "border-brand-red focus:border-brand-red bg-brand-red/5 ring-1 ring-brand-red/20"
+                  : "border-brand-cream-dark focus:border-brand-yellow focus:bg-white"
+              }`}
               required
             />
-            <p className="text-[11px] text-brand-muted">
-              Used strictly for courier call upon arrival.
-            </p>
+            {(phoneTouched || hasAttemptedStep1) && !isPhoneValid ? (
+              <p className="text-[11px] text-brand-red font-medium">
+                Must be a valid 10-digit Ghana mobile number (MTN, Telecel, AT starting with 02 or 05).
+              </p>
+            ) : (
+              <p className="text-[11px] text-brand-muted">
+                Used strictly for dispatch courier call upon arrival.
+              </p>
+            )}
           </div>
 
           {/* Action CTA */}
@@ -333,9 +389,23 @@ export default function CheckoutPage() {
 
             <button
               type="button"
-              disabled={!fullName.trim() || !phone.trim()}
-              onClick={() => setCurrentStep("delivery")}
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-40 disabled:pointer-events-none text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 transform hover:-translate-y-0.5 shadow-button-yellow"
+              disabled={!fullName.trim() || !phone.trim() || !isStep1Valid}
+              onClick={() => {
+                setHasAttemptedStep1(true);
+                setFullNameTouched(true);
+                setPhoneTouched(true);
+                if (!isStep1Valid) {
+                  if (!isNameValid) {
+                    setErrorMessage("Please enter a valid full name (letters only, e.g. Kwame Mensah).");
+                  } else {
+                    setErrorMessage("Please enter a valid 10-digit Ghana mobile number (e.g. 024 123 4567).");
+                  }
+                  return;
+                }
+                setErrorMessage(null);
+                setCurrentStep("delivery");
+              }}
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-40 disabled:pointer-events-none text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 transform hover:-translate-y-0.5 shadow-button-yellow cursor-pointer"
             >
               <span>Continue to Delivery</span>
               <ArrowRight className="w-4 h-4 stroke-[3]" />
@@ -420,7 +490,12 @@ export default function CheckoutPage() {
               
               <MapPicker
                 initialLocation={deliveryLocation}
-                onLocationSelect={(loc) => setDeliveryLocation(loc)}
+                onLocationSelect={(loc, placeName) => {
+                  setDeliveryLocation(loc);
+                  if (placeName) {
+                    setLandmark(placeName);
+                  }
+                }}
               />
               
               {/* Hidden input to ensure form validation catches missing location */}

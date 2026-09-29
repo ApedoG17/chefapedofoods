@@ -1,101 +1,71 @@
-"use client";
+'use client';
 
-import React from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { 
+  LayoutDashboard, 
+  ClipboardList, 
+  Utensils, 
+  Wallet, 
+  Settings, 
+  LogOut 
+} from 'lucide-react';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
 
-  // If on login page, don't show admin header
-  const isLoginPage = pathname === "/admin/login";
-
-  const handleLogout = async () => {
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push("/admin/login");
-    } catch (e) {
-      console.error("Logout failed:", e);
-    }
-  };
+  const navItems = [
+    { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { name: 'Live Orders', href: '/admin/orders', icon: ClipboardList },
+    { name: 'Menu Manager', href: '/admin/menu', icon: Utensils },
+    { name: 'Finance', href: '/admin/finance', icon: Wallet },
+    { name: 'Settings', href: '/admin/settings', icon: Settings },
+  ];
 
   return (
-    <div className="min-h-screen bg-bg text-ink">
-      {!isLoginPage && (
-        <header className="border-b border-line bg-surface sticky top-0 z-20">
-          <div className="max-w-[900px] mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-6">
+    <div className="flex h-screen bg-[#0D0D0D] text-white font-sans overflow-hidden">
+      {/* Left Sidebar */}
+      <aside className="w-64 bg-[#141414] border-r border-white/5 flex flex-col hidden md:flex">
+        <div className="p-6 border-b border-white/5">
+          <h1 className="text-xl font-black tracking-widest text-white uppercase">
+            Chef <span className="text-brand-yellow">Apedo</span>
+          </h1>
+          <p className="text-xs text-white/40 mt-1 uppercase tracking-wider">Kitchen Display</p>
+        </div>
+
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
+            return (
               <Link
-                href="/admin/dashboard"
-                className="font-serif font-semibold text-[16px] text-ink hover:text-gold transition-colors"
+                key={item.name}
+                href={item.href}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                  isActive 
+                    ? 'bg-brand-yellow text-[#18110E] font-bold shadow-[0_0_15px_rgba(255,184,0,0.2)]' 
+                    : 'text-white/60 hover:text-white hover:bg-white/5'
+                }`}
               >
-                Chef Apedo <span className="text-gold text-[12px] uppercase tracking-wider font-sans font-normal ml-1">Admin</span>
+                <Icon size={20} />
+                <span className="text-sm">{item.name}</span>
               </Link>
+            );
+          })}
+        </nav>
 
-              <nav className="flex items-center gap-3 text-[12px]">
-                <Link
-                  href="/admin/dashboard"
-                  className={`px-2.5 py-1 rounded-full transition-colors ${
-                    pathname === "/admin/dashboard"
-                      ? "bg-gold text-ink-on-cream font-medium"
-                      : "text-ink-dim hover:text-ink"
-                  }`}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/admin/orders"
-                  className={`px-2.5 py-1 rounded-full transition-colors ${
-                    pathname.startsWith("/admin/orders")
-                      ? "bg-gold text-ink-on-cream font-medium"
-                      : "text-ink-dim hover:text-ink"
-                  }`}
-                >
-                  Orders
-                </Link>
-                <Link
-                  href="/admin/kitchen"
-                  className={`px-2.5 py-1 rounded-full transition-colors ${
-                    pathname === "/admin/kitchen"
-                      ? "bg-gold text-ink-on-cream font-medium"
-                      : "text-ink-dim hover:text-ink"
-                  }`}
-                >
-                  Kitchen
-                </Link>
-              </nav>
-            </div>
+        <div className="p-4 border-t border-white/5">
+          <button className="flex items-center gap-3 px-4 py-3 w-full text-left rounded-xl text-white/60 hover:text-brand-red hover:bg-brand-red/10 transition-all">
+            <LogOut size={20} />
+            <span className="text-sm font-medium">Secure Logout</span>
+          </button>
+        </div>
+      </aside>
 
-            <div className="flex items-center gap-3 text-[12px]">
-              <Link
-                href="/"
-                target="_blank"
-                className="text-ink-dim hover:text-ink transition-colors"
-              >
-                Storefront ↗
-              </Link>
-              <button
-                type="button"
-                onClick={handleLogout}
-                className="text-warn text-[11px] border border-warn/40 hover:bg-warn/10 px-2 py-0.5 rounded transition-colors"
-              >
-                Log Out
-              </button>
-            </div>
-          </div>
-        </header>
-      )}
-
-      <div className="max-w-[430px] md:max-w-[900px] mx-auto p-4 md:p-6">
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto bg-[#0D0D0D]">
         {children}
-      </div>
+      </main>
     </div>
   );
 }
