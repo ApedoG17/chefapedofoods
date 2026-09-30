@@ -280,18 +280,13 @@ export default function CheckoutPage() {
       <CheckoutStepper currentStep={currentStep} />
 
       {/* Step Header */}
-      <div className="border-b border-brand-cream-dark pb-4">
-        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-red">
+      <div className="border-b border-white/10 pb-3">
+        <h1 className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-brand-red">
           {currentStep === "details" && "Step 1 of 3 · Customer Details"}
           {currentStep === "delivery" && "Step 2 of 3 · Delivery Location & Slot"}
           {currentStep === "payment" && "Step 3 of 3 · Dual-Payment Split"}
-        </span>
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-brand-dark uppercase tracking-tight mt-0.5">
-          {currentStep === "details" && "Your Details"}
-          {currentStep === "delivery" && "Delivery Address & Slot"}
-          {currentStep === "payment" && "Review & Complete Payment"}
         </h1>
-        <p className="text-xs sm:text-sm text-brand-muted mt-1">
+        <p className="text-xs sm:text-sm text-white/70 mt-1">
           {currentStep === "details" && "Guest checkout — no password or account needed."}
           {currentStep === "delivery" && "Where and when should we deliver your hot lunch in Accra?"}
           {currentStep === "payment" && "Prepay food online now; pay delivery fee to courier upon arrival."}

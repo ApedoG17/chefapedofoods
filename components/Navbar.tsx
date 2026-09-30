@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Menu, X, ArrowRight } from "lucide-react";
@@ -51,8 +52,15 @@ export function Navbar() {
           className="flex items-center gap-2 sm:gap-2.5 group transition-transform active:scale-98 flex-shrink-0"
           aria-label="Chef Apedo Foods Homepage"
         >
-          <div className="w-8 h-8 rounded-full bg-brand-yellow flex items-center justify-center text-brand-dark font-display font-extrabold text-xs shadow-xs transition-transform group-hover:scale-105 flex-shrink-0">
-            ca
+          <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden shadow-xs transition-transform group-hover:scale-105 flex-shrink-0">
+            <Image
+              src="/images/chef_apedo_logo_variations/brand_mark_circle_yellow.png"
+              alt="Chef Apedo Foods"
+              fill
+              sizes="36px"
+              className="object-cover"
+              priority
+            />
           </div>
           <div className="flex flex-col">
             <span className="font-display font-black text-xs sm:text-base text-brand-dark tracking-tight uppercase leading-none">
