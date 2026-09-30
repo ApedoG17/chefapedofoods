@@ -83,6 +83,7 @@ export interface Order {
   promo_code_id?: string | null;
   original_amount?: number | null;
   discount_amount?: number | null;
+  payment_collected?: boolean;
 }
 
 export interface Rider {

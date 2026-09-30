@@ -909,8 +909,8 @@ export default function OrderTrackingPage() {
                   </span>
                 </div>
 
-                {/* Timeline Horizontal/Vertical Layout */}
-                <div className="grid grid-cols-4 gap-2 sm:gap-4 relative pt-2">
+                {/* Timeline: Vertical on mobile, Horizontal on sm+ */}
+                <div className="flex flex-col sm:grid sm:grid-cols-4 gap-4 sm:gap-2 relative pt-2">
                   {[
                     {
                       id: "PENDING",
@@ -951,22 +951,33 @@ export default function OrderTrackingPage() {
                     return (
                       <div
                         key={step.id}
-                        className="flex flex-col items-center text-center relative z-10"
+                        className="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center relative z-10"
                       >
-                        {/* Connecting Line between steps */}
+                        {/* Connecting Line: vertical on mobile, horizontal on sm+ */}
                         {idx < 3 && (
-                          <div
-                            className={`absolute top-5 left-1/2 w-full h-[3px] -z-10 transition-colors ${
-                              stepIndex < currentIndex
-                                ? "bg-brand-red"
-                                : "border-t-2 border-dashed border-black/15"
-                            }`}
-                          />
+                          <>
+                            {/* Mobile vertical connector */}
+                            <div
+                              className={`absolute left-5 top-[2.75rem] w-[3px] h-[calc(100%+0.5rem)] sm:hidden -z-10 transition-colors ${
+                                stepIndex < currentIndex
+                                  ? "bg-brand-red"
+                                  : "border-l-2 border-dashed border-black/15"
+                              }`}
+                            />
+                            {/* Desktop horizontal connector */}
+                            <div
+                              className={`absolute hidden sm:block top-5 left-1/2 w-full h-[3px] -z-10 transition-colors ${
+                                stepIndex < currentIndex
+                                  ? "bg-brand-red"
+                                  : "border-t-2 border-dashed border-black/15"
+                              }`}
+                            />
+                          </>
                         )}
 
                         {/* Node Circle */}
                         <div
-                          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all ${
+                          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all flex-none ${
                             isCompleted
                               ? "bg-brand-red text-white shadow-xs"
                               : isCurrent
@@ -994,7 +1005,7 @@ export default function OrderTrackingPage() {
 
                         {/* Node Label */}
                         <span
-                          className={`mt-2 font-display text-[11px] sm:text-xs uppercase tracking-tight font-extrabold ${
+                          className={`font-display text-xs sm:text-[11px] uppercase tracking-tight font-extrabold sm:mt-2 ${
                             isCurrent
                               ? "text-brand-dark"
                               : isCompleted
@@ -1008,6 +1019,7 @@ export default function OrderTrackingPage() {
                     );
                   })}
                 </div>
+
 
                 {/* Status Descriptive Pill */}
                 <div className="bg-brand-cream p-3.5 rounded-2xl flex items-center gap-3 text-xs text-brand-muted">
@@ -1222,7 +1234,7 @@ export default function OrderTrackingPage() {
             href={`https://wa.me/233240000000?text=Hi%20Chef%20Apedo,%20inquiring%20about%20order%20${order?.paystackReference}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-dark hover:bg-black text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-xs"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-brand-dark hover:bg-[#141414] text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-xs"
           >
             <MessageSquare className="w-3.5 h-3.5 text-brand-yellow" />
             <span>Chat with Kitchen</span>

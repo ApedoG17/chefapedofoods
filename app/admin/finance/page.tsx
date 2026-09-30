@@ -24,6 +24,7 @@ interface FinanceOrder {
   amount_paid_pesewas: number;
   payment_method: string;
   payment_status: string;
+  payment_collected?: boolean;
   order_status: string;
   created_at: string;
   customer?: { name?: string; phone?: string };
@@ -33,6 +34,7 @@ export default function FinancePage() {
   const [orders, setOrders] = useState<FinanceOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<'all' | 'paid' | 'unpaid'>('all');
+  const [markingIds, setMarkingIds] = useState<Set<string>>(new Set());
 
   const fetchFinanceData = async () => {
     setIsLoading(true);
@@ -48,6 +50,7 @@ export default function FinancePage() {
           amount_paid_pesewas,
           payment_method,
           payment_status,
+          payment_collected,
           order_status,
           created_at,
           customer:customers (name, phone)
@@ -89,6 +92,33 @@ export default function FinancePage() {
     }
   };
 
+  const markPaymentReceived = async (orderId: string) => {
+    setMarkingIds(prev => new Set(prev).add(orderId));
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/payment-collected`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (res.ok) {
+        // Optimistic update
+        setOrders(prev => prev.map(o =>
+          o.id === orderId
+            ? { ...o, payment_collected: true, payment_status: 'paid' }
+            : o
+        ));
+      }
+    } catch (err) {
+      console.error('Failed to mark payment:', err);
+    } finally {
+      setMarkingIds(prev => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+    }
+  };
+
   useEffect(() => {
     fetchFinanceData();
   }, []);
@@ -117,7 +147,7 @@ export default function FinancePage() {
   });
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 sm:p-8 space-y-8">
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -140,63 +170,63 @@ export default function FinancePage() {
       </header>
 
       {/* Financial KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl relative overflow-hidden group">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="bg-[#141414] border border-white/5 p-4 sm:p-6 rounded-2xl relative overflow-hidden group">
           <div className="flex justify-between items-start mb-3">
-            <span className="text-white/50 text-xs font-semibold uppercase tracking-wider">Gross Food Revenue</span>
-            <div className="p-2 rounded-lg bg-green-400/10 text-green-400">
-              <TrendingUp size={18} />
+            <span className="text-white/50 text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Gross Food Revenue</span>
+            <div className="p-1.5 sm:p-2 rounded-lg bg-green-400/10 text-green-400">
+              <TrendingUp size={16} />
             </div>
           </div>
-          <h3 className="text-3xl font-black text-white font-mono">
+          <h3 className="text-xl sm:text-3xl font-black text-white font-mono">
             GH₵ {(totalSubtotalPesewas / 100).toFixed(2)}
           </h3>
-          <p className="text-[11px] text-white/40 mt-1">Excludes cancelled orders</p>
+          <p className="text-[10px] sm:text-[11px] text-white/40 mt-1">Excludes cancelled orders</p>
         </div>
 
-        <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl relative overflow-hidden group">
+        <div className="bg-[#141414] border border-white/5 p-4 sm:p-6 rounded-2xl relative overflow-hidden group">
           <div className="flex justify-between items-start mb-3">
-            <span className="text-white/50 text-xs font-semibold uppercase tracking-wider">Online MoMo &amp; Card</span>
-            <div className="p-2 rounded-lg bg-blue-400/10 text-blue-400">
-              <CreditCard size={18} />
+            <span className="text-white/50 text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Online MoMo &amp; Card</span>
+            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-400/10 text-blue-400">
+              <CreditCard size={16} />
             </div>
           </div>
-          <h3 className="text-3xl font-black text-white font-mono">
+          <h3 className="text-xl sm:text-3xl font-black text-white font-mono">
             GH₵ {(onlineRevenuePesewas / 100).toFixed(2)}
           </h3>
-          <p className="text-[11px] text-white/40 mt-1">Settled via Hubtel</p>
+          <p className="text-[10px] sm:text-[11px] text-white/40 mt-1">Settled via Hubtel</p>
         </div>
 
-        <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl relative overflow-hidden group">
+        <div className="bg-[#141414] border border-white/5 p-4 sm:p-6 rounded-2xl relative overflow-hidden group">
           <div className="flex justify-between items-start mb-3">
-            <span className="text-white/50 text-xs font-semibold uppercase tracking-wider">Manual MoMo / Cash</span>
-            <div className="p-2 rounded-lg bg-brand-yellow/10 text-brand-yellow">
-              <Banknote size={18} />
+            <span className="text-white/50 text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Manual MoMo / Cash</span>
+            <div className="p-1.5 sm:p-2 rounded-lg bg-brand-yellow/10 text-brand-yellow">
+              <Banknote size={16} />
             </div>
           </div>
-          <h3 className="text-3xl font-black text-white font-mono">
+          <h3 className="text-xl sm:text-3xl font-black text-white font-mono">
             GH₵ {(manualMoMoRevenuePesewas / 100).toFixed(2)}
           </h3>
-          <p className="text-[11px] text-white/40 mt-1">Collected on delivery / direct</p>
+          <p className="text-[10px] sm:text-[11px] text-white/40 mt-1">Collected on delivery / direct</p>
         </div>
 
-        <div className="bg-[#141414] border border-white/5 p-6 rounded-2xl relative overflow-hidden group">
+        <div className="bg-[#141414] border border-white/5 p-4 sm:p-6 rounded-2xl relative overflow-hidden group">
           <div className="flex justify-between items-start mb-3">
-            <span className="text-white/50 text-xs font-semibold uppercase tracking-wider">Courier Delivery Fees</span>
-            <div className="p-2 rounded-lg bg-purple-400/10 text-purple-400">
-              <Bike size={18} />
+            <span className="text-white/50 text-[10px] sm:text-xs font-semibold uppercase tracking-wider">Courier Delivery Fees</span>
+            <div className="p-1.5 sm:p-2 rounded-lg bg-purple-400/10 text-purple-400">
+              <Bike size={16} />
             </div>
           </div>
-          <h3 className="text-3xl font-black text-white font-mono">
+          <h3 className="text-xl sm:text-3xl font-black text-white font-mono">
             GH₵ {(totalDeliveryFeesPesewas / 100).toFixed(2)}
           </h3>
-          <p className="text-[11px] text-white/40 mt-1">Disbursed directly to riders</p>
+          <p className="text-[10px] sm:text-[11px] text-white/40 mt-1">Disbursed directly to riders</p>
         </div>
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center justify-between border-b border-white/10 pb-4">
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+        <div className="flex gap-2 flex-wrap">
           {(['all', 'paid', 'unpaid'] as const).map((filter) => (
             <button
               key={filter}
@@ -223,13 +253,13 @@ export default function FinancePage() {
           <table className="w-full text-left text-sm text-white/70">
             <thead className="text-xs uppercase bg-white/5 text-white/50 border-b border-white/5">
               <tr>
-                <th className="px-6 py-4 font-medium">Customer</th>
-                <th className="px-6 py-4 font-medium">Reference</th>
-                <th className="px-6 py-4 font-medium">Channel</th>
-                <th className="px-6 py-4 font-medium">Food Subtotal</th>
-                <th className="px-6 py-4 font-medium">Courier Fee</th>
-                <th className="px-6 py-4 font-medium">Payment Status</th>
-                <th className="px-6 py-4 font-medium">Timestamp</th>
+                <th className="px-4 sm:px-6 py-4 font-medium">Customer</th>
+                <th className="px-4 sm:px-6 py-4 font-medium hidden sm:table-cell">Reference</th>
+                <th className="px-4 sm:px-6 py-4 font-medium">Channel</th>
+                <th className="px-4 sm:px-6 py-4 font-medium">Food Subtotal</th>
+                <th className="px-4 sm:px-6 py-4 font-medium hidden md:table-cell">Courier Fee</th>
+                <th className="px-4 sm:px-6 py-4 font-medium">Status</th>
+                <th className="px-4 sm:px-6 py-4 font-medium">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 font-mono text-xs">
@@ -254,42 +284,46 @@ export default function FinancePage() {
                     dateStyle: 'short',
                     timeStyle: 'short',
                   });
+                  const isManualUnpaid = order.payment_method === 'manual' && order.payment_status !== 'paid';
+                  const isMarking = markingIds.has(order.id);
 
                   return (
                     <tr key={order.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="px-6 py-4 font-sans font-medium text-white">
+                      <td className="px-4 sm:px-6 py-4 font-sans font-medium text-white">
                         {customerName}
                       </td>
 
-                      <td className="px-6 py-4 text-white/80">
+                      <td className="px-4 sm:px-6 py-4 text-white/80 hidden sm:table-cell">
                         #{ref}
                       </td>
 
-                      <td className="px-6 py-4 font-sans">
+                      <td className="px-4 sm:px-6 py-4 font-sans">
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/5 text-white/80">
                           {order.payment_method === 'manual' ? (
                             <>
                               <Banknote size={11} className="text-brand-yellow" />
-                              <span>Manual MoMo / Cash</span>
+                              <span className="hidden sm:inline">Manual MoMo / Cash</span>
+                              <span className="sm:hidden">Manual</span>
                             </>
                           ) : (
                             <>
                               <CreditCard size={11} className="text-green-400" />
-                              <span>Online MoMo</span>
+                              <span className="hidden sm:inline">Online MoMo</span>
+                              <span className="sm:hidden">Online</span>
                             </>
                           )}
                         </span>
                       </td>
 
-                      <td className="px-6 py-4 font-bold text-white">
+                      <td className="px-4 sm:px-6 py-4 font-bold text-white">
                         GH₵ {((order.subtotal_pesewas || 0) / 100).toFixed(2)}
                       </td>
 
-                      <td className="px-6 py-4 text-brand-yellow">
+                      <td className="px-4 sm:px-6 py-4 text-brand-yellow hidden md:table-cell">
                         GH₵ {(((order.delivery_fee_pesewas || 1000) / 100)).toFixed(2)}
                       </td>
 
-                      <td className="px-6 py-4 font-sans">
+                      <td className="px-4 sm:px-6 py-4 font-sans">
                         <span
                           className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider border ${
                             order.payment_status === 'paid'
@@ -303,8 +337,24 @@ export default function FinancePage() {
                         </span>
                       </td>
 
-                      <td className="px-6 py-4 text-white/40">
-                        {dateStr}
+                      <td className="px-4 sm:px-6 py-4 font-sans">
+                        {isManualUnpaid ? (
+                          <button
+                            onClick={() => markPaymentReceived(order.id)}
+                            disabled={isMarking}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400 text-[11px] font-bold uppercase tracking-wider border border-green-500/20 transition-all cursor-pointer disabled:opacity-50"
+                          >
+                            <CheckCircle2 size={12} />
+                            <span>{isMarking ? '...' : 'Received'}</span>
+                          </button>
+                        ) : order.payment_collected || order.payment_status === 'paid' ? (
+                          <span className="inline-flex items-center gap-1 text-green-400/60 text-[11px] font-bold">
+                            <CheckCircle2 size={12} />
+                            <span>Confirmed</span>
+                          </span>
+                        ) : (
+                          <span className="text-white/30 text-[11px]">—</span>
+                        )}
                       </td>
                     </tr>
                   );

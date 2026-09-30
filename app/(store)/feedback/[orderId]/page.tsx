@@ -195,7 +195,7 @@ export default function FeedbackPage({
         <button
           type="submit"
           disabled={isSubmitting || rating === 0}
-          className="w-full bg-brand-dark hover:bg-black text-brand-yellow font-black uppercase tracking-wider py-4 rounded-full disabled:opacity-40 transition-all duration-200 shadow-sm cursor-pointer text-xs sm:text-sm"
+          className="w-full bg-brand-dark hover:bg-[#141414] text-brand-yellow font-black uppercase tracking-wider py-4 rounded-full disabled:opacity-40 transition-all duration-200 shadow-sm cursor-pointer text-xs sm:text-sm"
         >
           {isSubmitting ? "Submitting Review..." : "Send Feedback"}
         </button>
