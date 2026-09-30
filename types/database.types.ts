@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -296,6 +296,10 @@ export type Database = {
           paystack_refund_reference: string | null
           refund_status: string
           subtotal_pesewas: number
+          rider_id: string | null
+          promo_code_id: string | null
+          original_amount: number | null
+          discount_amount: number | null
         }
         Insert: {
           address_id: string
@@ -314,6 +318,10 @@ export type Database = {
           paystack_refund_reference?: string | null
           refund_status?: string
           subtotal_pesewas: number
+          rider_id?: string | null
+          promo_code_id?: string | null
+          original_amount?: number | null
+          discount_amount?: number | null
         }
         Update: {
           address_id?: string
@@ -332,6 +340,10 @@ export type Database = {
           paystack_refund_reference?: string | null
           refund_status?: string
           subtotal_pesewas?: number
+          rider_id?: string | null
+          promo_code_id?: string | null
+          original_amount?: number | null
+          discount_amount?: number | null
         }
         Relationships: [
           {

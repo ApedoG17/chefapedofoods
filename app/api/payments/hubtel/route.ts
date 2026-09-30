@@ -20,20 +20,24 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient();
 
-    // 1. Create or upsert customer in Supabase
+    // 1. Create or lookup customer in Supabase
     let customerId: string | null = null;
     if (phone) {
-      const { data: customer, error: customerErr } = await supabase
-        .from("customers")
-        .upsert(
-          { name: customerName, phone },
-          { onConflict: "phone" }
-        )
-        .select("id")
-        .single();
+      try {
+        const { data: customer, error: customerErr } = await supabase
+          .from("customers")
+          .upsert(
+            { name: customerName, phone },
+            { onConflict: "phone" }
+          )
+          .select("id")
+          .single();
 
-      if (!customerErr && customer) {
-        customerId = customer.id;
+        if (!customerErr && customer) {
+          customerId = customer.id;
+        }
+      } catch {
+        // Fall back to insert if upsert is unsupported
       }
     }
 
@@ -65,6 +69,14 @@ export async function POST(req: Request) {
       if (matched) zoneId = matched.id;
     }
 
+    if (!zoneId) {
+      const { data: allZones } = await supabase
+        .from("delivery_zones")
+        .select("id");
+      zoneId = allZones?.[0]?.id || "00000000-0000-0000-0000-000000000000";
+    }
+
+
     // 3. Record delivery address
     const { data: address, error: addressErr } = await supabase
       .from("addresses")
@@ -72,7 +84,7 @@ export async function POST(req: Request) {
         customer_id: customerId,
         address: deliveryAddress || area,
         area: area,
-        delivery_zone_id: zoneId || "00000000-0000-0000-0000-000000000000",
+        delivery_zone_id: zoneId!,
       })
       .select("id")
       .single();
@@ -112,59 +124,65 @@ export async function POST(req: Request) {
       const { data: dbMeals } = await supabase.from("meals").select("id, name");
       const { data: dbSizes } = await supabase.from("meal_sizes").select("id, size, meal_id");
 
-      const defaultMealId = dbMeals?.[0]?.id || "11111111-1111-1111-1111-111111111111";
-      const defaultSizeId = dbSizes?.[0]?.id || "22222222-2222-2222-2222-222222222222";
+      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const isValidUUID = (val?: string | null): boolean => typeof val === "string" && UUID_REGEX.test(val);
+
+      const defaultMealId = dbMeals?.[0]?.id;
+      const defaultSizeId = dbSizes?.find((s) => s.meal_id === defaultMealId)?.id || dbSizes?.[0]?.id;
 
       for (const it of items) {
         let matchedMealId = it.mealId;
-        if (!matchedMealId || matchedMealId.length < 30) {
+        if (!isValidUUID(matchedMealId)) {
           const found = dbMeals?.find((m) => m.name.toLowerCase().includes((it.name || "").toLowerCase()));
           matchedMealId = found?.id || defaultMealId;
         }
 
         let matchedSizeId = it.sizeId;
-        if (!matchedSizeId || matchedSizeId.length < 30) {
+        if (!isValidUUID(matchedSizeId)) {
           const requestedSize = (it.size || "medium").toLowerCase();
           const foundSize = dbSizes?.find(
             (s) => s.meal_id === matchedMealId && s.size.toLowerCase() === requestedSize
           );
-          matchedSizeId = foundSize?.id || defaultSizeId;
+          matchedSizeId = foundSize?.id || dbSizes?.find((s) => s.meal_id === matchedMealId)?.id || defaultSizeId;
         }
 
         const unitPrice = Number(it.price || it.base_price_pesewas || 4500);
 
-        const { data: insertedItem } = await supabase
-          .from("order_items")
-          .insert({
-            order_id: order.id,
-            meal_id: matchedMealId,
-            size_id: matchedSizeId,
-            quantity: Number(it.quantity || 1),
-            base_price_pesewas: unitPrice,
-            included_protein_package_name: it.includedProteinPackageName || it.proteinPackage || "",
-          })
-          .select("id")
-          .single();
+        if (matchedMealId && matchedSizeId) {
+          const { data: insertedItem } = await supabase
+            .from("order_items")
+            .insert({
+              order_id: order.id,
+              meal_id: matchedMealId,
+              size_id: matchedSizeId,
+              quantity: Number(it.quantity || 1),
+              base_price_pesewas: unitPrice,
+              included_protein_package_name: it.includedProteinPackageName || it.proteinPackage || "",
+            })
+            .select("id")
+            .single();
 
-        if (insertedItem && it.extras && typeof it.extras === "object") {
-          const { data: dbProteins } = await supabase.from("protein_options").select("id, name");
-          for (const [key, qty] of Object.entries(it.extras)) {
-            const count = Number(qty);
-            if (count > 0 && dbProteins) {
-              const matchedProtein = dbProteins.find((p) => p.name.toLowerCase().includes(key.toLowerCase()));
-              if (matchedProtein) {
-                await supabase.from("order_item_proteins").insert({
-                  order_item_id: insertedItem.id,
-                  protein_id: matchedProtein.id,
-                  quantity: count,
-                  additional_price_pesewas: 400 * count,
-                });
+          if (insertedItem && it.extras && typeof it.extras === "object") {
+            const { data: dbProteins } = await supabase.from("protein_options").select("id, name");
+            for (const [key, qty] of Object.entries(it.extras)) {
+              const count = Number(qty);
+              if (count > 0 && dbProteins) {
+                const matchedProtein = dbProteins.find((p) => p.name.toLowerCase().includes(key.toLowerCase()));
+                if (matchedProtein) {
+                  await supabase.from("order_item_proteins").insert({
+                    order_item_id: insertedItem.id,
+                    protein_id: matchedProtein.id,
+                    quantity: count,
+                    additional_price_pesewas: 400 * count,
+                  });
+                }
               }
             }
           }
         }
       }
     }
+
 
     // 7. Prepare the Hubtel API Payload
     // Hubtel expects amounts in Ghana Cedis (e.g. 70.00 for GH₵70), not pesewas
