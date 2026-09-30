@@ -28,7 +28,9 @@ export default function StoreLayout({
     pathname.startsWith("/about") ||
     pathname.startsWith("/contact") ||
     pathname.startsWith("/order/") ||
-    pathname.startsWith("/orders/");
+    pathname.startsWith("/orders/") ||
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/cart");
 
   return (
     <div className="relative min-h-screen w-full bg-brand-dark text-white flex flex-col selection:bg-brand-yellow selection:text-brand-dark overflow-x-hidden">

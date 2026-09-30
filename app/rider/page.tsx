@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Phone, MapPin, CheckCircle, Bike, LogOut, Navigation, RefreshCw } from "lucide-react";
+import { Phone, MapPin, CheckCircle, Bike, LogOut, Navigation, RefreshCw, Wallet, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const supabase = createClient();
@@ -23,6 +23,7 @@ interface RiderOrder {
   delivery_slot?: string;
   total_amount: number;
   payment_status: string;
+  payment_method?: string;
   status: string;
   order_status?: string;
   created_at: string;
@@ -33,6 +34,8 @@ export default function RiderDashboard() {
   const [orders, setOrders] = useState<RiderOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [collectingOrderId, setCollectingOrderId] = useState<string | null>(null);
+  const [confirmCollectOrder, setConfirmCollectOrder] = useState<RiderOrder | null>(null);
   const router = useRouter();
 
   const fetchActiveDeliveries = useCallback(async (riderId: string) => {
@@ -53,6 +56,7 @@ export default function RiderDashboard() {
             subtotal_pesewas,
             delivery_fee_pesewas,
             payment_status,
+            payment_method,
             order_status,
             customer:customers (name, phone),
             address:addresses (address, area)
@@ -70,6 +74,7 @@ export default function RiderDashboard() {
             delivery_area: o.address?.area || "",
             total_amount: Number(o.subtotal_pesewas || 0) + Number(o.delivery_fee_pesewas || 0),
             payment_status: o.payment_status,
+            payment_method: o.payment_method,
             status: o.order_status,
             created_at: o.created_at || new Date().toISOString(),
           }));
@@ -129,6 +134,33 @@ export default function RiderDashboard() {
     }
   };
 
+  const collectAndDeliver = async (orderId: string) => {
+    setCollectingOrderId(orderId);
+    try {
+      // 1. Mark payment as collected
+      await fetch(`/api/admin/orders/${orderId}/payment-collected`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      // 2. Mark order as delivered
+      await fetch(`/api/admin/orders/${orderId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "delivered" }),
+      });
+
+      if (rider) {
+        fetchActiveDeliveries(rider.id);
+      }
+    } catch (err) {
+      console.error("Failed to collect payment and deliver:", err);
+    } finally {
+      setCollectingOrderId(null);
+      setConfirmCollectOrder(null);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("chef_apedo_rider");
     router.push("/rider/login");
@@ -138,6 +170,62 @@ export default function RiderDashboard() {
 
   return (
     <div className="min-h-screen bg-[#0D0D0D] p-4 sm:p-6 pb-24 text-white max-w-lg mx-auto">
+      {/* Payment Collection Confirmation Modal */}
+      {confirmCollectOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setConfirmCollectOrder(null)} />
+          <div className="relative bg-[#141414] border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl space-y-5">
+            <button
+              onClick={() => setConfirmCollectOrder(null)}
+              className="absolute top-4 right-4 p-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white/50 hover:text-white transition-colors"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 rounded-full bg-brand-yellow/15 flex items-center justify-center mx-auto">
+                <Wallet className="w-7 h-7 text-brand-yellow" />
+              </div>
+              <h3 className="font-display font-black text-xl text-white uppercase tracking-tight">
+                Confirm Payment Collection
+              </h3>
+              <p className="text-xs text-white/60">
+                Please confirm you have collected the full amount from <strong className="text-white">{confirmCollectOrder.customer_name}</strong> before marking as delivered.
+              </p>
+            </div>
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-2">
+              <div className="flex justify-between text-xs text-white/70">
+                <span>Total to Collect:</span>
+                <span className="font-black text-brand-yellow text-base">
+                  GH₵ {((confirmCollectOrder.total_amount || 0) / 100).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex justify-between text-[11px] text-white/50">
+                <span>Accepted methods:</span>
+                <span className="text-white/70 font-bold">Cash / MoMo</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmCollectOrder(null)}
+                className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 font-bold text-xs uppercase tracking-wider transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => collectAndDeliver(confirmCollectOrder.id)}
+                disabled={collectingOrderId === confirmCollectOrder.id}
+                className="flex-1 py-3 rounded-xl bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-black text-xs uppercase tracking-wider transition-all disabled:opacity-50 shadow-button-yellow"
+              >
+                {collectingOrderId === confirmCollectOrder.id ? "Processing..." : "Collected ✓"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="flex justify-between items-center mb-6 pt-2 border-b border-white/5 pb-4">
         <div>
@@ -201,6 +289,7 @@ export default function RiderDashboard() {
           orders.map((order) => {
             const shortId = order.id.split("-")[0]?.toUpperCase() || "ORDER";
             const isPaidOnline = order.payment_status === "paid";
+            const isManualUnpaid = (order.payment_method === "manual" || !isPaidOnline) && !isPaidOnline;
             const amountGHS = ((order.total_amount || 0) / 100).toFixed(2);
 
             return (
@@ -246,7 +335,7 @@ export default function RiderDashboard() {
                 </div>
 
                 {/* Big Action Buttons */}
-                <div className="grid grid-cols-3 bg-white/5 divide-x divide-white/5">
+                <div className={`grid ${isManualUnpaid ? 'grid-cols-3' : 'grid-cols-3'} bg-white/5 divide-x divide-white/5`}>
                   {order.customer_phone ? (
                     <a
                       href={`tel:${order.customer_phone}`}
@@ -273,13 +362,26 @@ export default function RiderDashboard() {
                     <span>Map</span>
                   </a>
 
-                  <button
-                    onClick={() => markDelivered(order.id)}
-                    className="flex items-center justify-center gap-1.5 p-4 text-green-400 hover:bg-green-400/10 font-black uppercase text-xs transition-colors cursor-pointer"
-                  >
-                    <CheckCircle size={15} />
-                    <span>Delivered</span>
-                  </button>
+                  {isManualUnpaid ? (
+                    /* Collect Payment confirmation button for manual unpaid orders */
+                    <button
+                      onClick={() => setConfirmCollectOrder(order)}
+                      disabled={collectingOrderId === order.id}
+                      className="flex items-center justify-center gap-1.5 p-4 text-brand-yellow hover:bg-brand-yellow/10 font-black uppercase text-xs transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      <Wallet size={15} />
+                      <span>Collect</span>
+                    </button>
+                  ) : (
+                    /* Direct delivered button for already-paid orders */
+                    <button
+                      onClick={() => markDelivered(order.id)}
+                      className="flex items-center justify-center gap-1.5 p-4 text-green-400 hover:bg-green-400/10 font-black uppercase text-xs transition-colors cursor-pointer"
+                    >
+                      <CheckCircle size={15} />
+                      <span>Delivered</span>
+                    </button>
+                  )}
                 </div>
               </div>
             );

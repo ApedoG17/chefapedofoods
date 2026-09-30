@@ -30,9 +30,13 @@ interface ZoneOption {
 }
 
 const DEFAULT_ZONES: ZoneOption[] = [
-  { name: "Zone A (East Legon)", areas: ["East Legon", "Shiashie"], feePesewas: 1000 },
-  { name: "Zone B (Osu / Cantonments)", areas: ["Osu", "Cantonments", "Labone"], feePesewas: 1500 },
-  { name: "Zone C (Spintex)", areas: ["Spintex", "Batsonaa"], feePesewas: 2000 },
+  { name: "Evandy Hostel", areas: ["Evandy Hostel"], feePesewas: 500 },
+  { name: "Pentagon", areas: ["Pentagon", "Pentagon Hostel"], feePesewas: 500 },
+  { name: "Main Campus (Legon)", areas: ["Main Campus", "Legon Campus", "Balme Library", "Night Market", "Commonwealth", "Sarbah", "Akuafo", "Volta"], feePesewas: 700 },
+  { name: "East Legon", areas: ["East Legon", "Shiashie", "Bawaleshie"], feePesewas: 1000 },
+  { name: "Airport Residential", areas: ["Airport Residential", "Airport"], feePesewas: 1200 },
+  { name: "Osu / Cantonments", areas: ["Osu", "Cantonments", "Labone"], feePesewas: 1500 },
+  { name: "Spintex", areas: ["Spintex", "Batsonaa"], feePesewas: 2000 },
 ];
 
 const DELIVERY_SLOTS = [
@@ -673,17 +677,17 @@ export default function CheckoutPage() {
           </div>
 
           {/* CARD 1: PAY NOW (Food Total) */}
-          <div className="bg-[#18110E] border-2 border-brand-yellow/40 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="bg-[#18110E] border-2 border-brand-yellow/40 rounded-3xl p-5 sm:p-8 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div>
                 <span className="text-[10px] text-brand-red font-bold uppercase tracking-[0.2em]">
                   Payment 1 of 2 · Immediate Online Prepayment
                 </span>
-                <h3 className="font-display text-white font-black text-2xl sm:text-3xl uppercase tracking-tight mt-0.5">
+                <h3 className="font-display text-white font-black text-xl sm:text-2xl md:text-3xl uppercase tracking-tight mt-0.5">
                   Food Total (Pay Now)
                 </h3>
               </div>
-              <div className="font-display text-brand-yellow font-black text-2xl sm:text-3xl text-right">
+              <div className="font-display text-brand-yellow font-black text-2xl sm:text-3xl text-left sm:text-right">
                 {appliedPromo && (
                   <span className="block text-xs line-through text-white/50 font-normal">
                     {formatGHS(baseFoodTotal)}
@@ -792,8 +796,8 @@ export default function CheckoutPage() {
           </div>
 
           {/* CARD 2: PAY RIDER (Delivery Fee) */}
-          <div className="bg-[#18110E] border border-white/10 rounded-3xl p-6 sm:p-8 space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="bg-[#18110E] border border-white/10 rounded-3xl p-5 sm:p-8 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-brand-yellow shadow-xs flex-none">
                   <Bike className="w-5 h-5 stroke-[2.5]" />
@@ -802,12 +806,12 @@ export default function CheckoutPage() {
                   <span className="text-[10px] text-brand-yellow font-bold uppercase tracking-[0.2em]">
                     Payment 2 of 2 · Upon Arrival
                   </span>
-                  <h3 className="font-display font-black text-xl sm:text-2xl text-white uppercase tracking-tight mt-0.5">
+                  <h3 className="font-display font-black text-lg sm:text-xl md:text-2xl text-white uppercase tracking-tight mt-0.5">
                     Delivery Fee (Pay Rider)
                   </h3>
                 </div>
               </div>
-              <div className="font-display text-brand-yellow font-black text-2xl">
+              <div className="font-display text-brand-yellow font-black text-2xl sm:text-3xl text-left sm:text-right">
                 {formatGHS(deliveryFeePesewas)}
               </div>
             </div>
