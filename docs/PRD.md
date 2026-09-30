@@ -1,103 +1,120 @@
-# Chef Apedo Foods — Product Requirements Document
+# Chef Apedo Foods — Product Requirements Document (PRD)
 
-## Vision
+## 1. Vision & Market Positioning
 
-A mobile-first, direct-to-customer ordering platform for freshly prepared Ghanaian meals. A customer can discover the brand, browse meals, customize an order, enter a delivery location, pay for the food, and get confirmation — without creating an account. The chef gets enough control to manage incoming orders, kitchen availability, menu availability and fulfilment, running solo at launch.
+A mobile-first, direct-to-customer ordering and logistics platform for freshly prepared Ghanaian meals, built specifically for the University of Ghana, Legon campus and central Accra. 
 
-Positioning: a **direct-to-customer Ghanaian food brand, not a marketplace** — competing on authentic food, simple ordering, transparent delivery, and a personal brand experience, not on restaurant count or logistics infrastructure.
+Students and campus professionals can discover the brand, browse handcrafted midday staples, customize portions and protein pairings, pin their exact hostel/hall location, and complete checkout without creating an account. The cloud kitchen operates with an auto-updating Kitchen Display System (KDS), an integrated Rider Dispatch Portal, and automated transactional SMS notifications.
 
-## Users
+**Positioning:** A vertically integrated direct-to-consumer culinary brand, not a marketplace — competing on authentic small-batch food quality, transparent campus delivery rates, and a seamless mobile experience.
 
-- **Customer** — primary: people within the delivery radius; secondary: students/young professionals ordering off social media; later: ordering for family, diaspora.
-- **Business user (the chef)** — receives orders, manages capacity, manages availability, prepares orders, updates status.
+---
 
-## Menu & Pricing
+## 2. Target Users
 
-Three meals at launch: **Jollof Rice, Fried Rice, Plain Rice & Stew**, each in three sizes with an included protein package.
+- **Students & Campus Residents (Primary):** University of Ghana students living in on-campus and private hostels (Evandy, Pentagon, Bani, TF, traditional halls) requiring affordable, high-protein midday meals.
+- **Campus Faculty & Accra Professionals (Secondary):** Faculty staff and office workers in East Legon, Airport Residential, and central Accra ordering hot lunches.
+- **Head Chef / Kitchen Manager:** Solo culinary operator managing real-time orders, ingredient stock, daily capacity limits, and courier dispatch.
+- **Dispatch Couriers (Riders):** Delivery personnel viewing their active assigned orders with 1-tap Google Maps directions and payment collection verification.
 
-| Size | Price | Included protein (choose one) |
-|---|---|---|
-| Small | GH₵45 | 2 sausages or 2 eggs |
-| Medium | GH₵70 | Chicken+egg or chicken+sausage |
-| Large | GH₵90 | Chicken+2 sausages / Chicken+2 eggs / Chicken+sausage+egg / 2 chickens |
+---
 
-Extra protein: Chicken +GH₵15, Sausage +GH₵4, Egg +GH₵4, Fish +GH₵4. Prices should be admin-editable, not hard-coded.
+## 3. Menu, Sizes & Pricing (Locked Business Architecture)
 
-## Delivery
+Three handcrafted staples prepared fresh each morning in small batches: **Jollof Rice, Fried Rice, and Plain Rice & Stew**.
 
-Delivery-only. Covers Accra **except** Kasoa, Teshie, Nungua, Ashaiman, Chorkor, Mamprobi, Abokobi. Fee starts at GH₵10, varies by location, must be shown before payment. Delivery-only excluded-area checkout blocking is a hard requirement.
+| Size Tier | Base Price | Included Protein Package (Choose 1) |
+|:---|:---:|:---|
+| **Small** | **GH₵ 45.00** | 2 Sausages OR 2 Eggs |
+| **Medium** | **GH₵ 70.00** | Chicken + Egg OR Chicken + Sausage |
+| **Large** | **GH₵ 90.00** | Chicken + 2 Sausages OR Chicken + 2 Eggs OR Chicken + Sausage + Egg OR 2 Chickens |
 
-## Hours & Slots
+### Extra Protein Portions:
+- **Fried Chicken Portion:** +GH₵ 15.00 (`1500` pesewas)
+- **Extra Sausage:** +GH₵ 4.00 (`400` pesewas)
+- **Hard-Boiled Egg:** +GH₵ 4.00 (`400` pesewas)
+- **Fried Fish Steak:** +GH₵ 4.00 (`400` pesewas)
 
-Ordering: 6:00 AM–5:00 PM. Same-day cutoff: 10:00 AM. First delivery slot: 11:30 AM. Slots must be admin-configurable, not hard-coded.
+*Note: All prices are strictly stored and computed as integer pesewas.*
 
-## Payment
+---
 
-Split model: **food paid in advance** (MTN MoMo / Telecel Cash — direct vs. gateway like Paystack/Hubtel still to decide), **delivery fee paid to the rider on arrival**. The split must always be shown separately, never combined into one "total."
+## 4. Delivery & Dynamic Campus Zones
 
-## Policies (verbatim — treat as business logic, not copy)
+Delivery-only service. Meals are delivered hot in insulated dispatch bags directly to campus hostel gates and Accra dropoff points:
 
-- **Cancellation:** up to 1 hour before the scheduled slot (e.g. 10:30 AM for an 11:30 AM slot). Late cancellation may mean delayed/partial/no refund. No cancellation once preparation has started.
-- **Order acceptance:** confirmed only after successful food payment. May be declined/paused for capacity, unavailability, out-of-area, or operational issues, with refund if already paid.
-- **Out of stock:** unavailable items can't be ordered; if something becomes unavailable post-order, contact the customer with an alternative or refund — never charge for what can't be fulfilled.
-- **Kitchen capacity:** Open/Closed switch + daily order cap; site auto-stops accepting orders at the cap.
+| Delivery Zone | Fee (Pesewas) | Display Amount | Transit Guarantee |
+|:---|:---:|:---:|:---:|
+| **Evandy Hostel** | `500` | **GH₵ 5.00** | 10 – 15 mins |
+| **Pentagon Hostels (Blocks A–D)** | `500` | **GH₵ 5.00** | 10 – 15 mins |
+| **Main Campus (Balme / Night Market / Halls)** | `700` | **GH₵ 7.00** | 15 – 20 mins |
+| **East Legon / Shiashie / Bawaleshie** | `1000` | **GH₵ 10.00** | 20 – 30 mins |
+| **Airport Residential Area** | `1200` | **GH₵ 12.00** | 25 – 35 mins |
+| **Osu / Cantonments / Labone** | `1500` | **GH₵ 15.00** | 30 – 40 mins |
+| **Spintex / Batsonaa** | `2000` | **GH₵ 20.00** | 35 – 45 mins |
 
-## Order Lifecycle
+**Strictly Excluded Areas (7):** *Kasoa, Teshie, Nungua, Ashaiman, Chorkor, Mamprobi, Abokobi* are blocked at checkout to guarantee food arrives hot.
 
-```
-Awaiting Payment → Confirmed → Preparing → Ready for Dispatch → Dispatched → Delivered
-                                                                            ↘ Cancelled
-```
+---
 
-## MVP Feature Scope
+## 5. Operating Hours & Schedule
 
-**Customer:** Home, Menu, Meal Customization, Cart, Checkout, Payment, Confirmation, Order Status, How It Works, About, Delivery Info, Contact — guest checkout only, no accounts.
-**Kitchen/admin:** Login, Dashboard, Orders, Order Details, Kitchen Controls (open/closed, capacity, availability toggles).
-**Explicitly not in MVP:** customer accounts, order history, loyalty, live GPS tracking, rider-dispatch API, analytics dashboard.
+- **Daily Ordering Window:** 06:00 AM – 05:00 PM GMT.
+- **Same-Day Order Cutoff:** **10:00 AM GMT**. Orders placed after 10:00 AM schedule automatically for next-day dispatch.
+- **Delivery Time Slots:** 11:30 AM, 12:30 PM, 01:30 PM, 02:30 PM.
+- **Cancellation Deadline:** Strictly up to 1 hour before the scheduled delivery slot (e.g., 10:30 AM for an 11:30 AM slot). No cancellations once kitchen status moves to `Preparing`.
+- **Daily Capacity:** Initial ceiling of 12 orders/day, dynamically adjustable in the KDS.
 
-## Business Rules
+---
 
-1. Food orders require advance payment before confirmation.
-2. Delivery payment is separate, paid to the rider on arrival.
-3. Same-day orders close at 10:00 AM.
-4. Orders can't be accepted when the kitchen is closed.
-5. Orders can't be accepted once daily capacity is reached.
-6. Out-of-stock meals/proteins can't be selected for new orders.
-7. Delivery can't be selected for excluded locations.
-8. Cancellation must occur within the permitted window.
-9. Once an order enters active preparation, cancellation may be restricted.
-10. If a paid order can't be fulfilled, notify the customer and initiate the refund.
+## 6. Payment Architecture (Dual-Lane Split)
 
-## Core User Stories
+1. **Food Prepayment:** Paid in advance online via Hubtel (MTN MoMo, Telecel Cash, ATMoney, Debit/Credit Card) OR committed via Manual MoMo transfer to the merchant line.
+2. **Courier Delivery Fee:** Paid directly to the dispatch rider upon physical arrival (cash or direct MoMo).
+3. **Product Requirement:** The food total and courier fee are **never summed into a single "Total: GH₵X" charge**.
+4. **Rider Payment Gate:** Couriers must tap "Collect Payment: GH₵X.XX" and verify receipt before the order can be marked `Delivered`.
 
-**Customer:** browse meals; select size + included protein; add extra protein; see delivery fee before paying; pay via MTN MoMo or Telecel Cash; order without an account; receive confirmation; know the expected delivery time.
-**Chef:** see new orders immediately; open/close the kitchen; mark items out of stock; update order status; limit daily capacity.
+---
 
-## MVP Acceptance Criteria — the Golden Path
-
-> Open website → browse menu → choose Jollof → choose Medium → choose Chicken + Egg → add extra protein → enter an Accra delivery address → receive the correct delivery fee → choose the 11:30 AM slot → pay with a supported MoMo method → receive confirmation → chef sees the order → chef updates status → customer sees the updated status.
-
-If this path works reliably end to end, the MVP is functional. See `TESTING.md` for the full scenario list.
-
-## Sitemap
+## 7. Order Lifecycle State Machine
 
 ```
-CUSTOMER                          ADMIN
-├── Home                          ├── Login
-├── Menu                          ├── Dashboard
-│   ├── Meal Customization        ├── Orders
-│   └── Cart                      │   └── Order Details
-├── Checkout                      ├── Menu
-│   ├── Customer Info             │   └── Availability
-│   ├── Delivery Info             └── Kitchen Controls
-│   ├── Delivery Slot
-│   └── Payment
-├── Order Confirmation
-├── Order Status
-├── How It Works
-├── About
-├── Delivery Information
-└── Contact / WhatsApp
+Awaiting Payment ➔ Confirmed ➔ Preparing ➔ Ready for Dispatch ➔ Dispatched ➔ Delivered
+                                                                   ↘ Cancelled
 ```
 
-Full per-screen content specs live in the planning doc (Phase D, §27) — not duplicated here to avoid drift; pull from there when building each screen.
+- **SMS on Dispatch:** Fires automated Agoo SMS to customer with live GPS tracking link (`/order/[id]`).
+- **SMS on Delivery:** Fires automated Agoo SMS with individualized feedback link (`/feedback/[orderId]`).
+
+---
+
+## 8. Complete System Sitemap
+
+```
+CUSTOMER STOREFRONT                ADMIN & KITCHEN (KDS)
+├── / (Editorial Homepage)         ├── /admin/login (Supabase Auth)
+├── /menu (Full-Bleed Menu)        ├── /admin (Realtime Order Queue)
+│   └── /menu/[mealId] (Customizer)├── /admin/menu (Stock & Availability)
+├── /cart (Order Review)           ├── /admin/finance (Reconciliation Ledger)
+├── /checkout (3-Step Pipeline)    └── /admin/marketing (Mass SMS Blasts)
+├── /order/[orderId] (Live Track)
+├── /feedback/[orderId] (Review)   COURIER LOGISTICS
+├── /delivery (Zone Guide)         └── /rider (Mobile Rider Dispatch Portal)
+├── /about (Brand Story)
+└── /contact (WhatsApp Support)
+```
+
+---
+
+## 9. Core Business Rules
+
+1. Food orders require advance payment or manual commitment before kitchen preparation begins.
+2. Delivery payment is strictly separate and paid directly to the courier upon arrival.
+3. Same-day orders close strictly at 10:00 AM GMT.
+4. Orders are blocked when the kitchen master switch is toggled Closed.
+5. Orders are blocked once the daily order capacity ceiling is reached.
+6. Out-of-stock meals or protein options cannot be added to orders.
+7. Delivery is strictly prohibited to the 7 excluded Accra zones.
+8. Order cancellations are blocked within 1 hour of the delivery slot or once cooking has started.
+9. Manual orders must be verified via the Rider Payment Gate or Finance Ledger before closing.
+10. Unfulfillable paid orders automatically trigger full customer refunds.
