@@ -7,7 +7,21 @@ export async function POST(req: Request) {
     const { order_id, rating, customer_comment } = body;
 
     const numericRating = Number(rating);
-    if (!order_id || !numericRating || numericRating < 1 || numericRating > 5) {
+    if (
+      !order_id ||
+      typeof order_id !== "string" ||
+      order_id.trim() === "" ||
+      order_id === "[orderId]" ||
+      order_id.includes("[") ||
+      order_id.includes("%5B")
+    ) {
+      return NextResponse.json(
+        { error: "Invalid Order ID. Please open the feedback link with your specific order reference." },
+        { status: 400 }
+      );
+    }
+
+    if (!numericRating || numericRating < 1 || numericRating > 5) {
       return NextResponse.json(
         { error: "Valid rating and order ID are required." },
         { status: 400 }
@@ -40,6 +54,12 @@ export async function POST(req: Request) {
         return NextResponse.json(
           { error: "Order not found." },
           { status: 404 }
+        );
+      }
+      if (error.code === "22P02") {
+        return NextResponse.json(
+          { error: "Invalid Order ID format. Please use the direct link from your order confirmation or SMS." },
+          { status: 400 }
         );
       }
       throw error;

@@ -83,73 +83,88 @@ export default function OrderTrackingPage() {
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   // Simulation mode for demonstration / developer review
   const [simulatedStatus, setSimulatedStatus] = useState<TrackingStatus | null>(null);
 
-  // Initial load: Fetch order from Supabase or generate robust fallback
+  // Initial load & Polling: Fetch order from server-side route (with admin rights)
   useEffect(() => {
     let isMounted = true;
 
-    async function fetchOrder() {
+    async function fetchOrder(showSpinner = false) {
+      if (showSpinner) setLoading(true);
       try {
-        const supabase = createClient();
-        const { data, error: fetchErr } = await supabase
-          .from("orders")
-          .select(`
-            id,
-            order_status,
-            payment_status,
-            payment_method,
-            paystack_reference,
-            subtotal_pesewas,
-            delivery_fee_pesewas,
-            delivery_slot,
-            created_at,
-            customer:customers (
-              name,
-              phone
-            ),
-            address:addresses (
-              address,
-              area
-            ),
-            items:order_items (
-              id,
-              quantity,
-              base_price_pesewas,
-              included_protein_package_name,
-              meal:meals (
-                name
-              ),
-              size:meal_sizes (
-                size
-              ),
-              order_item_proteins (
-                quantity,
-                protein:protein_options (
-                  name
+        let orderData: any = null;
+
+        // 1. Fetch from secure server endpoint that bypasses RLS
+        if (orderId && orderId !== "mock") {
+          try {
+            const res = await fetch(`/api/orders/${orderId}`);
+            if (res.ok) {
+              const json = await res.json();
+              if (json?.order) {
+                orderData = json.order;
+              }
+            }
+          } catch (e) {
+            console.warn("Could not fetch from /api/orders:", e);
+          }
+        }
+
+        // 2. Direct client fallback if API failed
+        if (!orderData && orderId && orderId !== "mock") {
+          try {
+            const supabase = createClient();
+            const { data } = await supabase
+              .from("orders")
+              .select(`
+                id,
+                order_status,
+                payment_status,
+                payment_method,
+                paystack_reference,
+                subtotal_pesewas,
+                delivery_fee_pesewas,
+                delivery_slot,
+                created_at,
+                customer:customers (name, phone),
+                address:addresses (address, area),
+                items:order_items (
+                  id,
+                  quantity,
+                  base_price_pesewas,
+                  included_protein_package_name,
+                  meal:meals (name),
+                  size:meal_sizes (size),
+                  order_item_proteins (quantity, protein:protein_options (name))
                 )
-              )
-            )
-          `)
-          .eq("id", orderId)
-          .maybeSingle();
+              `)
+              .eq("id", orderId)
+              .maybeSingle();
+            if (data) orderData = data;
+          } catch (e) {
+            console.warn("Could not fetch from supabase client:", e);
+          }
+        }
 
         if (!isMounted) return;
 
-        if (data && !fetchErr) {
+        if (orderData) {
           // Map DB status to UI TrackingStatus
           let mappedStatus: TrackingStatus = "PENDING";
-          if (data.order_status === "preparing") mappedStatus = "PREPARING";
-          else if (
-            data.order_status === "ready_for_dispatch" ||
-            data.order_status === "dispatched"
+          if (orderData.order_status === "preparing" || orderData.order_status === "cooking") {
+            mappedStatus = "PREPARING";
+          } else if (
+            orderData.order_status === "ready_for_dispatch" ||
+            orderData.order_status === "dispatched" ||
+            orderData.order_status === "out_for_delivery"
           )
             mappedStatus = "OUT_FOR_DELIVERY";
-          else if (data.order_status === "delivered") mappedStatus = "DELIVERED";
+          else if (orderData.order_status === "delivered" || orderData.order_status === "completed")
+            mappedStatus = "DELIVERED";
 
-          const itemsList: OrderItemCustomization[] = (data.items || []).map((it: any) => {
+          const itemsList: OrderItemCustomization[] = (orderData.items || []).map((it: any) => {
             const mealName = it.meal?.name || "Jollof Rice";
             const sizeLabel = it.size?.size
               ? it.size.size.charAt(0).toUpperCase() + it.size.size.slice(1)
@@ -169,25 +184,27 @@ export default function OrderTrackingPage() {
           });
 
           const resolvedOrder: OrderDetails = {
-            id: data.id,
+            id: orderData.id,
             status: mappedStatus,
-            customerName: (data.customer as any)?.name || "Valued Customer",
-            customerPhone: (data.customer as any)?.phone || "",
-            deliveryAddress: (data.address as any)?.address || "East Legon, Accra",
-            deliveryArea: (data.address as any)?.area || "East Legon",
-            deliverySlot: data.delivery_slot || "11:30 AM",
-            foodTotal: data.subtotal_pesewas || 7000,
-            deliveryFee: data.delivery_fee_pesewas || 1000,
-            createdAt: new Date(data.created_at || Date.now()).toLocaleDateString("en-GB", {
+            customerName: (orderData.customer as any)?.name || "Valued Customer",
+            customerPhone: (orderData.customer as any)?.phone || "",
+            deliveryAddress: (orderData.address as any)?.address || "East Legon, Accra",
+            deliveryArea: (orderData.address as any)?.area || "East Legon",
+            deliverySlot: orderData.delivery_slot || "11:30 AM",
+            foodTotal: orderData.subtotal_pesewas || 7000,
+            deliveryFee: orderData.delivery_fee_pesewas || 1000,
+            createdAt: new Date(orderData.created_at || Date.now()).toLocaleDateString("en-GB", {
               day: "numeric",
               month: "short",
               year: "numeric",
             }),
-            paystackReference: data.paystack_reference || `CAF-${data.id.slice(0, 8).toUpperCase()}`,
-            paymentMethod: (data as any)?.payment_method || (searchParams.get("payment") === "manual" ? "manual" : "hubtel"),
-            paymentStatus: data.payment_status || "unpaid",
+            paystackReference: orderData.paystack_reference || `CAF-${orderData.id.slice(0, 8).toUpperCase()}`,
+            paymentMethod: (orderData as any)?.payment_method || (searchParams.get("payment") === "manual" ? "manual" : "hubtel"),
+            paymentStatus: orderData.payment_status || "unpaid",
             rider:
-              mappedStatus === "OUT_FOR_DELIVERY" || mappedStatus === "DELIVERED"
+              orderData.rider
+                ? { name: orderData.rider.full_name, phone: orderData.rider.phone_number }
+                : (mappedStatus === "OUT_FOR_DELIVERY" || mappedStatus === "DELIVERED")
                 ? { name: "Kwame Mensah", phone: "+233 24 555 0192" }
                 : undefined,
             items: itemsList.length > 0 ? itemsList : [
@@ -201,7 +218,7 @@ export default function OrderTrackingPage() {
           };
 
           setOrder(resolvedOrder);
-        } else {
+        } else if (!order) {
           // Fallback / Mock Order for testing or direct navigation
           const fallbackOrder: OrderDetails = {
             id: orderId || `mock-${Date.now()}`,
@@ -234,14 +251,18 @@ export default function OrderTrackingPage() {
           setOrder(fallbackOrder);
         }
       } catch (err: any) {
-        console.warn("Could not fetch order from Supabase:", err);
-        setError("Could not load real-time order data.");
+        console.warn("Could not fetch order:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
     }
 
-    fetchOrder();
+    fetchOrder(true);
+
+    // Poll every 3 seconds for status changes (e.g. KDS dispatch, rider delivery)
+    const interval = setInterval(() => {
+      fetchOrder(false);
+    }, 3000);
 
     // Check if celebration should trigger (new order placed, reference param, or mock)
     const hasSeenCelebration =
@@ -257,6 +278,7 @@ export default function OrderTrackingPage() {
 
     return () => {
       isMounted = false;
+      clearInterval(interval);
     };
   }, [orderId, hasRef, isNewQuery, isMock]);
 
@@ -279,10 +301,15 @@ export default function OrderTrackingPage() {
           if (payload.new && payload.new.order_status) {
             const dbStatus = payload.new.order_status;
             let mappedStatus: TrackingStatus = "PENDING";
-            if (dbStatus === "preparing") mappedStatus = "PREPARING";
-            else if (dbStatus === "ready_for_dispatch" || dbStatus === "dispatched")
+            if (dbStatus === "preparing" || dbStatus === "cooking") mappedStatus = "PREPARING";
+            else if (
+              dbStatus === "ready_for_dispatch" ||
+              dbStatus === "dispatched" ||
+              dbStatus === "out_for_delivery"
+            )
               mappedStatus = "OUT_FOR_DELIVERY";
-            else if (dbStatus === "delivered") mappedStatus = "DELIVERED";
+            else if (dbStatus === "delivered" || dbStatus === "completed")
+              mappedStatus = "DELIVERED";
 
             setOrder((prev) =>
               prev
@@ -818,12 +845,42 @@ export default function OrderTrackingPage() {
                       <div>
                         <button
                           type="button"
-                          disabled={rating === 0}
-                          onClick={() => setReviewSubmitted(true)}
+                          disabled={rating === 0 || isSubmittingReview}
+                          onClick={async () => {
+                            if (rating === 0) return;
+                            setIsSubmittingReview(true);
+                            try {
+                              const commentText = selectedTags.length > 0 ? `Tags: ${selectedTags.join(", ")}` : null;
+                              await fetch("/api/feedback", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  order_id: order?.id || orderId,
+                                  rating,
+                                  customer_comment: commentText,
+                                }),
+                              });
+                              setReviewSubmitted(true);
+                            } catch (err) {
+                              console.error("Failed to submit review:", err);
+                              setReviewSubmitted(true);
+                            } finally {
+                              setIsSubmittingReview(false);
+                            }
+                          }}
                           className="w-full py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-40 text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all duration-200 transform hover:-translate-y-0.5 shadow-button-yellow cursor-pointer"
                         >
-                          Submit Experience Review
+                          {isSubmittingReview ? "Submitting Review..." : "Submit Experience Review"}
                         </button>
+
+                        <div className="text-center pt-2">
+                          <Link
+                            href={`/feedback/${order?.id || orderId}`}
+                            className="text-[11px] font-bold text-brand-muted hover:text-brand-dark underline transition-colors"
+                          >
+                            Or write detailed comments for the kitchen &rarr;
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1173,52 +1230,54 @@ export default function OrderTrackingPage() {
         </div>
 
         {/* ===================================================================== */}
-        {/* DEV & REVIEWER INTERACTIVE TESTING TOOLS                              */}
+        {/* DEV & REVIEWER INTERACTIVE TESTING TOOLS (Gated to review/debug mode) */}
         {/* ===================================================================== */}
-        <div className="p-4 rounded-2xl bg-black/5 border border-black/10 text-xs space-y-2 mt-8">
-          <div className="flex items-center justify-between">
-            <span className="font-bold text-brand-dark uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-brand-yellow-dark" />
-              <span>Reviewer Interactive Controls:</span>
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                setShowPackingCelebration(true);
-                setCelebrationStep("text");
-              }}
-              className="font-bold text-brand-red hover:underline"
-            >
-              Replay Packing Celebration ↺
-            </button>
-          </div>
+        {process.env.NODE_ENV === "development" && (searchParams.get("reviewer") === "true" || searchParams.get("debug") === "true") && (
+          <div className="p-4 rounded-2xl bg-black/5 border border-black/10 text-xs space-y-2 mt-8">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-brand-dark uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-brand-yellow-dark" />
+                <span>Reviewer Interactive Controls:</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPackingCelebration(true);
+                  setCelebrationStep("text");
+                }}
+                className="font-bold text-brand-red hover:underline"
+              >
+                Replay Packing Celebration ↺
+              </button>
+            </div>
 
-          <p className="text-[11px] text-brand-muted">
-            Click states below to test real-time transitions (including the Phase 4 Unboxing &amp; Rating experience):
-          </p>
+            <p className="text-[11px] text-brand-muted">
+              Click states below to test real-time transitions (including the Phase 4 Unboxing &amp; Rating experience):
+            </p>
 
-          <div className="flex flex-wrap gap-2 pt-1">
-            {(["PENDING", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED"] as TrackingStatus[]).map(
-              (st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => {
-                    setSimulatedStatus(st);
-                    if (st !== "DELIVERED") setReviewSubmitted(false);
-                  }}
-                  className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
-                    currentStatus === st
-                      ? "bg-brand-red text-white shadow-xs"
-                      : "bg-white text-brand-dark border border-black/10 hover:border-black/30"
-                  }`}
-                >
-                  {st.replace(/_/g, " ")}
-                </button>
-              )
-            )}
+            <div className="flex flex-wrap gap-2 pt-1">
+              {(["PENDING", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED"] as TrackingStatus[]).map(
+                (st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => {
+                      setSimulatedStatus(st);
+                      if (st !== "DELIVERED") setReviewSubmitted(false);
+                    }}
+                    className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
+                      currentStatus === st
+                        ? "bg-brand-red text-white shadow-xs"
+                        : "bg-white text-brand-dark border border-black/10 hover:border-black/30"
+                    }`}
+                  >
+                    {st.replace(/_/g, " ")}
+                  </button>
+                )
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

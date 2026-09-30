@@ -2,8 +2,10 @@
 
 import React, { useState } from "react";
 import { useParams } from "next/navigation";
-import { Star, CheckCircle, ArrowLeft } from "lucide-react";
+import { Star, CheckCircle, ArrowLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function FeedbackPage({
   params: initialParams,
@@ -16,6 +18,8 @@ export default function FeedbackPage({
     ((initialParams as any)?.orderId as string) ||
     "";
 
+  const isInvalidOrderId = !rawOrderId || !UUID_REGEX.test(rawOrderId);
+
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   const [comment, setComment] = useState("");
@@ -23,7 +27,9 @@ export default function FeedbackPage({
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
 
-  const shortOrderId = rawOrderId ? rawOrderId.split("-")[0]?.toUpperCase() : "ORDER";
+  const shortOrderId = !isInvalidOrderId
+    ? rawOrderId.split("-")[0]?.toUpperCase()
+    : "PENDING";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,8 +38,8 @@ export default function FeedbackPage({
       return;
     }
 
-    if (!rawOrderId) {
-      setError("Missing order reference.");
+    if (isInvalidOrderId) {
+      setError("Please open this feedback page from your active order confirmation or SMS link with your real order reference.");
       return;
     }
 
@@ -100,6 +106,18 @@ export default function FeedbackPage({
           Order #{shortOrderId}
         </p>
       </div>
+
+      {isInvalidOrderId && (
+        <div className="mb-6 p-5 bg-brand-yellow/15 border border-brand-yellow/30 text-brand-dark rounded-2xl text-xs space-y-2">
+          <div className="flex items-center justify-center gap-1.5 font-bold uppercase tracking-wider text-brand-dark">
+            <AlertCircle size={16} className="text-brand-yellow-dark" />
+            <span>Order Reference Required</span>
+          </div>
+          <p className="text-brand-muted text-[11px] leading-relaxed text-center">
+            This rating loop is linked to verified campus orders. Please open the feedback link received via SMS or from your Order Status page (e.g. <code>/feedback/c00466bd...</code>).
+          </p>
+        </div>
+      )}
 
       {error && (
         <div className="mb-6 p-4 bg-brand-red/10 border border-brand-red/20 text-brand-red rounded-2xl text-xs font-bold text-center">

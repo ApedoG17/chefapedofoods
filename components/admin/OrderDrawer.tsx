@@ -167,8 +167,17 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
   const handleUpdateStatus = async (newStatus: string) => {
     setUpdating(true);
     try {
+      const normalizedStatus =
+        newStatus === 'cooking'
+          ? 'preparing'
+          : newStatus === 'out_for_delivery'
+          ? 'dispatched'
+          : newStatus === 'completed'
+          ? 'delivered'
+          : newStatus;
+
       const payload: { orderStatus: string; rider_id?: string | null } = {
-        orderStatus: newStatus,
+        orderStatus: normalizedStatus,
       };
       if (selectedRiderId) {
         payload.rider_id = selectedRiderId;
@@ -179,9 +188,14 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
         body: JSON.stringify(payload),
       });
       if (res.ok) {
+        const json = await res.json();
+        const updatedStatus = json.order?.order_status || json.order?.status || normalizedStatus;
         if (onStatusUpdate) {
-          onStatusUpdate(order.id, newStatus);
+          onStatusUpdate(order.id, updatedStatus);
         }
+      } else {
+        const errJson = await res.json().catch(() => null);
+        console.error('Failed to update order status:', errJson);
       }
     } catch (e) {
       console.error('Failed to update order status:', e);
@@ -286,7 +300,7 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
           </span>
           <button
             disabled={updating || currentStatus === 'cooking' || currentStatus === 'preparing'}
-            onClick={() => handleUpdateStatus('cooking')}
+            onClick={() => handleUpdateStatus('preparing')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex-none flex items-center gap-1.5 ${
               currentStatus === 'cooking' || currentStatus === 'preparing'
                 ? 'bg-brand-yellow text-[#18110E]'

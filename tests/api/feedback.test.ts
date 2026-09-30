@@ -92,6 +92,12 @@ describe("POST /api/feedback (Customer Feedback API)", () => {
   });
 
   it("sendFeedbackSMS formats phone and dispatches successfully", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ status: "success" }),
+    } as any);
+
     const success = await sendFeedbackSMS(
       "0241234567",
       "Kwame Mensah",
@@ -99,5 +105,6 @@ describe("POST /api/feedback (Customer Feedback API)", () => {
       "https://chefapedofoods.com"
     );
     expect(success).toBe(true);
+    expect(fetchSpy).toHaveBeenCalled();
   });
 });

@@ -18,15 +18,28 @@ export async function PATCH(
     const resolvedParams = await Promise.resolve(props.params);
     const orderId = resolvedParams.id;
     const body = (await request.json()) as UpdateOrderBody;
-    const rawStatus = body.status || body.orderStatus;
+    const rawStatus = (body.status || body.orderStatus || "").trim().toLowerCase();
     
-    // Normalize status to valid database enum check constraints
-    const newStatus =
-      rawStatus === "completed"
-        ? "delivered"
-        : rawStatus === "out_for_delivery"
-        ? "dispatched"
-        : rawStatus;
+    // Normalize status to valid database enum check constraints:
+    // ('awaiting_payment', 'confirmed', 'preparing', 'ready_for_dispatch', 'dispatched', 'delivered', 'cancelled')
+    let newStatus: string | undefined = undefined;
+    if (rawStatus === "completed" || rawStatus === "delivered") {
+      newStatus = "delivered";
+    } else if (rawStatus === "out_for_delivery" || rawStatus === "dispatched") {
+      newStatus = "dispatched";
+    } else if (rawStatus === "cooking" || rawStatus === "preparing") {
+      newStatus = "preparing";
+    } else if (rawStatus === "ready" || rawStatus === "ready_for_dispatch") {
+      newStatus = "ready_for_dispatch";
+    } else if (rawStatus === "confirmed") {
+      newStatus = "confirmed";
+    } else if (rawStatus === "cancelled") {
+      newStatus = "cancelled";
+    } else if (rawStatus === "awaiting_payment") {
+      newStatus = "awaiting_payment";
+    } else if (rawStatus) {
+      newStatus = rawStatus;
+    }
 
     const adminSupabase = createAdminClient();
 
@@ -94,7 +107,11 @@ export async function PATCH(
       (newStatus === "completed" || newStatus === "delivered") &&
       customerPhone
     ) {
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://chefapedofoods.com";
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        (process.env.NODE_ENV === "development"
+          ? "http://localhost:3000"
+          : "https://chefapedofoods.com");
       sendFeedbackSMS(customerPhone, customerName, updated.id, baseUrl).catch((err) => {
         console.error("Async Feedback SMS dispatch error:", err);
       });
