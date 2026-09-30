@@ -9,6 +9,7 @@ import {
   Utensils, 
   Wallet, 
   Settings, 
+  Send,
   LogOut 
 } from 'lucide-react';
 
@@ -37,8 +38,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Live Orders', href: '/admin/orders', icon: ClipboardList },
     { name: 'Menu Manager', href: '/admin/menu', icon: Utensils },
     { name: 'Finance', href: '/admin/finance', icon: Wallet },
+    { name: 'Marketing', href: '/admin/marketing', icon: Send },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
+
+
 
   return (
     <div className="flex h-screen bg-[#0D0D0D] text-white font-sans overflow-hidden">
