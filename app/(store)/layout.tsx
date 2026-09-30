@@ -27,6 +27,7 @@ export default function StoreLayout({
     pathname.startsWith("/delivery") ||
     pathname.startsWith("/about") ||
     pathname.startsWith("/contact") ||
+    pathname.startsWith("/legal") ||
     pathname.startsWith("/order/") ||
     pathname.startsWith("/orders/") ||
     pathname.startsWith("/checkout") ||

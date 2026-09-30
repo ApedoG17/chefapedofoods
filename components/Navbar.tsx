@@ -120,7 +120,7 @@ export function Navbar() {
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
             className="md:hidden p-2 rounded-full text-brand-dark hover:bg-black/5 transition-colors focus:outline-none"
-            aria-label="Toggle Navigation Menu"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
             {mobileOpen ? (
               <X className="w-5 h-5 stroke-[2.5]" />
