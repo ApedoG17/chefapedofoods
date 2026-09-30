@@ -12,13 +12,13 @@ export async function sendDeliverySMS(phone: string, customerName: string, order
     const response = await fetch(AGOO_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.SMS_API_KEY}`,
+        'X-API-Key': process.env.SMS_API_KEY || '',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        sender_id: process.env.SMS_SENDER_ID,
         to: formattedPhone,
         message: message,
+        senderId: process.env.SMS_SENDER_ID || 'CHEF APEDO',
       }),
     });
     
@@ -41,13 +41,13 @@ export async function sendFeedbackSMS(phone: string, customerName: string, order
     const response = await fetch(AGOO_API_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.SMS_API_KEY}`,
+        'X-API-Key': process.env.SMS_API_KEY || '',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        sender_id: process.env.SMS_SENDER_ID,
         to: formattedPhone,
         message: message,
+        senderId: process.env.SMS_SENDER_ID || 'CHEF APEDO',
       }),
     });
     
@@ -58,3 +58,4 @@ export async function sendFeedbackSMS(phone: string, customerName: string, order
     return false;
   }
 }
+
