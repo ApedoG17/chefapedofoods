@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ArrowRight, Check, Plus, Minus, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle, Plus, Minus, Sparkles } from "lucide-react";
 import {
   MEAL_SIZES,
   INCLUDED_PROTEIN_OPTIONS,
@@ -296,14 +296,12 @@ export default function MealCustomizerPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-display font-extrabold text-sm sm:text-base uppercase tracking-tight">
+                    <span className="flex items-center gap-2 font-black font-display text-sm sm:text-base uppercase tracking-tight">
                       {sizeData.label}
+                      {isSelected && (
+                        <CheckCircle size={16} className="text-brand-dark flex-shrink-0" />
+                      )}
                     </span>
-                    {isSelected && (
-                      <span className="w-4 h-4 rounded-full bg-brand-dark text-brand-yellow flex items-center justify-center text-[10px] font-black">
-                        ✓
-                      </span>
-                    )}
                   </div>
                   <div className="font-bold text-xs sm:text-sm text-brand-dark">
                     {formatGHS(sizeData.basePesewas)}

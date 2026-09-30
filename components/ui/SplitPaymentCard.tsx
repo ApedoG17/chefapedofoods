@@ -16,60 +16,65 @@ export function SplitPaymentCard({
 }: SplitPaymentCardProps) {
   return (
     <div
-      className={`bg-brand-espresso-surface border border-brand-gold/30 rounded-2xl p-4 sm:p-5 mt-3 shadow-warm-sm space-y-3.5 ${className}`.trim()}
+      className={`bg-[#18110E] border border-white/10 rounded-2xl p-4 sm:p-5 mt-3 shadow-lg space-y-3.5 ${className}`.trim()}
     >
-      <div className="flex items-center justify-between pb-2 border-b border-line/50 text-[11px] font-medium uppercase tracking-wider text-brand-gold">
-        <span>Payment Separation</span>
-        <span className="text-[10px] text-ink-dim normal-case font-light">
+      <div className="flex items-center justify-between pb-2 border-b border-white/10 text-[11px]">
+        <span className="text-brand-red font-bold uppercase tracking-wider">
+          PAYMENT 1 OF 2
+        </span>
+        <span className="text-[10px] text-white/50 normal-case font-light">
           Required for fresh morning cooking
         </span>
       </div>
 
       <div className="flex justify-between items-center py-1">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-surface2 border border-line flex items-center justify-center text-brand-gold flex-none">
-            <CreditCard className="w-3.5 h-3.5" />
+          <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-brand-yellow flex-none">
+            <CreditCard className="w-4 h-4" />
           </div>
           <div>
-            <div className="font-medium text-xs sm:text-sm text-ink-dark">
-              Pay Now (Food Subtotal)
+            <div className="text-white font-black text-xs sm:text-sm uppercase">
+              FOOD TOTAL
             </div>
-            <div className="text-[11px] text-ink-dim font-light">
+            <div className="text-[11px] text-white/60 font-light">
               Prepaid securely online (Hubtel / MoMo)
             </div>
           </div>
         </div>
-        <span className="font-serif font-medium text-base text-brand-gold">
+        <span className="text-brand-yellow font-black text-base">
           {payNowAmount}
         </span>
       </div>
 
-      <div className="flex justify-between items-center py-1 pt-2.5 border-t border-line/40">
+      <div className="flex justify-between items-center py-1 pt-2.5 border-t border-white/10">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-surface2 border border-line flex items-center justify-center text-brand-gold flex-none">
-            <Bike className="w-3.5 h-3.5" />
+          <div className="w-8 h-8 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center text-brand-yellow flex-none">
+            <Bike className="w-4 h-4" />
           </div>
           <div>
-            <div className="font-medium text-xs sm:text-sm text-ink-dark">
-              Pay Rider on Delivery
+            <div className="text-[10px] text-brand-yellow font-bold uppercase tracking-wider mb-0.5">
+              PAYMENT 2 OF 2
             </div>
-            <div className="text-[11px] text-ink-dim font-light">
+            <div className="text-white font-black text-xs sm:text-sm uppercase">
+              DELIVERY FEE (PAY RIDER)
+            </div>
+            <div className="text-[11px] text-white/60 font-light">
               Directly to courier (Cash or MoMo)
             </div>
           </div>
         </div>
         <span
-          className={`font-serif font-medium text-base ${
+          className={`font-black text-base ${
             isRiderAmountPending
-              ? "text-ink-dim text-xs font-sans font-light"
-              : "text-brand-gold-soft"
+              ? "text-white/40 text-xs font-sans font-light"
+              : "text-brand-yellow"
           }`}
         >
           {payRiderAmount}
         </span>
       </div>
 
-      <p className="text-[11px] text-ink-dim/80 leading-relaxed pt-1 border-t border-line/30 font-light">
+      <p className="text-[11px] text-white/60 leading-relaxed pt-1 border-t border-white/10 font-light">
         Food is prepaid online to secure preparation. Delivery fee is settled directly with your courier upon delivery.
       </p>
     </div>

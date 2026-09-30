@@ -180,82 +180,42 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
 
     try {
-      if (paymentMethod === "manual") {
-        // --- PHASE 2: MANUAL BYPASS ---
-        const response = await fetch("/api/orders/manual", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            items: items.map((i) => ({
-              mealId: i.mealId,
-              name: i.name,
-              size: i.size,
-              includedProteinPackageName: i.includedProteinPackageName,
-              extras: i.extras || {},
-              quantity: i.quantity,
-              price: i.basePricePesewas || 0,
-            })),
-            customerDetails: {
-              name: fullName.trim(),
-              phone: phone.trim(),
-              address: resolvedAddress,
-              area: activeArea.trim(),
-              notes: landmark.trim() || "",
-              deliverySlot,
-            },
-            subtotal: subtotalPesewas,
-            deliveryFee: deliveryFeePesewas,
-          }),
-        });
+      // Route to the new manual order processor
+      const response = await fetch("/api/orders/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentMethod,
+          items: items.map((i) => ({
+            mealId: i.mealId,
+            name: i.name,
+            size: i.size,
+            includedProteinPackageName: i.includedProteinPackageName,
+            extras: i.extras || {},
+            quantity: i.quantity,
+            price: i.basePricePesewas || 0,
+          })),
+          customerDetails: {
+            name: fullName.trim(),
+            phone: phone.trim(),
+            address: resolvedAddress,
+            area: activeArea.trim(),
+            notes: landmark.trim() || "",
+            deliverySlot,
+          },
+          subtotal: subtotalPesewas,
+          deliveryFee: deliveryFeePesewas,
+        }),
+      });
 
-        const result = await response.json();
+      const data = await response.json();
 
-        if (result.success && result.orderId) {
-          clearCart();
-          // Redirect directly to the live tracking page
-          router.push(`/order/${result.orderId}`);
-        } else {
-          throw new Error(result.message || "Failed to create order.");
-        }
+      if (data.success && data.orderId) {
+        clearCart();
+        // Redirect directly to the order confirmation page
+        router.push("/order/" + data.orderId);
       } else {
-        // --- PHASE 3: HUBTEL API CALL ---
-        const response = await fetch("/api/payments/hubtel", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            items: items.map((i) => ({
-              mealId: i.mealId,
-              name: i.name,
-              size: i.size,
-              includedProteinPackageName: i.includedProteinPackageName,
-              extras: i.extras || {},
-              quantity: i.quantity,
-              price: i.basePricePesewas || 0,
-            })),
-            customerDetails: {
-              name: fullName.trim(),
-              phone: phone.trim(),
-              address: resolvedAddress,
-              area: activeArea.trim(),
-              notes: landmark.trim() || "",
-              deliverySlot,
-            },
-            subtotal: subtotalPesewas,
-            deliveryFee: deliveryFeePesewas,
-          }),
-        });
-
-        const result = await response.json();
-
-        if (result.success && result.checkoutUrl) {
-          clearCart();
-          // Redirect the user to the secure Hubtel payment page
-          window.location.href = result.checkoutUrl;
-        } else {
-          throw new Error(
-            result.message || "Failed to initialize Hubtel checkout. Please try Manual MoMo / Cash."
-          );
-        }
+        throw new Error(data.message || "Failed to create order.");
       }
     } catch (err: any) {
       console.error("Checkout submission failed:", err);
@@ -625,48 +585,48 @@ export default function CheckoutPage() {
           </div>
 
           {/* CARD 1: PAY NOW (Food Total) */}
-          <div className="bg-brand-yellow/15 border-2 border-brand-yellow/50 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
-            <div className="flex items-center justify-between border-b border-brand-yellow/30 pb-3">
+          <div className="bg-[#18110E] border-2 border-brand-yellow/40 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-red">
+                <span className="text-[10px] text-brand-red font-bold uppercase tracking-[0.2em]">
                   Payment 1 of 2 · Immediate Online Prepayment
                 </span>
-                <h3 className="font-display font-extrabold text-2xl sm:text-3xl text-brand-dark uppercase tracking-tight mt-0.5">
+                <h3 className="font-display text-white font-black text-2xl sm:text-3xl uppercase tracking-tight mt-0.5">
                   Food Total (Pay Now)
                 </h3>
               </div>
-              <div className="font-display font-extrabold text-2xl sm:text-3xl text-brand-dark">
+              <div className="font-display text-brand-yellow font-black text-2xl sm:text-3xl">
                 {formatGHS(subtotalPesewas)}
               </div>
             </div>
 
             {/* Payment Method Badges */}
             <div className="space-y-2">
-              <div className="text-xs font-bold text-brand-dark uppercase tracking-wider">
+              <div className="text-xs font-bold text-white uppercase tracking-wider">
                 Instant Payment Methods Supported:
               </div>
-              <div className="flex flex-wrap gap-2 text-xs font-semibold text-brand-dark">
-                <span className="bg-white px-3 py-1.5 rounded-full border border-black/5 shadow-xs flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-brand-yellow-dark" />
+              <div className="flex flex-wrap gap-2 text-xs font-semibold text-white">
+                <span className="bg-white/10 px-3 py-1.5 rounded-full border border-white/10 shadow-xs flex items-center gap-1.5 text-white">
+                  <span className="w-2 h-2 rounded-full bg-brand-yellow" />
                   <span>MTN Mobile Money</span>
                 </span>
-                <span className="bg-white px-3 py-1.5 rounded-full border border-black/5 shadow-xs flex items-center gap-1.5">
+                <span className="bg-white/10 px-3 py-1.5 rounded-full border border-white/10 shadow-xs flex items-center gap-1.5 text-white">
                   <span className="w-2 h-2 rounded-full bg-brand-red" />
                   <span>Telecel Cash</span>
                 </span>
-                <span className="bg-white px-3 py-1.5 rounded-full border border-black/5 shadow-xs flex items-center gap-1.5">
-                  <CreditCard className="w-3 h-3 text-brand-dark" />
+                <span className="bg-white/10 px-3 py-1.5 rounded-full border border-white/10 shadow-xs flex items-center gap-1.5 text-white">
+                  <CreditCard className="w-3 h-3 text-brand-yellow" />
                   <span>Debit / Credit Card</span>
                 </span>
               </div>
-              <p className="text-xs text-brand-muted pt-1">
-                Processed with 256-bit bank encryption via Hubtel in Ghanaian Cedis (GHS).
+              <p className="text-xs text-white/60 pt-1">
+                Processed with 256-bit bank encryption in Ghanaian Cedis (GHS).
               </p>
             </div>
 
             {/* --- PAYMENT METHOD SELECTION --- */}
             <div className="mt-8 mb-4">
-              <h3 className="text-sm font-black tracking-wide text-[#18110E] mb-3 uppercase">
+              <h3 className="text-sm font-black tracking-wide text-white mb-3 uppercase">
                 Payment Method
               </h3>
               
@@ -677,15 +637,15 @@ export default function CheckoutPage() {
                   onClick={() => setPaymentMethod('hubtel')}
                   className={`relative p-5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                     paymentMethod === 'hubtel' 
-                      ? 'border-brand-yellow bg-brand-yellow/15 shadow-xs' 
-                      : 'border-black/10 hover:border-black/20 bg-white'
+                      ? 'border-brand-yellow bg-brand-yellow/20 shadow-xs' 
+                      : 'border-white/10 hover:border-white/20 bg-white/5'
                   }`}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <CreditCard className={paymentMethod === 'hubtel' ? 'text-brand-yellow-dark' : 'text-black/40'} size={24} />
-                    <span className="font-bold text-[#18110E]">Pay Online (Hubtel)</span>
+                    <CreditCard className={paymentMethod === 'hubtel' ? 'text-brand-yellow' : 'text-white/40'} size={24} />
+                    <span className="font-bold text-white">Pay Online (Hubtel)</span>
                   </div>
-                  <p className="text-xs text-black/60 pl-9 leading-relaxed">
+                  <p className="text-xs text-white/70 pl-9 leading-relaxed">
                     Securely pay via MTN MoMo, Telecel Cash, ATMoney, or Bank Card right now.
                   </p>
                   {/* Active Indicator */}
@@ -700,15 +660,15 @@ export default function CheckoutPage() {
                   onClick={() => setPaymentMethod('manual')}
                   className={`relative p-5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                     paymentMethod === 'manual' 
-                      ? 'border-brand-yellow bg-brand-yellow/15 shadow-xs' 
-                      : 'border-black/10 hover:border-black/20 bg-white'
+                      ? 'border-brand-yellow bg-brand-yellow/20 shadow-xs' 
+                      : 'border-white/10 hover:border-white/20 bg-white/5'
                   }`}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <Wallet className={paymentMethod === 'manual' ? 'text-brand-yellow-dark' : 'text-black/40'} size={24} />
-                    <span className="font-bold text-[#18110E]">Manual MoMo / Cash</span>
+                    <Wallet className={paymentMethod === 'manual' ? 'text-brand-yellow' : 'text-white/40'} size={24} />
+                    <span className="font-bold text-white">Manual MoMo / Cash</span>
                   </div>
-                  <p className="text-xs text-black/60 pl-9 leading-relaxed">
+                  <p className="text-xs text-white/70 pl-9 leading-relaxed">
                     Send MoMo directly to our merchant line, or pay the rider exact cash upon delivery.
                   </p>
                   {/* Active Indicator */}
@@ -729,10 +689,6 @@ export default function CheckoutPage() {
               >
                 {isSubmitting ? (
                   <span>Processing...</span>
-                ) : paymentMethod === "hubtel" ? (
-                  <>
-                    <span>Proceed to Secure Payment ➔</span>
-                  </>
                 ) : (
                   <>
                     <span>Confirm Order &amp; View Instructions ➔</span>
@@ -743,32 +699,32 @@ export default function CheckoutPage() {
           </div>
 
           {/* CARD 2: PAY RIDER (Delivery Fee) */}
-          <div className="bg-black/5 border border-black/10 rounded-3xl p-6 sm:p-8 space-y-4">
-            <div className="flex items-center justify-between border-b border-black/10 pb-3">
+          <div className="bg-[#18110E] border border-white/10 rounded-3xl p-6 sm:p-8 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-brand-dark shadow-xs flex-none">
+                <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-brand-yellow shadow-xs flex-none">
                   <Bike className="w-5 h-5 stroke-[2.5]" />
                 </div>
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-muted">
+                  <span className="text-[10px] text-brand-yellow font-bold uppercase tracking-[0.2em]">
                     Payment 2 of 2 · Upon Arrival
                   </span>
-                  <h3 className="font-display font-extrabold text-xl sm:text-2xl text-brand-dark uppercase tracking-tight mt-0.5">
+                  <h3 className="font-display font-black text-xl sm:text-2xl text-white uppercase tracking-tight mt-0.5">
                     Delivery Fee (Pay Rider)
                   </h3>
                 </div>
               </div>
-              <div className="font-display font-extrabold text-2xl text-brand-dark">
+              <div className="font-display text-brand-yellow font-black text-2xl">
                 {formatGHS(deliveryFeePesewas)}
               </div>
             </div>
 
-            <div className="space-y-1.5 text-xs text-brand-muted leading-relaxed">
+            <div className="space-y-1.5 text-xs text-white/70 leading-relaxed">
               <p>
-                <strong className="text-brand-dark">Protocol:</strong> Hand this exact amount directly to your dispatch courier when your hot lunch arrives at your doorstep in {selectedArea === "Other" ? customArea : selectedArea}.
+                <strong className="text-white">Protocol:</strong> Hand this exact amount directly to your dispatch courier when your hot lunch arrives at your doorstep in {selectedArea === "Other" ? customArea : selectedArea}.
               </p>
               <p>
-                Riders accept <strong className="text-brand-dark">Cash</strong> or direct <strong className="text-brand-dark">Mobile Money</strong> on arrival.
+                Riders accept <strong className="text-white">Cash</strong> or direct <strong className="text-white">Mobile Money</strong> on arrival.
               </p>
             </div>
           </div>
