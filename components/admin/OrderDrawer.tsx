@@ -53,6 +53,7 @@ export interface AdminOrder {
   status: string;
   order_status?: string;
   paystack_reference?: string;
+  rider_id?: string | null;
   created_at: string;
   items?: OrderItem[];
   customers?: { name?: string; phone?: string };
@@ -116,6 +117,35 @@ export function parseCoordinates(addressStr: string): { lat: number; lng: number
 
 export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: OrderDrawerProps) {
   const [updating, setUpdating] = useState(false);
+  const [riders, setRiders] = useState<{ id: string; full_name: string; phone_number: string }[]>([]);
+  const [selectedRiderId, setSelectedRiderId] = useState<string>('');
+  const [riderSaveSuccess, setRiderSaveSuccess] = useState(false);
+
+  // Sync rider state when order changes or drawer opens
+  React.useEffect(() => {
+    if (order) {
+      setSelectedRiderId(order.rider_id || '');
+    }
+  }, [order]);
+
+  // Fetch active riders list
+  React.useEffect(() => {
+    if (!isOpen) return;
+    async function loadRiders() {
+      try {
+        const res = await fetch('/api/admin/riders');
+        if (res.ok) {
+          const json = await res.json();
+          if (json.riders) {
+            setRiders(json.riders);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not load riders list:', err);
+      }
+    }
+    loadRiders();
+  }, [isOpen]);
 
   if (!isOpen || !order) return null;
 
@@ -137,18 +167,59 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
   const handleUpdateStatus = async (newStatus: string) => {
     setUpdating(true);
     try {
+      const normalizedStatus =
+        newStatus === 'cooking'
+          ? 'preparing'
+          : newStatus === 'out_for_delivery'
+          ? 'dispatched'
+          : newStatus === 'completed'
+          ? 'delivered'
+          : newStatus;
+
+      const payload: { orderStatus: string; rider_id?: string | null } = {
+        orderStatus: normalizedStatus,
+      };
+      if (selectedRiderId) {
+        payload.rider_id = selectedRiderId;
+      }
       const res = await fetch(`/api/admin/orders/${order.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderStatus: newStatus }),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
+        const json = await res.json();
+        const updatedStatus = json.order?.order_status || json.order?.status || normalizedStatus;
         if (onStatusUpdate) {
-          onStatusUpdate(order.id, newStatus);
+          onStatusUpdate(order.id, updatedStatus);
         }
+      } else {
+        const errJson = await res.json().catch(() => null);
+        console.error('Failed to update order status:', errJson);
       }
     } catch (e) {
       console.error('Failed to update order status:', e);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleSaveRiderAssignment = async () => {
+    if (!order) return;
+    setUpdating(true);
+    setRiderSaveSuccess(false);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rider_id: selectedRiderId || null }),
+      });
+      if (res.ok) {
+        setRiderSaveSuccess(true);
+        setTimeout(() => setRiderSaveSuccess(false), 2500);
+      }
+    } catch (e) {
+      console.error('Failed to assign rider:', e);
     } finally {
       setUpdating(false);
     }
@@ -229,7 +300,7 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
           </span>
           <button
             disabled={updating || currentStatus === 'cooking' || currentStatus === 'preparing'}
-            onClick={() => handleUpdateStatus('cooking')}
+            onClick={() => handleUpdateStatus('preparing')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex-none flex items-center gap-1.5 ${
               currentStatus === 'cooking' || currentStatus === 'preparing'
                 ? 'bg-brand-yellow text-[#18110E]'
@@ -269,6 +340,43 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
 
         {/* Scrollable Content Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Dispatch Courier Assignment Strip */}
+          <div className="bg-[#1C1C1C] border border-white/5 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-brand-yellow/10 border border-brand-yellow/20 flex items-center justify-center text-brand-yellow flex-none">
+                <Bike size={18} />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-white block">Assign Dispatch Rider</span>
+                <span className="text-[11px] text-white/50">Assign courier before tapping Dispatch</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedRiderId}
+                onChange={(e) => setSelectedRiderId(e.target.value)}
+                className="bg-[#141414] border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-white focus:border-brand-yellow outline-none cursor-pointer"
+              >
+                <option value="">-- Unassigned --</option>
+                {riders.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.full_name} ({r.phone_number})
+                  </option>
+                ))}
+              </select>
+
+              <button
+                type="button"
+                disabled={updating}
+                onClick={handleSaveRiderAssignment}
+                className="px-3 py-2 rounded-xl bg-brand-yellow/20 hover:bg-brand-yellow text-brand-yellow hover:text-[#18110E] text-xs font-bold uppercase transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {riderSaveSuccess ? "Saved!" : "Assign"}
+              </button>
+            </div>
+          </div>
+
           {/* Section 1: Customer Contact Card */}
           <div className="bg-[#1C1C1C] border border-white/5 p-4 rounded-2xl flex items-center justify-between">
             <div className="flex items-center gap-3.5">

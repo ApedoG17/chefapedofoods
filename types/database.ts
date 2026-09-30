@@ -79,6 +79,36 @@ export interface Order {
   cancellation_reason: string | null;
   refund_status: RefundStatus;
   paystack_refund_reference: string | null;
+  rider_id?: string | null;
+  promo_code_id?: string | null;
+  original_amount?: number | null;
+  discount_amount?: number | null;
+}
+
+export interface Rider {
+  id: string;
+  full_name: string;
+  phone_number: string;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  discount_percentage: number;
+  max_uses: number | null;
+  current_uses: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface Review {
+  id: string;
+  order_id: string;
+  rating: number;
+  customer_comment: string | null;
+  created_at: string;
 }
 
 export interface OrderItem {
@@ -117,4 +147,5 @@ export interface KitchenSettings {
 
 // Official generated Database type from Supabase CLI
 export type { Database } from "./database.types";
+
 

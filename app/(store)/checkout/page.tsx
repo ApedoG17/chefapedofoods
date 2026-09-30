@@ -82,7 +82,18 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const formattedTotal = formatGHS(subtotalPesewas);
+  // Promo Code Engine State
+  const [promoInput, setPromoInput] = useState("");
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [promoError, setPromoError] = useState("");
+  const [appliedPromo, setAppliedPromo] = useState<{ id: string; code: string; percentage: number } | null>(null);
+
+  // Calculate totals dynamically with promo discount
+  const baseFoodTotal = subtotalPesewas;
+  const discountAmount = appliedPromo ? Math.floor(baseFoodTotal * (appliedPromo.percentage / 100)) : 0;
+  const finalFoodTotal = baseFoodTotal - discountAmount;
+
+  const formattedTotal = formatGHS(finalFoodTotal);
 
   // Fetch active delivery zones from Supabase
   useEffect(() => {
@@ -156,6 +167,38 @@ export default function CheckoutPage() {
     );
   }
 
+  // Promo Code Application Handler
+  const handleApplyPromo = async () => {
+    if (!promoInput.trim()) return;
+    setIsApplyingPromo(true);
+    setPromoError("");
+
+    try {
+      const res = await fetch("/api/promos/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: promoInput.trim() }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPromoError(data.error || "Failed to apply code");
+        setAppliedPromo(null);
+      } else {
+        setAppliedPromo({
+          id: data.id,
+          code: data.code,
+          percentage: data.discount_percentage,
+        });
+        setPromoInput(""); // Clear input on success
+      }
+    } catch (err) {
+      setPromoError("Network error. Try again.");
+    } finally {
+      setIsApplyingPromo(false);
+    }
+  };
+
   // Submission handler
   const handleProceedToPayment = async () => {
     setErrorMessage(null);
@@ -186,6 +229,9 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           paymentMethod,
+          promo_code_id: appliedPromo?.id || null,
+          original_amount: baseFoodTotal,
+          discount_amount: discountAmount,
           items: items.map((i) => ({
             mealId: i.mealId,
             name: i.name,
@@ -203,7 +249,7 @@ export default function CheckoutPage() {
             notes: landmark.trim() || "",
             deliverySlot,
           },
-          subtotal: subtotalPesewas,
+          subtotal: finalFoodTotal,
           deliveryFee: deliveryFeePesewas,
         }),
       });
@@ -584,6 +630,48 @@ export default function CheckoutPage() {
             </ol>
           </div>
 
+          {/* Promo Code Block */}
+          <div className="bg-[#141414] border border-white/5 rounded-2xl p-6 mb-6">
+            <h3 className="text-white font-bold mb-3 uppercase tracking-wider text-sm">Have a Promo Code?</h3>
+            
+            {appliedPromo ? (
+              <div className="flex items-center justify-between bg-brand-yellow/10 border border-brand-yellow/20 p-4 rounded-xl">
+                <div>
+                  <p className="text-brand-yellow font-black uppercase">{appliedPromo.code} APPLIED</p>
+                  <p className="text-brand-yellow/80 text-sm">-{appliedPromo.percentage}% off food total ({formatGHS(discountAmount)} saved)</p>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setAppliedPromo(null)}
+                  className="text-white/50 hover:text-brand-red transition-colors text-sm font-bold uppercase cursor-pointer"
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={promoInput}
+                    onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+                    placeholder="ENTER CODE"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white uppercase focus:border-brand-yellow focus:ring-1 focus:ring-brand-yellow outline-none transition-all placeholder:text-white/30 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    disabled={isApplyingPromo || !promoInput.trim()}
+                    className="bg-white/10 hover:bg-white/20 text-white font-bold uppercase px-6 rounded-xl transition-colors disabled:opacity-50 cursor-pointer text-sm"
+                  >
+                    {isApplyingPromo ? "..." : "Apply"}
+                  </button>
+                </div>
+                {promoError && <p className="text-brand-red text-xs mt-2 font-bold">{promoError}</p>}
+              </div>
+            )}
+          </div>
+
           {/* CARD 1: PAY NOW (Food Total) */}
           <div className="bg-[#18110E] border-2 border-brand-yellow/40 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -595,8 +683,13 @@ export default function CheckoutPage() {
                   Food Total (Pay Now)
                 </h3>
               </div>
-              <div className="font-display text-brand-yellow font-black text-2xl sm:text-3xl">
-                {formatGHS(subtotalPesewas)}
+              <div className="font-display text-brand-yellow font-black text-2xl sm:text-3xl text-right">
+                {appliedPromo && (
+                  <span className="block text-xs line-through text-white/50 font-normal">
+                    {formatGHS(baseFoodTotal)}
+                  </span>
+                )}
+                <span>{formatGHS(finalFoodTotal)}</span>
               </div>
             </div>
 

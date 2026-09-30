@@ -4,7 +4,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { items = [], customerDetails = {}, subtotal, deliveryFee } = body;
+    const {
+      items = [],
+      customerDetails = {},
+      subtotal,
+      deliveryFee,
+      promo_code_id,
+      original_amount,
+      discount_amount,
+    } = body;
 
     // Normalize customer details supporting both nested customerDetails and flat body
     const customerName = (customerDetails.name || body.customerName || "Customer").trim();
@@ -96,17 +104,40 @@ export async function POST(req: Request) {
         subtotal_pesewas: calculatedSubtotal,
         delivery_fee_pesewas: calculatedDeliveryFee,
         amount_paid_pesewas: 0,
-        payment_method: "manual",
+        payment_method: (body.paymentMethod as any) || "manual",
         payment_status: "unpaid",
         order_status: "awaiting_payment",
         paystack_reference: manualRef,
         refund_status: "none",
-      })
+        promo_code_id: promo_code_id || null,
+        original_amount: original_amount !== undefined ? Number(original_amount) : calculatedSubtotal,
+        discount_amount: discount_amount !== undefined ? Number(discount_amount) : 0,
+      } as any)
       .select("id")
       .single();
 
     if (orderError || !order) {
       throw new Error(orderError?.message || "Failed to create order record");
+    }
+
+    // Increment promo code usage count if a promo code was applied
+    if (promo_code_id) {
+      try {
+        const { data: promoData } = await (supabase as any)
+          .from("promo_codes")
+          .select("current_uses")
+          .eq("id", promo_code_id)
+          .single();
+
+        if (promoData) {
+          await (supabase as any)
+            .from("promo_codes")
+            .update({ current_uses: (promoData.current_uses || 0) + 1 })
+            .eq("id", promo_code_id);
+        }
+      } catch (promoErr) {
+        console.warn("Could not increment promo code usage:", promoErr);
+      }
     }
 
     // 7. Format and insert individual order items
