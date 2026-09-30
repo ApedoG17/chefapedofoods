@@ -2,14 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { ArrowUpRight, Clock, CheckCircle, TrendingUp } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/client';
 import OrderDrawer, { type AdminOrder } from '@/components/admin/OrderDrawer';
 
 // Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const supabase = createClient();
+
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<AdminOrder[]>([]);

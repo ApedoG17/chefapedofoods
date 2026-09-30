@@ -2,15 +2,19 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
 
+import { getCleanSupabaseUrl } from "@/lib/supabase/client";
+
 /**
  * Server-only client for user sessions and customer-facing queries.
  * Privileged writes (order creation, Hubtel webhooks) use createAdminClient() from lib/supabase/admin.ts.
  */
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
+  const url = getCleanSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const anonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {
