@@ -1,63 +1,113 @@
-# Chef Apedo Foods — Build Tasks
+# Chef Apedo Foods — Build Tasks & Engineering Roadmap
 
-Ordered per the "core transaction first" decision in the planning doc (§27): don't start with the homepage — start with the screens that actually move money.
+Tracked per the core transaction first philosophy: money movement and operational integrity precede marketing polish.
 
-## 0. Pre-build decisions (blockers)
+---
 
-- [x] Choose frontend stack/framework — **Next.js + TypeScript + Tailwind CSS**
-- [x] Choose payment integration — **Paystack** (covers MTN MoMo, Telecel, AirtelTigo, and card via one integration)
-- [x] Choose hosting/backend — **Vercel (app) + Supabase (Postgres, Auth, Edge Functions, Storage)**
-- [x] Set the actual daily order capacity to launch with — **12 orders/day**, configurable, expected to increase with experience
-- [ ] Set real delivery-zone fees — **still genuinely open**; only the GH₵10 starting point and the excluded-area list are locked. The software model (admin-configurable `DeliveryZone` table) is built to support this once real dispatch economics are known — see `ARCHITECTURE.md`
-- [x] Finalize `RULES.md` stack-specific conventions — codified in `lib/business-rules/` and `RULES.md`
+## 0. Pre-build Architecture & Business Decisions (Closed)
 
-## 1. Repository & data layer
+- [x] Choose frontend stack/framework — **Next.js 14 (App Router) + TypeScript + Tailwind CSS**
+- [x] Choose payment integration — **Hubtel API** (MTN MoMo, Telecel Cash, ATMoney, cards) + **Manual MoMo / Cash on Delivery fallback**
+- [x] Choose messaging gateway — **Agoo SMS Gateway** (official Ghanaian SMS provider with high delivery rate)
+- [x] Choose hosting/backend — **Vercel (App) + Supabase (PostgreSQL 15, Auth, Edge Functions, Realtime, Storage)**
+- [x] Set daily order capacity — **12 orders/day launch ceiling**, dynamically adjustable via KDS
+- [x] Set real delivery-zone fees — **Resolved with Legon Campus Delivery Pricing Schedule**:
+  - Evandy Hostel: GH₵ 5.00
+  - Pentagon Hostel: GH₵ 5.00
+  - Main Campus (Balme / Night Market / Halls): GH₵ 7.00
+  - East Legon / Shiashie: GH₵ 10.00
+  - Airport Residential: GH₵ 12.00
+  - Osu / Cantonments: GH₵ 15.00
+  - Spintex / Batsonaa: GH₵ 20.00
+  - *7 Excluded areas strictly blocked for food heat preservation*
+- [x] Codify business rules & currency constraints — **Integer pesewas standard** enforced in `RULES.md` and `config/business.ts`
 
-- [x] Scaffold the Next.js + TypeScript + Tailwind app (customer UI, admin UI, and API routes/server actions in one app, per `ARCHITECTURE.md`)
-- [x] Set up the Supabase project (Postgres, Auth, Edge Functions, Storage) and connect it to the app
-- [x] Set up the Paystack integration (test keys first) and the webhook endpoint for payment verification
-- [x] Implement the schema from `ARCHITECTURE.md` (Customer, Address, Meal, MealSize, ProteinOption, ProteinPackage, PackageItem, Order, OrderItem, OrderItemProtein, DeliveryZone, KitchenSettings)
-- [x] Seed the launch menu (3 meals × 3 sizes × included protein packages × extras, per `PRD.md`)
-- [x] Seed delivery zones and the excluded-area list (fee values pending — see §0)
+---
 
-## 2. Core transaction flow (build and test this before anything else)
+## 1. Repository & Data Layer (Completed)
 
-- [x] Meal Customization screen — size → included protein (scoped correctly per size) → extras → quantity → dynamic price
-- [x] Cart — items, modifiers, subtotal, delivery-location entry, serviceability check, fee calculation, pay-now/pay-rider split
-- [x] Checkout — customer details, delivery details, delivery-slot selection (respecting same-day cutoff and capacity)
-- [x] Payment — MoMo integration, payment breakdown, success/failure handling
-- [x] Order Confirmation — order number, summary, split payment display
-- [x] Order Status — lifecycle tracker, cancellation flow (deadline + preparation-status checks)
+- [x] Scaffold Next.js + TypeScript + Tailwind application
+- [x] Supabase project configuration (Postgres tables, Auth, Service Role policies)
+- [x] Migration `0001_initial_schema.sql` (Customers, Addresses, Meals, Sizes, Proteins, Orders, Delivery Zones)
+- [x] Migration `0002_kitchen_display_and_tracking.sql` (KDS status enum, kitchen settings, address GPS coords)
+- [x] Migration `0003_scaling_features.sql` (Riders table, Promo codes table, Reviews table)
+- [x] Migration `0004_marketing_and_promos.sql` (Customer phone index, marketing broadcast support)
+- [x] Migration `0005_financial_reconciliation.sql` (`payment_collected` BOOLEAN column & index on `public.orders`)
+- [x] Seed launch menu (Jollof Rice, Fried Rice, Plain Rice & Stew across Small GH₵45 / Medium GH₵70 / Large GH₵90)
 
-## 3. Kitchen/admin (brought forward, not Phase 3)
+---
 
-- [x] Login (single chef account, email + password via Supabase Auth)
-- [x] Dashboard — today's snapshot, kitchen open/closed, capacity used
-- [x] Orders — list + filters by status
-- [x] Order Details — full order view, status-appropriate action buttons only
-- [x] Kitchen Controls — open/closed toggle, daily capacity setting, per-item/protein availability toggle
+## 2. Core Transaction Flow (Completed)
 
-## 4. Marketing & Editorial Experience
+- [x] **Meal Customization Engine:** Size selection (Small / Medium / Large) ➔ Included protein options scoped strictly to selected size ➔ Extra protein portions (Chicken +15, Sausage +4, Egg +4, Fish +4) ➔ Dynamic price calculation
+- [x] **Interactive Cart:** Real-time quantity manipulation, customization review, subtotal calculation
+- [x] **Checkout Pipeline:**
+  - Guest customer validation (valid Ghana mobile number & name)
+  - Interactive OpenStreetMap (Leaflet) pin-drop & campus landmark entry
+  - Dynamic Campus Delivery Zone selector with automated fee recalculation
+  - Delivery slot picker (11:30 AM, 12:30 PM, 1:30 PM, 2:30 PM) respecting 10:00 AM cutoff
+  - Promo code validation engine with real-time percentage deductions
+- [x] **Dual-Payment Split Screen:**
+  - Card 1: Food Total prepaid online via Hubtel or selected as Manual MoMo/Cash
+  - Card 2: Courier Delivery Fee paid directly to rider upon doorstep arrival
+- [x] **Live Order Tracking (`/order/[id]`):**
+  - Celebration packing animation with physical box drop
+  - Live progress stepper (Order Received ➔ Preparing ➔ Out for Delivery ➔ Delivered)
+  - Responsive vertical timeline on mobile preventing label overlap
+  - Direct WhatsApp kitchen chat and live status indicator
 
-- [x] Home (cinematic hero, statement section, featured meals, delivery coverage map, review testimonials)
-- [x] Menu (browse & direct customization entry point, adaptive sticky category dock)
-- [x] How It Works
-- [x] About
-- [x] Delivery Information (interactive coverage map, zone pricing guide, cutoff rules)
-- [x] Contact (direct WhatsApp and customer support channels)
-- [x] Cinematic Splash Sequence (`components/SplashSequence.tsx` with stew bubbling physics, video b-roll, and session memory)
-- [x] Infinite Brand Marquee Ticker (seamless 60fps loop across duplicated tracks)
-- [x] 2-Column Balanced Editorial Heroes with 3D Floating Assets (Menu Jollof bowl & Delivery packaging bowl)
-- [x] Interactive Fly-to-Cart Trajectory Animation
-- [x] 3-Column Global Footer with social brand SVGs & phone integration
+---
 
-## 5. Testing
+## 3. Kitchen Display System (KDS) & Admin (/admin) (Completed)
 
-- [x] Run the golden path end to end (see `TESTING.md` & `tests/integration/golden-path.test.ts`)
-- [x] Run all 7 edge-case scenarios (excluded location, post-cutoff order, closed kitchen, out-of-stock protein, cancellation, etc.)
+- [x] Single-user secure chef authentication via Supabase Auth
+- [x] Live Realtime order queue powered by Supabase WebSocket subscriptions
+- [x] Dynamic order status transitions (Awaiting Payment ➔ Preparing ➔ Ready for Dispatch ➔ Dispatched)
+- [x] Dispatch courier assignment dropdown
+- [x] Kitchen Controls: Open/Closed master toggle, daily order capacity limiter
+- [x] Menu Manager (`/admin/menu`): Real-time per-meal availability toggles
+- [x] Responsive Admin Mobile Navbar with slide-down drawer for management on smartphones
 
-## 6. Regulatory (parallel track, not blocking development)
+---
+
+## 4. Logistics & Rider Portal (/rider) (Completed)
+
+- [x] Mobile-optimized courier login via authorized phone number lookup
+- [x] Dedicated active delivery feed (couriers only see orders assigned to them)
+- [x] 1-Tap Google Maps GPS navigation link to customer dropoff coordinates
+- [x] 1-Tap direct phone call integration (`tel:`)
+- [x] **Mandatory Payment Gate:** High-visibility "Collect Payment: GH₵X.XX" button and confirmation dialog for manual cash/MoMo orders before order can be finalized
+- [x] Server-side `/api/admin/orders/[id]/payment-collected` endpoint marking `payment_collected: true` and `payment_status: paid`
+
+---
+
+## 5. Messaging, Feedback & Financial Reconciliation (Completed)
+
+- [x] **Agoo SMS Gateway Integration:** High-reliability Ghanaian SMS infrastructure (`/v1/sms/send`, `X-API-Key` auth)
+- [x] **Automated Dispatch SMS:** Sends live tracking URL directly to customer mobile upon kitchen dispatch
+- [x] **Automated Delivery SMS:** Sends thank-you message with feedback link upon courier completion
+- [x] **Customer Review Engine (`/feedback/[orderId]`):** 1-5 star rating and qualitative feedback stored in `reviews` table
+- [x] **Mass Marketing Broadcast Engine (`/admin/marketing`):** Bulk SMS blast utility pushing promo announcements to past customer database
+- [x] **Financial Ledger Dashboard (`/admin/finance`):**
+  - KPI Cards: Gross Food Revenue, Hubtel Online MoMo/Cards, Manual MoMo/Cash, Courier Delivery Fees
+  - Comprehensive transaction table with channel breakdown and payment status filtering
+  - Optimistic "Mark as Received" reconciliation action for kitchen accounting
+
+---
+
+## 6. Marketing & Editorial Experience (Completed)
+
+- [x] Cinematic Splash Screen (`SplashSequence`) with stew bubbling animation & session memory
+- [x] 60fps Infinite Marquee Brand Ticker
+- [x] Editorial Homepage with 3D floating isolated dish assets
+- [x] **Design B Full-Bleed Menu Cards (`MealCard.tsx`):** High-contrast dark gradient overlay, star rating, clean white typography, and quick-add actions
+- [x] Delivery Information guide (`/delivery`) with zone pricing and cutoff rules
+- [x] About Us story (`/about`) and Contact channels (`/contact`)
+
+---
+
+## 7. Regulatory & Launch Operations (Next Milestone)
 
 - [ ] FDA Food Hygiene Permit — Online Food Business category
-- [ ] GRA tax registration (Modified Taxation Scheme, informal-sector food vendor scope)
-- [ ] Business Name registration via the Registrar of Companies
+- [ ] GRA tax registration (Modified Taxation Scheme for campus food services)
+- [ ] Business Name registration via Registrar General's Department

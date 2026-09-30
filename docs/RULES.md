@@ -1,23 +1,40 @@
 # Chef Apedo Foods — Coding Rules & Conventions
 
-Stack is locked (Next.js + TypeScript + Tailwind, Supabase, Vercel, Hubtel + Manual MoMo — see `ARCHITECTURE.md`). Conventions below apply from the first commit.
+Stack is locked (Next.js 14 + TypeScript + Tailwind, Supabase, Vercel, Hubtel + Manual MoMo, Agoo SMS — see `ARCHITECTURE.md`). Conventions below apply across the codebase.
 
-## Stack-agnostic rules
+---
 
-- **Business rules live in one place.** The 10 rules in `PRD.md` (payment split, same-day cutoff, capacity, stock, excluded areas, cancellation window, refund-on-failure) should be enforced in a single shared module/service, not duplicated per screen or per endpoint. If a rule needs to change, it should change in one place.
-- **Money is never a float.** Store and calculate all GH₵ amounts as integers (pesewas) or a fixed-point/decimal type — never native floating point.
-- **Every price-affecting selection is explicit data, not a string.** Meal size, included protein choice, and extra proteins are structured selections tied to the schema in `ARCHITECTURE.md`, not free-text or hidden in a description field.
-- **Delivery-fee and payment-split copy is never combined into a single "Total."** Anywhere a price is shown at checkout/cart/payment, "pay now" and "pay rider on delivery" must be visually and textually distinct — this is a product requirement, not a style preference.
-- **No secrets or payment credentials in the repo.** MoMo/gateway keys go in environment variables / secrets management, never committed.
-- **Naming should read like the business, not the database.** e.g. `orderStatus` values should match the lifecycle names in `PRD.md` (`Confirmed`, `Preparing`, `Ready for Dispatch`, `Dispatched`, `Delivered`, `Cancelled`) so there's no translation layer between code and the business rules doc.
+## 1. Stack-Agnostic Business Rules
 
-## Next.js + TypeScript + Tailwind conventions
+- **Business rules live in one place.** The core business rules in `PRD.md` (payment split, same-day cutoff, capacity, stock, excluded areas, cancellation window, refund-on-failure) must be enforced in shared modules (`config/business.ts` and `lib/delivery/`), not duplicated across UI components.
+- **Money is never a float.** Store and calculate all GH₵ amounts as **integers (pesewas)** — never native floating point (`GH₵ 45.00` = `4500` pesewas).
+- **Every price-affecting selection is explicit data, not a string.** Meal size, included protein choice, and extra proteins are structured selections tied to the relational schema in `ARCHITECTURE.md`, not free-text or descriptions.
+- **Delivery fee and food total are NEVER combined into a single "Total: GH₵X".** Anywhere a price is shown (cart, checkout, payment cards, order confirmation), "Pay Now (Food)" and "Pay Rider (Delivery)" must be visually and textually separated.
+- **No secrets in git.** Hubtel client keys, Supabase service-role keys, and Agoo SMS API tokens live strictly in `.env.local` or Vercel environment variables.
+- **Naming reads like the business.** Order statuses must strictly match: `'awaiting_payment'`, `'confirmed'`, `'preparing'`, `'ready_for_dispatch'`, `'dispatched'`, `'delivered'`, `'cancelled'`.
 
-- **TypeScript strict mode on.** No `any` for order/payment/menu data — these types should mirror the schema in `ARCHITECTURE.md` directly (a `MealSize`, `ProteinOption`, `Order`, etc. type per table).
-- **Server-side enforcement lives in API routes / server actions, not client components.** The business rules in `PRD.md` §10 (capacity, cutoff, excluded areas, stock, payment verification) are checked server-side before any state changes — a client component may reflect these states but never be the source of truth for them (see `SECURITY.md`).
-- **File/folder structure:** customer routes and admin routes are separate route groups in the same Next.js app (e.g. `app/(customer)/...` and `app/(admin)/...`), sharing the same component library from `COMPONENTS.md` rather than duplicating UI.
-- **Components map to `COMPONENTS.md` 1:1 where possible** — `MealCard`, `OptionRow`, `SplitPaymentCard`, `Badge`, `Button` (variant prop: `primary`/`ghost`/`disabled`), etc. A new visual pattern should be added to `COMPONENTS.md` before it's built, not after.
-- **Tailwind tokens mirror `DESIGN_SYSTEM.md`** — define the color tokens (`bg-primary`, `surface`, `accent-gold`, etc.) in `tailwind.config` rather than using raw hex values inline.
-- **Hubtel webhook handling** is a server-only route; verify the client credentials / auth before trusting any payload, and treat `Order.payment_status` as unset until that verification succeeds (see the payment flow in `ARCHITECTURE.md`).
-- **Supabase access:** the admin dashboard uses Supabase Auth for the single chef login; customer-facing writes (placing an order) should go through a server action / API route, not direct client-side Supabase calls, so business-rule checks can't be bypassed.
-- Linting/formatting (ESLint + Prettier), commit message convention, and branching model are not yet fixed — default to conventional commits and a simple trunk-based flow unless the founder has a preference.
+---
+
+## 2. Logistics & Rider Portal Conventions (`/rider`)
+
+- **Mandatory Payment Gate for Unpaid Orders:** If an order has `payment_status !== 'paid'` or `payment_method === 'manual'`, the rider MUST NOT be presented with an un-gated "Delivered" button. They must be presented with a prominent yellow "Collect Payment: GH₵X.XX" button that triggers a confirmation modal.
+- **Atomic Payment Collection:** Submitting payment collection must call `/api/admin/orders/[id]/payment-collected` to set `payment_collected = true` and `payment_status = 'paid'`, immediately followed by marking `order_status = 'delivered'`.
+
+---
+
+## 3. Messaging & Agoo SMS Gateway Conventions
+
+- **Header Authentication:** The Agoo SMS API requires the key to be passed via the `X-API-Key` header (`X-API-Key: process.env.SMS_API_KEY`), not as a `Bearer` token.
+- **CamelCase Payload:** Agoo payload attributes must use camelCase: `{ recipient: formattedPhone, senderId: process.env.SMS_SENDER_ID, message }`.
+- **Recipient Sanitation:** Ghanaian phone numbers must be formatted to international format without the leading zero (e.g., `0241234567` ➔ `233241234567`).
+- **Concurrent Broadcasts:** The `/v1/sms/send` endpoint delivers to a single recipient. Bulk marketing announcements must map over recipients and fire concurrent requests via `Promise.allSettled`.
+
+---
+
+## 4. Next.js + TypeScript + Tailwind Conventions
+
+- **TypeScript strict mode on.** Zero `any` for order, payment, rider, or menu data. All interfaces mirror `types/database.ts` and Supabase schemas.
+- **Server-side validation on API routes:** All critical checks (cutoff time at 10:00 AM GMT, excluded areas, daily order capacity ceiling) must be evaluated server-side before database write operations.
+- **No Slug Conflicts in App Router:** Dynamic routes sharing a parent directory must share the exact same parameter name (e.g., use `[id]` consistently across `/api/admin/orders/[id]/...`).
+- **Tailwind Tokens Mirror Design System:** Use curated design tokens (`brand-yellow`, `brand-red`, `brand-cream`, `#18110E`, `#141414`) rather than arbitrary inline hex codes or pure `#000000`.
+- **Zero Raw Floats in UI:** Format all currency using the centralized `formatGHS(pesewas)` helper from `lib/pricing.ts`.

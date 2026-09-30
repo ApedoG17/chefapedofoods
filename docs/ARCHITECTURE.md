@@ -1,125 +1,236 @@
-# Chef Apedo Foods — Architecture
+# Chef Apedo Foods — System Architecture
 
 ## Status
+Tech stack and architecture are **locked and production-implemented**. This document captures the system shape, data model, payment architecture, messaging pipeline, and logistics workflows.
 
-Tech stack is **locked**. This doc captures the data model, system shape, and the locked infrastructure decisions.
+---
 
-## Stack (locked)
+## 1. Technology Stack
 
-| Layer | Decision |
-|---|---|
-| Frontend framework | Next.js + React + TypeScript |
-| Styling | Tailwind CSS |
-| Backend / database | Supabase (PostgreSQL, Auth, Edge Functions, Storage) |
-| Hosting | Vercel |
-| Payments | Hubtel (MTN MoMo, Telecel Cash, ATMoney, and card) & Manual MoMo/Cash dual-lane |
+| Layer | Technology | Purpose & Implementation Details |
+|:---|:---|:---|
+| **Frontend Framework** | **Next.js 14+ (App Router)** | Full-stack application unifying customer storefront, real-time KDS, and mobile rider portal. |
+| **Language** | **TypeScript 5.0+** | Strict typing across database models, API payloads, and cart calculations. |
+| **Styling** | **Tailwind CSS 3.4+** | Mobile-first, responsive dark/light thematic tokens (`#141414`, `#18110E`, `#FFB800`). |
+| **Database & Auth** | **Supabase (PostgreSQL 15)** | Row Level Security (RLS), Supabase Auth for staff, and Realtime WebSocket subscriptions. |
+| **Hosting & Edge** | **Vercel** | Edge runtime for API routes, automated branch deployments, and asset caching. |
+| **Payments** | **Hubtel API + Manual MoMo** | Dual-lane: Hubtel for online mobile money/cards, with manual merchant MoMo/Cash on Delivery. |
+| **Messaging** | **Agoo SMS Gateway** | High-throughput Ghanaian transactional SMS (`X-API-Key` auth, single & concurrent broadcast). |
+| **Mapping & Location** | **Leaflet / OpenStreetMap** | Dynamic GPS coordinate pin-dropping and campus landmark address resolution. |
 
-Customer site and admin interface live in **one Next.js application**, not separate apps:
+---
 
-```
-Chef Apedo Foods
-├── Customer Website
-│   ├── Home
-│   ├── Menu
-│   ├── Cart
-│   ├── Checkout
-│   └── Order Status
-└── Admin
-    ├── Dashboard
-    ├── Orders
-    ├── Menu
-    └── Kitchen
-```
-
-**Why this stack:** Next.js handles customer UI, admin UI, and server-side logic (API routes / server actions) in one app, so there's no separate frontend/backend to stand up for an MVP. Supabase gives Postgres + Auth + Edge Functions + Storage on one platform, comfortably inside its free tier for MVP scale. Vercel is the natural deploy target for Next.js. Paystack means **one** payment integration covers MTN MoMo, Telecel, and AirtelTigo, rather than building and maintaining two separate direct mobile-money integrations for a solo-run business.
-
-## System Diagram
+## 2. Global System Topology
 
 ```
-                    CUSTOMER (phone / browser)
-                              │
-                              ↓
-                    ┌───────────────────┐
-                    │      VERCEL       │
-                    │    Next.js App    │
-                    │  Customer UI      │
-                    │  Admin UI         │
-                    │  Checkout         │
-                    └─────────┬─────────┘
-              ┌───────────────┼────────────────┐
-              ↓                ↓                ↓
-       ┌────────────┐  ┌─────────────┐  ┌──────────────┐
-       │  Supabase  │  │  Paystack   │  │   WhatsApp   │
-       │ PostgreSQL │  │ MoMo/Card   │  │   Support    │
-       │ Auth       │  │ Webhooks    │  │              │
-       │ Functions  │  │             │  │              │
-       │ Storage    │  │             │  │              │
-       └────────────┘  └─────────────┘  └──────────────┘
+                              STUDENT / CUSTOMER
+                                      │
+                         (Phone / Browser / Leaflet GPS)
+                                      │
+                                      ▼
+                        ┌───────────────────────────┐
+                        │          VERCEL           │
+                        │    Next.js Application    │
+                        │ ───────────────────────── │
+                        │  • Storefront UI          │
+                        │  • Realtime KDS UI        │
+                        │  • Rider Dispatch Portal  │
+                        │  • REST API Route Handlers│
+                        └─────────────┬─────────────┘
+                ┌─────────────────────┼─────────────────────┐
+                ▼                     ▼                     ▼
+      ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+      │     SUPABASE     │  │   HUBTEL / MOMO  │  │     AGOO SMS     │
+      │ • PostgreSQL 15  │  │ • MoMo (MTN/Tel) │  │ • Dispatch Alerts│
+      │ • Row Level Sec  │  │ • Webhook Events │  │ • Tracking Links │
+      │ • Realtime WS    │  │ • Card Gateway   │  │ • Review Links   │
+      │ • Service Role   │  │                  │  │ • Mass Blasts    │
+      └──────────────────┘  └──────────────────┘  └──────────────────┘
 ```
 
-MVP does **not** need a courier/rider-dispatch API — Phase 1 delivery is manual ("API-less"): a rider is requested from a local courier once an order is confirmed. Automated dispatch (Yango/Quik-style) is a Later item.
+---
 
-## Payment Flow (Hubtel & Dual-Lane)
+## 3. Order Lifecycle & State Machine
+
+```mermaid
+stateDiagram-v2
+    [*] --> AwaitingPayment : Customer places order
+    AwaitingPayment --> Confirmed : Hubtel webhook verifies payment OR Manual order recorded
+    Confirmed --> Preparing : Kitchen taps "Start Preparing"
+    Preparing --> ReadyForDispatch : Kitchen marks meal cooked & packed
+    ReadyForDispatch --> Dispatched : Kitchen assigns courier (/api/admin/orders/[id]/assign)
+    Dispatched --> Delivered : Rider confirms delivery via /rider
+    Delivered --> [*] : Delivery SMS triggers customer review loop
+
+    AwaitingPayment --> Cancelled : Customer cancels within 60min window
+    Confirmed --> Cancelled : Customer cancels before "Preparing"
+```
+
+### Automated SMS Notification Triggers:
+1. **On Dispatch (`dispatched`):** System dispatches an instant Agoo SMS to customer's Ghana phone with a direct link to live GPS tracking (`/order/[id]`).
+2. **On Delivery (`delivered`):** System fires a thank-you SMS containing a dedicated review link (`/feedback/[orderId]`).
+
+---
+
+## 4. Payment Architecture (Dual-Lane)
+
+Chef Apedo operates a **dual-lane payment model** where food prepayment is isolated from physical courier fees:
 
 ```
-Option A: Hubtel Online Prepayment (food amount)
-Order placed → Order.status = Awaiting Payment
-      ↓
-Hubtel Checkout URL initialized (/api/payments/hubtel)
-      ↓
-Customer authorizes via MTN MoMo / Telecel Cash / ATMoney / Card
-      ↓
-Hubtel Webhook fires (/api/webhooks/hubtel)
-      ↓
-Server verifies responseCode === '0000' or status === 'Success'
-      ↓
-Order.payment_status = paid, Order.order_status = Confirmed
-      ↓
-Chef dashboard shows the order
+Option A: Hubtel Online Prepayment (Instant MoMo / Card)
+  Order created → Order.order_status = 'awaiting_payment'
+        ↓
+  Redirected to Hubtel Hosted Checkout (/api/payments/hubtel)
+        ↓
+  Student approves MoMo prompt on MTN, Telecel, or ATMoney
+        ↓
+  Hubtel webhook fires to /api/webhooks/hubtel
+        ↓
+  Server verifies responseCode === '0000' or status === 'Success'
+        ↓
+  Order.payment_status = 'paid', Order.order_status = 'confirmed'
+        ↓
+  KDS displays green "PAID" badge
 
 Option B: Manual MoMo / Cash on Delivery
-Order placed → /api/orders/manual
-      ↓
-Order.order_status = awaiting_payment, Order.payment_status = unpaid
-      ↓
-Customer redirected to live order tracking with direct MoMo merchant line instructions & Cash on Delivery breakdown
+  Order created via /api/orders/manual
+        ↓
+  Order.order_status = 'awaiting_payment', Order.payment_status = 'unpaid'
+        ↓
+  Student sees merchant line number instructions and Cash on Delivery breakdown
+        ↓
+  Rider or Admin collects funds
+        ↓
+  Tapping "Mark as Received" or Rider "Collect Payment" sets:
+  Order.payment_collected = TRUE & Order.payment_status = 'paid'
 ```
 
-**Critical rule:** For online payments, the order is marked `Confirmed` only when the server verifies a successful Hubtel webhook (`responseCode: '0000'` / `status: 'Success'`) — never because the customer merely reached or submitted the payment page.
+> [!IMPORTANT]
+> **Hard Product Requirement:** "Food Prepayment" and "Courier Delivery Fee" are never summed into a single charge. Customers pay for meals online/direct to secure kitchen prep, and pay couriers upon doorstep delivery.
 
-## Data Model
+---
 
-| Table | Key fields |
-|---|---|
-| Customer | id, name, phone |
-| Address | id, customer_id, address, area, delivery_zone |
-| Meal | id, name, description, available |
-| MealSize | id, meal_id, size, base_price |
-| ProteinOption | id, name, additional_price, available |
-| ProteinPackage | id, meal_size_id, name |
-| PackageItem | package_id, protein_id, quantity |
-| Order | id, customer_id, address_id, delivery_slot, subtotal, delivery_fee, amount_paid, payment_method, payment_status, order_status, paystack_reference, created_at |
-| OrderItem | id, order_id, meal_id, size_id, quantity, base_price |
-| OrderItemProtein | id, order_item_id, protein_id, quantity, additional_price |
-| DeliveryZone | id, name, areas, fee, active |
-| KitchenSettings | id, open, daily_capacity, orders_today |
+## 5. Logistics & Rider Portal Flow (`/rider`)
 
-Note the `Meal → MealSize → ProteinPackage → PackageItem` chain — this is what lets Base → Protein → Add-ons customization (and future menu changes) happen without redesigning the schema. `DeliveryZone` is deliberately admin-editable (name, areas covered, fee, active flag) rather than hard-coded — see `PRD.md` for why exact per-zone fees are still open.
+```
+                  Rider logs in via authorized phone number
+                                     │
+                                     ▼
+                  Rider Dashboard fetches assigned orders
+                       (status === 'dispatched')
+                                     │
+                                     ▼
+                ┌─────────────────────────────────────────┐
+                │ 1-Tap Google Maps GPS Directions        │
+                │ 1-Tap Direct Customer Phone Call (tel:) │
+                └────────────────────┬────────────────────┘
+                                     │
+                                     ▼
+                       Courier arrives at hostel
+                                     │
+                     ┌───────────────┴───────────────┐
+                     ▼                               ▼
+            Order Paid Online                Order Manual/Unpaid
+                     │                               │
+                     │                               ▼
+                     │                 Prominent "COLLECT" Button
+                     │                               │
+                     │                               ▼
+                     │                Modal displays exact GH₵ fee
+                     │                               │
+                     │                               ▼
+                     │                Rider confirms physical cash/MoMo
+                     │                               │
+                     │                 /payment-collected route sets:
+                     │                 • payment_collected = TRUE
+                     │                 • payment_status = 'paid'
+                     │                               │
+                     └───────────────┬───────────────┘
+                                     │
+                                     ▼
+                       Rider taps "MARK DELIVERED"
+                                     │
+                                     ▼
+                 Order closed & automated Review SMS sent
+```
 
-## Remaining Open Item
+---
 
-- **Exact delivery-zone fee table.** The software model (zone-based, admin-configurable) is locked; the actual numbers per zone are not — they depend on real dispatch economics not yet established. Do not invent placeholder numbers to "complete" this table; the GH₵10 starting fee and the excluded-area list are the only locked figures.
+## 6. Complete Database Schema (PostgreSQL)
 
-Everything else previously open (frontend, payment, hosting, daily capacity) is now decided — see `TASKS.md` §0 for the closed-out blocker list.
+```mermaid
+erDiagram
+    customers ||--o{ orders : places
+    customers ||--o{ addresses : owns
+    addresses ||--o{ orders : ships_to
+    delivery_zones ||--o{ addresses : maps
+    meals ||--o{ meal_sizes : has
+    meals ||--o{ order_items : references
+    meal_sizes ||--o{ order_items : specifies
+    orders ||--o{ order_items : contains
+    order_items ||--o{ order_item_proteins : adds
+    protein_options ||--o{ order_item_proteins : selects
+    riders ||--o{ orders : delivers
+    promo_codes ||--o{ orders : discounts
+    orders ||--o{ reviews : evaluates
+```
 
-## System Flow (order lifecycle, end to end)
+### Table Definitions
 
-Customer completes checkout → Paystack payment verified via webhook (see above) → `Order.payment_status = paid`, `order_status = Confirmed` → chef dashboard shows it immediately → chef Accepts → `Preparing` → `Ready for Dispatch` → rider requested manually → `Dispatched` → `Delivered`. Cancellation, if within the allowed window and before `Preparing`, moves the order to `Cancelled` and triggers the Paystack refund path.
+#### `orders`
+- `id` (UUID, Primary Key)
+- `customer_id` (UUID, FK -> `customers.id`)
+- `address_id` (UUID, FK -> `addresses.id`)
+- `delivery_slot` (TEXT, e.g., "11:30 AM")
+- `subtotal_pesewas` (BIGINT, integer pesewas)
+- `delivery_fee_pesewas` (BIGINT, integer pesewas)
+- `amount_paid_pesewas` (BIGINT, integer pesewas)
+- `payment_method` (`'hubtel'` | `'manual'`)
+- `payment_status` (`'unpaid'` | `'paid'` | `'failed'`)
+- `payment_collected` (BOOLEAN, default `FALSE` — Migration 0005)
+- `order_status` (`'awaiting_payment'` | `'confirmed'` | `'preparing'` | `'ready_for_dispatch'` | `'dispatched'` | `'delivered'` | `'cancelled'`)
+- `rider_id` (UUID, FK -> `riders.id`, nullable)
+- `promo_code_id` (UUID, FK -> `promo_codes.id`, nullable)
+- `paystack_reference` (TEXT, unique transaction ref)
+- `created_at` (TIMESTAMPTZ)
 
-Kitchen capacity and hours are enforced **before** checkout is allowed to proceed (same-day cutoff, kitchen open/closed, daily capacity, delivery-area check) — these are gates on the Cart/Checkout screens, not just admin-side settings, and should be enforced server-side too (see `SECURITY.md`). Note that the **12-order daily capacity applies to successfully paid/confirmed orders**, not merely orders awaiting payment, and is enforced atomically via the database function `increment_kitchen_orders()` upon payment confirmation.
+#### `riders`
+- `id` (UUID, Primary Key)
+- `name` (TEXT)
+- `phone` (TEXT, Unique)
+- `active` (BOOLEAN, default `TRUE`)
+- `created_at` (TIMESTAMPTZ)
 
-## Decided Decisions (Phase F)
+#### `promo_codes`
+- `id` (UUID, Primary Key)
+- `code` (TEXT, Unique, uppercase)
+- `discount_percentage` (INT, e.g. 20 for 20% off food)
+- `max_uses` (INT)
+- `current_uses` (INT, default 0)
+- `active` (BOOLEAN, default `TRUE`)
 
-- **Admin auth:** Single-user login via Supabase Auth using **Email + Password**. Public admin registration/signup is prohibited; access to `/admin/*` and administrative data operations is restricted to allowlisted admin accounts verified via the `admin_users` table and `is_admin()` RLS security-definer function.
-- **Notifications:** Realtime subscription in the dashboard (`supabase.channel`) is the MVP implementation for notifying the chef on new confirmed orders.
+#### `reviews`
+- `id` (UUID, Primary Key)
+- `order_id` (UUID, FK -> `orders.id`, Unique)
+- `customer_name` (TEXT)
+- `rating` (INT, 1 to 5)
+- `comment` (TEXT, nullable)
+- `created_at` (TIMESTAMPTZ)
 
+#### `delivery_zones`
+- `id` (UUID, Primary Key)
+- `name` (TEXT, e.g. "Evandy Hostel", "Pentagon", "Main Campus")
+- `areas` (TEXT[], array of matching string keywords)
+- `fee_pesewas` (BIGINT, integer pesewas)
+- `active` (BOOLEAN, default `TRUE`)
+
+#### `meals`, `meal_sizes`, `protein_options`, `protein_packages`, `package_items`
+Relational catalog architecture ensuring that food bases (Small GH₵45 / Medium GH₵70 / Large GH₵90) are strictly coupled with allowable protein combinations and extra additions without unstructured strings.
+
+---
+
+## 7. Operational & Security Policies
+
+1. **Server-Side Enforcement:** Validation rules (cutoff time at 10:00 AM GMT, excluded delivery zones, max order capacity) are strictly executed on API route handlers before committing writes to PostgreSQL.
+2. **Row Level Security:** Public clients cannot arbitrarily query or alter orders belonging to other phone numbers; the admin service-role key is isolated strictly to authenticated API endpoints.
+3. **Database Indexing:** Indexed on `orders(payment_collected)` where `payment_collected = FALSE` for instantaneous ledger loading in the finance dashboard.
