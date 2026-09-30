@@ -152,6 +152,33 @@ export default function ContactPage() {
                   {EXCLUDED_DELIVERY_AREAS.join(" · ")}
                 </div>
               </div>
+
+              {/* Kitchen Operational Base & Support Details */}
+              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-brand-cream-dark shadow-xs space-y-3">
+                <div className="flex items-center gap-2 text-brand-red">
+                  <MapPin className="w-4 h-4 stroke-[2.5]" />
+                  <h4 className="font-display font-extrabold text-sm uppercase tracking-tight text-brand-dark">
+                    Kitchen Base &amp; Direct Support
+                  </h4>
+                </div>
+                <div className="space-y-2 text-xs text-brand-muted leading-relaxed">
+                  <p>
+                    <strong className="text-brand-dark">Operational Base:</strong> East Legon, Accra, Ghana (fulfilling deliveries to University of Ghana campus &amp; East Legon).
+                  </p>
+                  <p>
+                    <strong className="text-brand-dark">General Enquiries:</strong>{" "}
+                    <a href="mailto:hello@chefapedofoods.com" className="text-brand-red font-bold hover:underline">
+                      hello@chefapedofoods.com
+                    </a>
+                  </p>
+                  <p>
+                    <strong className="text-brand-dark">Order &amp; Refund Support:</strong>{" "}
+                    <a href="mailto:support@chefapedofoods.com" className="text-brand-red font-bold hover:underline">
+                      support@chefapedofoods.com
+                    </a>
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Right Column: Clean Single-Column Contact Form (7 Cols) */}

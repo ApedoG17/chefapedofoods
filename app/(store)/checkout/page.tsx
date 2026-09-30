@@ -305,7 +305,7 @@ export default function CheckoutPage() {
           {/* Full Name */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
+              <label htmlFor="checkout-fullname" className="block text-xs font-black uppercase tracking-wider text-brand-dark">
                 Full Name <span className="text-brand-red">*</span>
               </label>
               {(fullNameTouched || hasAttemptedStep1) && !isNameValid && (
@@ -315,6 +315,7 @@ export default function CheckoutPage() {
               )}
             </div>
             <input
+              id="checkout-fullname"
               type="text"
               placeholder="e.g. Kwame Mensah"
               value={fullName}
@@ -344,7 +345,7 @@ export default function CheckoutPage() {
           {/* Phone Number */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
+              <label htmlFor="checkout-phone" className="block text-xs font-black uppercase tracking-wider text-brand-dark">
                 Ghana Phone Number <span className="text-brand-red">*</span>
               </label>
               {(phoneTouched || hasAttemptedStep1) && !isPhoneValid && (
@@ -354,6 +355,7 @@ export default function CheckoutPage() {
               )}
             </div>
             <input
+              id="checkout-phone"
               type="tel"
               placeholder="e.g. 024 123 4567 or 050 123 4567"
               value={phone}
@@ -772,7 +774,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Main Action CTA */}
-            <div className="pt-2">
+            <div className="pt-2 space-y-3">
               <button
                 type="button"
                 disabled={isSubmitting || !isServiceable}
@@ -787,6 +789,17 @@ export default function CheckoutPage() {
                   </>
                 )}
               </button>
+              <p className="text-center text-xs text-white/60 leading-relaxed px-2">
+                By placing this order, you agree to our{" "}
+                <Link href="/legal/terms" className="underline hover:text-brand-yellow transition-colors font-medium">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link href="/legal/privacy" className="underline hover:text-brand-yellow transition-colors font-medium">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
             </div>
           </div>
 
