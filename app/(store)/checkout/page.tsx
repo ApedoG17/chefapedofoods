@@ -14,6 +14,9 @@ import dynamic from "next/dynamic";
 import { isValidGhanaPhone, isValidPhoneNumber, isValidFullName } from "@/lib/validation/orders";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 import { COUNTRY_CATEGORIES } from "@/lib/validation/countries";
+import { calculateDistanceETA, getAvailableDeliverySlots } from "@/lib/delivery/eta";
+import { calculateDistanceDeliveryFee, CHEF_APEDO_KITCHEN } from "@/lib/delivery/distance";
+import type { OperatingHoursStatus } from "@/lib/operating-hours";
 
 // Dynamically import the Leaflet OpenStreetMap picker to avoid SSR "window is not defined" errors
 const MapPicker = dynamic(() => import("@/components/MapPicker"), {
@@ -41,12 +44,7 @@ const DEFAULT_ZONES: ZoneOption[] = [
   { name: "Spintex", areas: ["Spintex", "Batsonaa"], feePesewas: 2000 },
 ];
 
-const DELIVERY_SLOTS = [
-  { id: "11:30", label: "11:30 AM", available: true },
-  { id: "12:30", label: "12:30 PM", available: true },
-  { id: "13:30", label: "1:30 PM", available: true },
-  { id: "14:30", label: "2:30 PM", available: true },
-];
+
 
 // ---------------------------------------------------------------------------
 // Empty-cart/checkout state with localStorage order recovery
@@ -100,10 +98,10 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotalPesewas, clearCart, isLoaded: isCartLoaded } = useCart();
 
-  // Pinpoint delivery location on OpenStreetMap (Accra default: East Legon / Legon campus vicinity)
+  // Pinpoint delivery location on OpenStreetMap (Accra default: South Legon / Campus vicinity)
   const [deliveryLocation, setDeliveryLocation] = useState<{ lat: number; lng: number } | null>({
-    lat: 5.6505,
-    lng: -0.1870,
+    lat: CHEF_APEDO_KITCHEN.lat,
+    lng: CHEF_APEDO_KITCHEN.lng,
   });
 
   // Step tracking ("cart", "details", "delivery", "payment")
@@ -116,10 +114,64 @@ export default function CheckoutPage() {
   const [fullName, setFullName] = useState("");
   const [selectedCountry, setSelectedCountry] = useState<string>("GH");
   const [phone, setPhone] = useState("");
-  const [selectedArea, setSelectedArea] = useState("East Legon");
-  const [customArea, setCustomArea] = useState("");
   const [landmark, setLandmark] = useState("");
-  const [deliverySlot, setDeliverySlot] = useState("11:30 AM");
+  const [locationName, setLocationName] = useState<string>("East Legon / UG Campus");
+
+  // Geospatial Distance & Dynamic Pricing Engine
+  const distancePricing = React.useMemo(() => {
+    if (!deliveryLocation) {
+      return calculateDistanceDeliveryFee(CHEF_APEDO_KITCHEN.lat, CHEF_APEDO_KITCHEN.lng);
+    }
+    return calculateDistanceDeliveryFee(deliveryLocation.lat, deliveryLocation.lng);
+  }, [deliveryLocation]);
+
+  const deliveryFeePesewas = distancePricing.feePesewas;
+  const isServiceable = distancePricing.isServiceable;
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Logistics & Delivery Timing State (Mode 1: ASAP dynamic arrival window, Mode 2: Scheduled 30-min window)
+  const [deliveryTimingMode, setDeliveryTimingMode] = useState<"asap" | "scheduled">("asap");
+  const [scheduledSlot, setScheduledSlot] = useState<string>("12:30 PM");
+
+  // Server-time Operating Hours Guard (08:00 - 15:00 GMT for ASAP)
+  const [asapOperatingStatus, setAsapOperatingStatus] = useState<OperatingHoursStatus | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch("/api/operating-hours")
+      .then((res) => res.json())
+      .then((data: OperatingHoursStatus) => {
+        if (isMounted) {
+          setAsapOperatingStatus(data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not fetch server operating hours:", err);
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const isAsapClosed = deliveryTimingMode === "asap" && asapOperatingStatus !== null && !asapOperatingStatus.isOpen;
+
+  const currentEta = React.useMemo(
+    () => calculateDistanceETA(distancePricing.distanceKm),
+    [distancePricing.distanceKm]
+  );
+  const availableSlots = React.useMemo(() => getAvailableDeliverySlots(), []);
+
+  // Default scheduled slot to first available slot
+  useEffect(() => {
+    const firstAvailable = availableSlots.find((s) => s.available);
+    if (firstAvailable) {
+      setScheduledSlot(firstAvailable.label);
+    }
+  }, [availableSlots]);
+
+  const effectiveDeliverySlot =
+    deliveryTimingMode === "asap" ? `ASAP (${currentEta.etaWindow})` : scheduledSlot;
 
   // Step 1 Validation & Touched States
   const [hasAttemptedStep1, setHasAttemptedStep1] = useState(false);
@@ -135,13 +187,6 @@ export default function CheckoutPage() {
   const isPhoneValid = isValidPhoneNumber(fullPhoneForValidation);
   const isStep1Valid = isNameValid && isPhoneValid;
 
-  // Operational / Zone State
-  const [zones, setZones] = useState<ZoneOption[]>(DEFAULT_ZONES);
-  const [deliveryFeePesewas, setDeliveryFeePesewas] = useState(1000);
-  const [isServiceable, setIsServiceable] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
   // Promo Code Engine State
   const [promoInput, setPromoInput] = useState("");
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
@@ -154,54 +199,6 @@ export default function CheckoutPage() {
   const finalFoodTotal = baseFoodTotal - discountAmount;
 
   const formattedTotal = formatGHS(finalFoodTotal);
-
-  // Fetch active delivery zones from Supabase
-  useEffect(() => {
-    async function loadZones() {
-      try {
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from("delivery_zones")
-          .select("name, areas, fee_pesewas, active")
-          .eq("active", true);
-
-        if (data && !error && data.length > 0) {
-          const mapped: ZoneOption[] = data.map((z) => ({
-            name: z.name,
-            areas: z.areas,
-            feePesewas: z.fee_pesewas,
-          }));
-          setZones(mapped);
-        }
-      } catch (err) {
-        console.warn("Could not load zones:", err);
-      }
-    }
-    loadZones();
-  }, []);
-
-  // Update serviceability and fee whenever selectedArea or customArea changes
-  useEffect(() => {
-    const areaToCheck = selectedArea === "Other" ? customArea : selectedArea;
-    const serviceable = isAreaServiceable(areaToCheck);
-    setIsServiceable(serviceable);
-
-    if (!serviceable) {
-      setDeliveryFeePesewas(0);
-      return;
-    }
-
-    // Match zone
-    const norm = areaToCheck.trim().toLowerCase();
-    let fee = 1000;
-    for (const z of zones) {
-      if (z.areas.some((a) => a.toLowerCase() === norm)) {
-        fee = z.feePesewas;
-        break;
-      }
-    }
-    setDeliveryFeePesewas(fee);
-  }, [selectedArea, customArea, zones]);
 
   if (!isCartLoaded) {
     return <main className="py-20 text-center text-brand-muted text-sm font-medium">Loading checkout…</main>;
@@ -245,22 +242,32 @@ export default function CheckoutPage() {
 
   // Submission handler
   const handleProceedToPayment = async () => {
+    if (isSubmitting) return;
     setErrorMessage(null);
-    const activeArea = selectedArea === "Other" ? customArea : selectedArea;
     const gpsCoords = deliveryLocation
-      ? `GPS: ${deliveryLocation.lat.toFixed(5)}, ${deliveryLocation.lng.toFixed(5)}`
+      ? `GPS: ${deliveryLocation.lat.toFixed(5)}, ${deliveryLocation.lng.toFixed(5)} · ${distancePricing.distanceKm.toFixed(1)}km`
       : "";
     const resolvedAddress = landmark.trim()
       ? (gpsCoords ? `${landmark.trim()} (${gpsCoords})` : landmark.trim())
       : gpsCoords;
 
-    if (!fullName.trim() || !phone.trim() || !landmark.trim() || !activeArea.trim()) {
-      setErrorMessage("Please fill in all required fields (Name, Phone, Area, and Hostel/House Name).");
+    if (!fullName.trim() || !phone.trim() || !landmark.trim() || !deliveryLocation) {
+      setErrorMessage("Please fill in all required fields (Name, Phone, Hostel/House Landmark, and Map Location).");
       return;
     }
 
     if (!isServiceable) {
-      setErrorMessage("The selected delivery area is outside our service coverage.");
+      setErrorMessage(
+        `Selected location is ${distancePricing.distanceKm.toFixed(1)} km away, exceeding our 15 km fresh delivery radius. Please choose a closer location.`
+      );
+      return;
+    }
+
+    if (isAsapClosed) {
+      setErrorMessage(
+        asapOperatingStatus?.reason ||
+          "ASAP orders are open 8:00 AM to 3:00 PM GMT. Please check back during operating hours or schedule for later."
+      );
       return;
     }
 
@@ -292,9 +299,9 @@ export default function CheckoutPage() {
                 ? phone.trim()
                 : `${dialCode} ${phone.replace(/^0+/, "").trim()}`,
             address: resolvedAddress,
-            area: activeArea.trim(),
+            area: locationName || landmark.trim() || "East Legon / UG Campus",
             notes: landmark.trim() || "",
-            deliverySlot,
+            deliverySlot: effectiveDeliverySlot,
           },
           subtotal: finalFoodTotal,
           deliveryFee: deliveryFeePesewas,
@@ -486,57 +493,14 @@ export default function CheckoutPage() {
       {currentStep === "delivery" && (
         <div className="space-y-6">
           <div className="bg-white rounded-2xl p-6 sm:p-8 border border-brand-cream-dark shadow-sm space-y-5">
-            {/* Delivery Area Dropdown */}
-            <div className="space-y-1.5">
-              <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
-                Delivery Area <span className="text-brand-red">*</span>
-              </label>
-              <select
-                value={selectedArea}
-                onChange={(e) => setSelectedArea(e.target.value)}
-                className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all"
-              >
-                <optgroup label="Serviceable Delivery Zones (Accra)">
-                  {zones.flatMap((z) =>
-                    z.areas.map((area) => (
-                      <option key={area} value={area}>
-                        {area} — Rider Fee: {formatGHS(z.feePesewas)}
-                      </option>
-                    ))
-                  )}
-                </optgroup>
-                <optgroup label="Excluded Areas (Unserviceable)">
-                  {EXCLUDED_DELIVERY_AREAS.map((ex) => (
-                    <option key={ex} value={ex}>
-                      {ex} (Outside coverage)
-                    </option>
-                  ))}
-                </optgroup>
-                <option value="Other">Other / Type manually</option>
-              </select>
-
-              {selectedArea === "Other" && (
-                <div className="pt-2">
-                  <input
-                    type="text"
-                    placeholder="Type your area in Accra (e.g. Airport Residential)"
-                    value={customArea}
-                    onChange={(e) => setCustomArea(e.target.value)}
-                    className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all"
-                  />
-                </div>
-              )}
-
-              {!isServiceable ? (
-                <p className="text-xs text-brand-red font-bold pt-1">
-                  We cannot serve this location to guarantee food arrives hot. Please choose an address in central Accra.
-                </p>
-              ) : (
-                <p className="text-xs text-brand-muted pt-1 flex items-center gap-1.5">
-                  <Bike className="w-3.5 h-3.5 text-brand-yellow-dark" />
-                  <span>Delivery fee: <strong className="text-brand-dark font-bold">{formatGHS(deliveryFeePesewas)}</strong> — paid directly to rider on arrival.</span>
-                </p>
-              )}
+            {/* Header */}
+            <div className="border-b border-brand-cream-dark pb-3">
+              <h2 className="text-xs font-black uppercase tracking-wider text-brand-dark">
+                Pinpoint Delivery Destination
+              </h2>
+              <p className="text-[11px] text-brand-muted mt-0.5">
+                Drop a pin or search your campus hall, hostel, or residence in Accra. Pricing updates dynamically.
+              </p>
             </div>
 
             {/* The Interactive OpenStreetMap */}
@@ -544,7 +508,7 @@ export default function CheckoutPage() {
               <div className="flex items-center justify-between">
                 <label className="block text-xs font-black uppercase tracking-wider text-brand-dark flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-brand-red" />
-                  <span>Pinpoint Your Location <span className="text-brand-red">*</span></span>
+                  <span>Map Pin &amp; Destination <span className="text-brand-red">*</span></span>
                 </label>
                 {deliveryLocation && (
                   <span className="text-[10px] font-mono text-brand-muted bg-brand-cream-dark/40 px-2 py-0.5 rounded">
@@ -552,36 +516,95 @@ export default function CheckoutPage() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-brand-muted">
-                Tap on the map to drop a pin exactly where you want your food delivered in Accra.
-              </p>
-              
+
               <MapPicker
                 initialLocation={deliveryLocation}
                 onLocationSelect={(loc, placeName) => {
                   setDeliveryLocation(loc);
                   if (placeName) {
-                    setLandmark(placeName);
+                    setLocationName(placeName);
+                    if (!landmark) {
+                      setLandmark(placeName);
+                    }
                   }
                 }}
               />
-              
+
               {/* Hidden input to ensure form validation catches missing location */}
-              <input 
-                type="hidden" 
-                required 
-                value={deliveryLocation ? `${deliveryLocation.lat},${deliveryLocation.lng}` : ""} 
+              <input
+                type="hidden"
+                required
+                value={deliveryLocation ? `${deliveryLocation.lat},${deliveryLocation.lng}` : ""}
               />
+            </div>
+
+            {/* Live Geospatial Distance & Pricing Strip */}
+            <div
+              className={`p-4 rounded-xl border transition-all ${
+                isServiceable
+                  ? "bg-amber-50/70 border-brand-yellow/50 text-brand-dark"
+                  : "bg-red-50 border-red-200 text-brand-red"
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center flex-none ${
+                      isServiceable ? "bg-brand-yellow text-brand-dark" : "bg-brand-red text-white"
+                    }`}
+                  >
+                    <Bike className="w-4 h-4 stroke-[2.5]" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-black uppercase tracking-wider flex items-center gap-2">
+                      <span>{distancePricing.distanceKm.toFixed(1)} km from East Legon Kitchen</span>
+                      {isServiceable ? (
+                        <span className="text-[10px] font-extrabold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          In Delivery Range
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-extrabold text-brand-red bg-red-100 px-2 py-0.5 rounded-full">
+                          Out of Range
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-brand-muted">
+                      {isServiceable
+                        ? `GH₵ 7.00 base (first 3.0 km) + GH₵ 2.00 per additional km`
+                        : `Maximum fresh delivery perimeter is 15.0 km`}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-left sm:text-right flex-none border-t sm:border-t-0 pt-2 sm:pt-0 border-black/5">
+                  <div className="text-[10px] uppercase font-bold text-brand-muted">
+                    Courier Fee (Pay on Delivery)
+                  </div>
+                  <div
+                    className={`text-xl font-display font-black ${
+                      isServiceable ? "text-brand-dark" : "text-brand-red"
+                    }`}
+                  >
+                    {isServiceable ? `GH₵ ${distancePricing.feeGHS}` : "Exceeds Range"}
+                  </div>
+                </div>
+              </div>
+
+              {!isServiceable && (
+                <p className="text-xs text-brand-red font-bold pt-2 border-t border-red-200 mt-2">
+                  Your selected location is {distancePricing.distanceKm.toFixed(1)} km away. To guarantee food arrives hot and fresh, we deliver within 15 km of our central kitchen. Please choose a location within Greater Accra / campus.
+                </p>
+              )}
             </div>
 
             {/* Hostel / House Name & Landmark */}
             <div className="space-y-1.5">
               <label className="block text-xs font-black uppercase tracking-wider text-brand-dark">
-                Hostel / House Name &amp; Landmark <span className="text-brand-red">*</span>
+                Hostel / Room / House Name &amp; Landmark <span className="text-brand-red">*</span>
               </label>
               <input
                 type="text"
-                placeholder="e.g. Evandy Hostel, Room 402 (Near the main gate)"
+                placeholder="e.g. Evandy Hostel, Block B, Room 402 (Near main gate)"
                 value={landmark}
                 onChange={(e) => setLandmark(e.target.value)}
                 className="w-full bg-brand-cream/50 border border-brand-cream-dark focus:border-brand-yellow focus:bg-white rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50"
@@ -593,37 +616,180 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Delivery Slot Card */}
+          {/* Delivery Slot Card — Dual-Mode Logistics Engine */}
           <div className="bg-white rounded-2xl p-6 sm:p-8 border border-brand-cream-dark shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-brand-cream-dark pb-2">
-              <span className="text-xs font-black uppercase tracking-wider text-brand-dark">
-                Select Lunch Delivery Slot
-              </span>
-              <span className="text-xs text-brand-muted">First slot: {ORDERING_HOURS.firstDeliverySlot} GMT</span>
+            <div className="flex items-center justify-between border-b border-brand-cream-dark pb-3">
+              <div>
+                <span className="text-xs font-black uppercase tracking-wider text-brand-dark block">
+                  Delivery Timing &amp; ETA
+                </span>
+                <span className="text-[11px] text-brand-muted">
+                  Choose fast ASAP preparation or reserve a 30-minute campus delivery window.
+                </span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Live Kitchen Queue</span>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {DELIVERY_SLOTS.map((slot) => {
-                const isSelected = deliverySlot === slot.label;
-                return (
-                  <button
-                    key={slot.id}
-                    type="button"
-                    onClick={() => setDeliverySlot(slot.label)}
-                    className={`p-3.5 rounded-xl border text-center transition-all ${
-                      isSelected
-                        ? "bg-brand-yellow border-brand-yellow-dark text-brand-dark font-black shadow-sm"
-                        : "bg-brand-cream/50 border-brand-cream-dark text-brand-dark hover:bg-brand-cream font-bold"
-                    }`}
-                  >
-                    <div className="text-sm font-display">{slot.label}</div>
-                    <div className="text-[10px] text-brand-dark/70 uppercase tracking-wider mt-0.5">
-                      Available
-                    </div>
-                  </button>
-                );
-              })}
+            {/* Mode Switcher Tabs */}
+            <div className="grid grid-cols-2 gap-2 bg-brand-cream/60 p-1.5 rounded-xl border border-brand-cream-dark">
+              <button
+                type="button"
+                onClick={() => setDeliveryTimingMode("asap")}
+                className={`py-3 px-3 rounded-lg text-xs font-extrabold transition-all flex flex-col items-center justify-center gap-0.5 ${
+                  deliveryTimingMode === "asap"
+                    ? "bg-brand-yellow text-brand-dark shadow-sm border border-brand-yellow-dark"
+                    : "text-brand-dark/70 hover:text-brand-dark hover:bg-white/50"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm">⚡</span>
+                  <span className="uppercase tracking-wider">ASAP Delivery</span>
+                </div>
+                <span className="text-[10px] font-semibold opacity-80">
+                  {asapOperatingStatus && !asapOperatingStatus.isOpen
+                    ? "Closed (8am – 3pm)"
+                    : `Estimated: ${currentEta.etaRange}`}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setDeliveryTimingMode("scheduled")}
+                className={`py-3 px-3 rounded-lg text-xs font-extrabold transition-all flex flex-col items-center justify-center gap-0.5 ${
+                  deliveryTimingMode === "scheduled"
+                    ? "bg-brand-yellow text-brand-dark shadow-sm border border-brand-yellow-dark"
+                    : "text-brand-dark/70 hover:text-brand-dark hover:bg-white/50"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="uppercase tracking-wider">Schedule Today</span>
+                </div>
+                <span className="text-[10px] font-semibold opacity-80">
+                  Specific 30-min window
+                </span>
+              </button>
             </div>
+
+            {/* Mode 1: ASAP Live Dynamic Arrival Window or Closed State Notice */}
+            {deliveryTimingMode === "asap" && (
+              asapOperatingStatus && !asapOperatingStatus.isOpen ? (
+                <div className="p-4 sm:p-5 rounded-xl bg-amber-50 border-2 border-brand-yellow/60 text-brand-dark space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-full bg-brand-yellow/20 flex items-center justify-center flex-none mt-0.5">
+                      <Clock className="w-5 h-5 text-brand-dark" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs font-black uppercase tracking-wider text-brand-red">
+                        ASAP Kitchen Currently Closed
+                      </div>
+                      <p className="text-xs font-semibold text-brand-dark/90 leading-relaxed">
+                        {asapOperatingStatus.reason || "ASAP orders are open 8:00 AM to 3:00 PM GMT. Please check back during operating hours or schedule for later."}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="pt-2 border-t border-brand-cream-dark flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="text-[11px] text-brand-muted">Want to reserve a lunch slot in advance?</span>
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryTimingMode("scheduled")}
+                      className="px-4 py-2 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs uppercase tracking-wider transition-all self-start sm:self-auto cursor-pointer"
+                    >
+                      Schedule Today&apos;s Slot →
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 sm:p-5 rounded-xl bg-gradient-to-br from-amber-50/70 to-yellow-50/40 border border-brand-yellow/40 space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-brand-dark/70 bg-white/80 px-2.5 py-1 rounded-md border border-brand-yellow/30">
+                      Estimated Arrival Window
+                    </span>
+                    <span className="text-xs font-bold text-brand-red flex items-center gap-1">
+                      <Bike className="w-3.5 h-3.5" />
+                      <span>{currentEta.etaRange} total</span>
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                    <div className="text-2xl sm:text-3xl font-display font-black text-brand-dark tracking-tight">
+                      {currentEta.etaWindow}
+                    </div>
+                    <div className="text-xs font-semibold text-brand-muted">
+                      Delivering to <span className="font-bold text-brand-dark">{locationName || "Accra"}</span> ({distancePricing.distanceKm.toFixed(1)} km)
+                    </div>
+                  </div>
+
+                  {/* Transit Breakdown Pills */}
+                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-brand-yellow/20 text-center">
+                    <div className="bg-white/90 p-2 rounded-lg border border-brand-yellow/20">
+                      <div className="text-[10px] uppercase text-brand-muted font-bold">Kitchen Prep</div>
+                      <div className="text-xs font-black text-brand-dark">~{currentEta.prepMinutes} mins</div>
+                    </div>
+                    <div className="bg-white/90 p-2 rounded-lg border border-brand-yellow/20">
+                      <div className="text-[10px] uppercase text-brand-muted font-bold">Zone Transit</div>
+                      <div className="text-xs font-black text-brand-dark">~{currentEta.transitMinutes} mins</div>
+                    </div>
+                    <div className="bg-white/90 p-2 rounded-lg border border-brand-yellow/20">
+                      <div className="text-[10px] uppercase text-brand-muted font-bold">Handover Buffer</div>
+                      <div className="text-xs font-black text-brand-dark">~5-10 mins</div>
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-brand-muted leading-relaxed">
+                    Cooked to order upon payment confirmation and immediately dispatched with your assigned campus rider.
+                  </p>
+                </div>
+              )
+            )}
+
+            {/* Mode 2: Scheduled 30-min Windows with Time Guard */}
+            {deliveryTimingMode === "scheduled" && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {availableSlots.map((slot) => {
+                    const isSelected = scheduledSlot === slot.label;
+                    const isAvailable = slot.available;
+
+                    return (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        disabled={!isAvailable}
+                        onClick={() => {
+                          if (isAvailable) setScheduledSlot(slot.label);
+                        }}
+                        className={`p-3 rounded-xl border text-center transition-all ${
+                          !isAvailable
+                            ? "bg-brand-cream/30 border-brand-cream-dark/60 text-brand-muted/40 cursor-not-allowed opacity-60"
+                            : isSelected
+                            ? "bg-brand-yellow border-brand-yellow-dark text-brand-dark font-black shadow-sm"
+                            : "bg-brand-cream/50 border-brand-cream-dark text-brand-dark hover:bg-brand-cream font-bold cursor-pointer"
+                        }`}
+                      >
+                        <div className="text-xs sm:text-sm font-display">{slot.label}</div>
+                        <div className="text-[9px] uppercase tracking-wider mt-0.5 font-bold">
+                          {isAvailable ? (
+                            <span className={isSelected ? "text-brand-dark font-extrabold" : "text-emerald-600"}>
+                              {isSelected ? "Selected" : "Available"}
+                            </span>
+                          ) : (
+                            <span className="text-brand-muted/60">Passed</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <p className="text-[11px] text-brand-muted">
+                  Time Guard locks past slots to guarantee food arrives hot and freshly cooked.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Action CTAs */}
@@ -657,10 +823,10 @@ export default function CheckoutPage() {
           <div className="bg-white rounded-2xl p-5 border border-brand-cream-dark shadow-sm flex items-center justify-between text-xs">
             <div>
               <span className="font-bold text-brand-dark">Delivering to:</span>{" "}
-              <span className="text-brand-muted">{fullName} ({phone}) · {landmark}, {selectedArea === "Other" ? customArea : selectedArea}</span>
+              <span className="text-brand-muted">{fullName} ({phone}) · {landmark}{locationName ? `, ${locationName}` : ""} ({distancePricing.distanceKm.toFixed(1)} km)</span>
             </div>
             <div className="font-bold text-brand-red flex-none pl-2">
-              Slot: {deliverySlot}
+              Slot: {effectiveDeliverySlot}
             </div>
           </div>
 
@@ -836,14 +1002,31 @@ export default function CheckoutPage() {
 
             {/* Main Action CTA */}
             <div className="pt-2 space-y-3">
+              {isAsapClosed && (
+                <div className="p-4 rounded-xl bg-amber-500/20 border border-brand-yellow/40 text-brand-yellow text-xs font-semibold flex items-start gap-2.5">
+                  <Clock className="w-4 h-4 shrink-0 text-brand-yellow mt-0.5" />
+                  <div className="space-y-1">
+                    <span className="font-extrabold text-white block uppercase tracking-wider">
+                      ASAP Orders Currently Closed
+                    </span>
+                    <span className="text-white/80 leading-relaxed block">
+                      {asapOperatingStatus?.reason ||
+                        "ASAP orders are open 8:00 AM to 3:00 PM GMT. Please check back during operating hours or schedule for later."}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <button
                 type="button"
-                disabled={isSubmitting || !isServiceable}
+                disabled={isSubmitting || !isServiceable || isAsapClosed}
                 onClick={handleProceedToPayment}
-                className="w-full inline-flex items-center justify-center gap-3 py-4 sm:py-5 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-50 text-brand-dark font-extrabold text-sm sm:text-base uppercase tracking-wider transition-all duration-200 transform hover:-translate-y-0.5 shadow-button-yellow cursor-pointer"
+                className="w-full inline-flex items-center justify-center gap-3 py-4 sm:py-5 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark disabled:opacity-50 text-brand-dark font-extrabold text-sm sm:text-base uppercase tracking-wider transition-all duration-200 transform hover:-translate-y-0.5 shadow-button-yellow cursor-pointer disabled:cursor-not-allowed disabled:transform-none"
               >
                 {isSubmitting ? (
                   <span>Processing...</span>
+                ) : isAsapClosed ? (
+                  <span>ASAP Closed (Open 8:00 AM – 3:00 PM GMT)</span>
                 ) : (
                   <>
                     <span>Confirm Order &amp; View Instructions ➔</span>
@@ -887,7 +1070,7 @@ export default function CheckoutPage() {
 
             <div className="space-y-1.5 text-xs text-white/70 leading-relaxed">
               <p>
-                <strong className="text-white">Protocol:</strong> Hand this exact amount directly to your dispatch courier when your hot lunch arrives at your doorstep in {selectedArea === "Other" ? customArea : selectedArea}.
+                <strong className="text-white">Protocol:</strong> Hand this exact amount directly to your dispatch courier when your hot lunch arrives at your doorstep ({distancePricing.distanceKm.toFixed(1)} km from central kitchen).
               </p>
               <p>
                 Riders accept <strong className="text-white">Cash</strong> or direct <strong className="text-white">Mobile Money</strong> on arrival.

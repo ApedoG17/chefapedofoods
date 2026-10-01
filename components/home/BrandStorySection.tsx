@@ -80,6 +80,7 @@ export function BrandStorySection() {
             loop
             muted
             playsInline
+            preload="metadata"
             className="w-full h-full object-cover"
           >
             <source src="/videos/about-prep.mp4" type="video/mp4" />
@@ -91,7 +92,7 @@ export function BrandStorySection() {
               Behind the Batch
             </p>
             <p className="text-white font-display font-black text-lg sm:text-xl uppercase tracking-wide leading-tight mt-0.5">
-              Chef Apedo &mdash; East Legon Kitchen, Accra
+              Chef Apedo &mdash; South Legon Kitchen, Accra
             </p>
           </div>
         </div>

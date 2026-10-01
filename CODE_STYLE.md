@@ -15,7 +15,7 @@ Standards and conventions for writing clean, consistent and maintainable code in
 
 | 07 Components 🧩 | 08 Comments & Documentation 📝 |
 | :--- | :--- |
-| • Use functional components with TypeScript<br>• Keep components small and reusable<br>• Use descriptive props and types<br>• Prefer composition over prop drilling<br>• Move complex logic to custom hooks<br>• Keep UI, logic and data fetching separated. | • Write meaningful comments (tell *why*, not *what*)<br>• Use JSDoc for complex functions and types<br>• Document non-obvious logic and decisions<br>• Keep README and docs up to date<br>• Remove outdated or unnecessary comments. |
+| • Use functional components with TypeScript<br>• Keep components small and reusable<br>• Use descriptive props and types<br>• **Use React Portals or native `<dialog>` elements for modals, dropdowns, and slide-out carts to avoid nested DOM z-index conflicts.**<br>• Move complex logic to custom hooks<br>• Keep UI, logic and data fetching separated. | • Write meaningful comments (tell *why*, not *what*)<br>• Use JSDoc for complex functions and types<br>• Document non-obvious logic and decisions<br>• Keep README and docs up to date<br>• Remove outdated or unnecessary comments. |
 
 ---
 
@@ -29,7 +29,7 @@ Standards and conventions for writing clean, consistent and maintainable code in
 - **Never merge food and delivery fees into a single total:** "Pay Now (Food)" and "Pay Rider on Delivery" must remain distinctly separated in all UI states (Cart, Checkout, Confirmation, and SMS receipts).
 
 ### 3. Order Lifecycle Status Identifiers
-- Status strings are strictly typed enums: `'awaiting_payment'`, `'confirmed'`, `'preparing'`, `'ready_for_dispatch'`, `'dispatched'`, `'delivered'`, `'cancelled'`.
+- Status strings are strictly typed enums: `'awaiting_payment'`, `'confirmed'`, `'preparing'`, `'ready_for_dispatch'`, `'dispatched'`, `'rider_arriving'`, `'delivered'`, `'cancelled'`.
 
 ### 4. Design System Tokens
 - Reference semantic Tailwind tokens configured in `tailwind.config.ts`: `brand-yellow` (`#FFB800`), `brand-red` (`#E53935`), `brand-cream` (`#FFF8F0`), surface darks (`#18110E`, `#141414`).

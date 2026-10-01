@@ -12,3 +12,4 @@ export * from "./Banner";
 export * from "./WarningBox";
 export * from "./ConfirmationCheckmark";
 export * from "./OrderStatusSteps";
+export * from "./Portal";

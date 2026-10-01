@@ -30,7 +30,13 @@ import { formatGHS } from "@/lib/pricing";
 import { getMealMedia } from "@/lib/media/meals";
 
 // Strictly typed tracking state
-export type TrackingStatus = "PENDING" | "PREPARING" | "OUT_FOR_DELIVERY" | "DELIVERED";
+export type TrackingStatus =
+  | "PENDING"
+  | "PREPARING"
+  | "OUT_FOR_DELIVERY"
+  | "RIDER_ARRIVING"
+  | "DELIVERED"
+  | "EXPIRED";
 
 export interface OrderItemCustomization {
   name: string;
@@ -45,8 +51,11 @@ export interface OrderDetails {
   customerName: string;
   customerPhone?: string;
   deliveryAddress: string;
+  delivery_address?: string;
   deliveryArea: string;
+  landmark?: string;
   deliverySlot: string;
+  delivery_slot?: string;
   foodTotal: number;
   deliveryFee: number;
   rider?: { name: string; phone: string };
@@ -54,6 +63,7 @@ export interface OrderDetails {
   paystackReference: string;
   paymentMethod?: string;
   paymentStatus?: string;
+  cancellationReason?: string;
   items: OrderItemCustomization[];
 }
 
@@ -84,9 +94,6 @@ export default function OrderTrackingPage() {
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
-
-  // Simulation mode for demonstration / developer review
-  const [simulatedStatus, setSimulatedStatus] = useState<TrackingStatus | null>(null);
 
   // Initial load & Polling: Fetch order from server-side route (with admin rights)
   useEffect(() => {
@@ -153,8 +160,13 @@ export default function OrderTrackingPage() {
         if (orderData) {
           // Map DB status to UI TrackingStatus
           let mappedStatus: TrackingStatus = "PENDING";
-          if (orderData.order_status === "preparing" || orderData.order_status === "cooking") {
+          if (orderData.order_status === "cancelled") {
+            mappedStatus = "EXPIRED";
+            setShowPackingCelebration(false);
+          } else if (orderData.order_status === "preparing" || orderData.order_status === "cooking") {
             mappedStatus = "PREPARING";
+          } else if (orderData.order_status === "rider_arriving" || orderData.order_status === "arriving_soon") {
+            mappedStatus = "RIDER_ARRIVING";
           } else if (
             orderData.order_status === "ready_for_dispatch" ||
             orderData.order_status === "dispatched" ||
@@ -183,14 +195,26 @@ export default function OrderTrackingPage() {
             };
           });
 
+          const addressStr =
+            (orderData.address as any)?.address ||
+            (orderData as any)?.delivery_address ||
+            "East Legon, Accra";
+          const landmarkStr =
+            (orderData.address as any)?.notes ||
+            (orderData as any)?.landmark ||
+            "";
+
           const resolvedOrder: OrderDetails = {
             id: orderData.id,
             status: mappedStatus,
             customerName: (orderData.customer as any)?.name || "Valued Customer",
             customerPhone: (orderData.customer as any)?.phone || "",
-            deliveryAddress: (orderData.address as any)?.address || "East Legon, Accra",
+            deliveryAddress: addressStr,
+            delivery_address: addressStr,
             deliveryArea: (orderData.address as any)?.area || "East Legon",
+            landmark: landmarkStr,
             deliverySlot: orderData.delivery_slot || "11:30 AM",
+            delivery_slot: orderData.delivery_slot || "11:30 AM",
             foodTotal: orderData.subtotal_pesewas || 7000,
             deliveryFee: orderData.delivery_fee_pesewas || 1000,
             createdAt: new Date(orderData.created_at || Date.now()).toLocaleDateString("en-GB", {
@@ -201,10 +225,14 @@ export default function OrderTrackingPage() {
             paystackReference: orderData.paystack_reference || `CAF-${orderData.id.slice(0, 8).toUpperCase()}`,
             paymentMethod: (orderData as any)?.payment_method || (searchParams.get("payment") === "manual" ? "manual" : "hubtel"),
             paymentStatus: orderData.payment_status || "unpaid",
+            cancellationReason:
+              orderData.cancellation_reason ||
+              orderData.cancellationReason ||
+              "Payment window expired after 15 minutes",
             rider:
               orderData.rider
                 ? { name: orderData.rider.full_name, phone: orderData.rider.phone_number }
-                : (mappedStatus === "OUT_FOR_DELIVERY" || mappedStatus === "DELIVERED")
+                : (mappedStatus === "OUT_FOR_DELIVERY" || mappedStatus === "RIDER_ARRIVING" || mappedStatus === "DELIVERED")
                 ? { name: "Kwame Mensah", phone: "+233 24 555 0192" }
                 : undefined,
             items: itemsList.length > 0 ? itemsList : [
@@ -226,8 +254,11 @@ export default function OrderTrackingPage() {
             customerName: "Kwame Mensah",
             customerPhone: "+233 24 123 4567",
             deliveryAddress: "14 Boundary Road, East Legon",
+            delivery_address: "14 Boundary Road, East Legon",
             deliveryArea: "East Legon",
+            landmark: "Near Galaxy Int School",
             deliverySlot: "11:30 AM",
+            delivery_slot: "11:30 AM",
             foodTotal: 7000,
             deliveryFee: 1000,
             createdAt: new Date().toLocaleDateString("en-GB", {
@@ -301,15 +332,22 @@ export default function OrderTrackingPage() {
           if (payload.new && payload.new.order_status) {
             const dbStatus = payload.new.order_status;
             let mappedStatus: TrackingStatus = "PENDING";
-            if (dbStatus === "preparing" || dbStatus === "cooking") mappedStatus = "PREPARING";
-            else if (
+            if (dbStatus === "cancelled") {
+              mappedStatus = "EXPIRED";
+              setShowPackingCelebration(false);
+            } else if (dbStatus === "preparing" || dbStatus === "cooking") {
+              mappedStatus = "PREPARING";
+            } else if (dbStatus === "rider_arriving" || dbStatus === "arriving_soon") {
+              mappedStatus = "RIDER_ARRIVING";
+            } else if (
               dbStatus === "ready_for_dispatch" ||
               dbStatus === "dispatched" ||
               dbStatus === "out_for_delivery"
-            )
+            ) {
               mappedStatus = "OUT_FOR_DELIVERY";
-            else if (dbStatus === "delivered" || dbStatus === "completed")
+            } else if (dbStatus === "delivered" || dbStatus === "completed") {
               mappedStatus = "DELIVERED";
+            }
 
             setOrder((prev) =>
               prev
@@ -317,7 +355,9 @@ export default function OrderTrackingPage() {
                     ...prev,
                     status: mappedStatus,
                     rider:
-                      mappedStatus === "OUT_FOR_DELIVERY" || mappedStatus === "DELIVERED"
+                      mappedStatus === "OUT_FOR_DELIVERY" ||
+                      mappedStatus === "RIDER_ARRIVING" ||
+                      mappedStatus === "DELIVERED"
                         ? prev.rider || { name: "Kwame Mensah", phone: "+233 24 555 0192" }
                         : undefined,
                   }
@@ -333,13 +373,17 @@ export default function OrderTrackingPage() {
     };
   }, [orderId]);
 
-  // Active status considering simulated override
-  const currentStatus: TrackingStatus = simulatedStatus || order?.status || "PENDING";
+  // Active live status directly from order
+  const currentStatus: TrackingStatus = order?.status || "PENDING";
 
   // Re-sync rider when status changes
   const activeRider = useMemo(() => {
     if (order?.rider) return order.rider;
-    if (currentStatus === "OUT_FOR_DELIVERY" || currentStatus === "DELIVERED") {
+    if (
+      currentStatus === "OUT_FOR_DELIVERY" ||
+      currentStatus === "RIDER_ARRIVING" ||
+      currentStatus === "DELIVERED"
+    ) {
       return { name: "Kwame Mensah", phone: "+233 24 555 0192" };
     }
     return undefined;
@@ -570,39 +614,90 @@ export default function OrderTrackingPage() {
           </div>
         </div>
 
-        {/* 1. Celebratory Hero */}
-        <section className="text-center space-y-3 relative overflow-hidden bg-white/70 border border-brand-cream-dark rounded-3xl p-6 sm:p-8 shadow-sm">
-          {/* Subtle Organic Background Blobs */}
-          <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-brand-yellow/15 blur-2xl pointer-events-none" />
-          <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-brand-red/10 blur-2xl pointer-events-none" />
+        {/* 1. Celebratory Hero or Expired Payment State */}
+        {currentStatus === "EXPIRED" ? (
+          <section className="text-center space-y-4 relative overflow-hidden bg-white border-2 border-brand-red/30 rounded-3xl p-6 sm:p-10 shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-brand-red/10 text-brand-red flex items-center justify-center mx-auto shadow-xs">
+              <Clock className="w-8 h-8 stroke-[2.5]" />
+            </div>
 
-          <div className="relative z-10 space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-red/10 text-brand-red text-[10px] font-black uppercase tracking-[0.2em]">
-              <Sparkles className="w-3 h-3" />
-              <span>
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-brand-red/10 text-brand-red text-[11px] font-black uppercase tracking-[0.2em]">
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>Payment Window Expired</span>
+              </div>
+
+              <h1 className="font-display font-extrabold text-2xl sm:text-4xl uppercase tracking-tight text-brand-dark leading-tight">
+                Payment Not Completed
+              </h1>
+
+              <p className="text-xs sm:text-sm text-brand-muted max-w-md mx-auto leading-relaxed">
+                {order?.cancellationReason ||
+                  "This order was not confirmed within the 15-minute payment window to release kitchen capacity for other campus diners."}
+              </p>
+
+              <div className="pt-2 text-[11px] font-mono font-bold text-brand-muted">
+                Order ID: <span className="text-brand-dark font-black">{order?.id}</span>
+              </div>
+            </div>
+
+            {/* CTAs: Reorder / Chat on WhatsApp */}
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href="/menu"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs uppercase tracking-wider transition-all shadow-button-yellow"
+              >
+                <RotateCcw className="w-4 h-4 stroke-[2.5]" />
+                <span>Reorder Today&apos;s Meal</span>
+              </Link>
+
+              <a
+                href={`https://wa.me/233240000000?text=${encodeURIComponent(
+                  `Hi Chef Apedo, my payment for order ${order?.id || ""} timed out. Could you please assist me?`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border-2 border-brand-cream-dark hover:border-brand-dark text-brand-dark font-extrabold text-xs uppercase tracking-wider transition-all bg-brand-cream/40"
+              >
+                <MessageSquare className="w-4 h-4 text-emerald-600" />
+                <span>Chat on WhatsApp</span>
+              </a>
+            </div>
+          </section>
+        ) : (
+          <section className="text-center space-y-3 relative overflow-hidden bg-white/70 border border-brand-cream-dark rounded-3xl p-6 sm:p-8 shadow-sm">
+            {/* Subtle Organic Background Blobs */}
+            <div className="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-brand-yellow/15 blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-brand-red/10 blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 space-y-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-red/10 text-brand-red text-[10px] font-black uppercase tracking-[0.2em]">
+                <Sparkles className="w-3 h-3" />
+                <span>
+                  {order?.paymentMethod === "manual"
+                    ? "Order Received · Payment Pending"
+                    : "Payment Verified · Online"}
+                </span>
+              </div>
+
+              <h1 className="font-display font-extrabold text-2xl sm:text-4xl uppercase tracking-tight text-brand-dark leading-tight">
                 {order?.paymentMethod === "manual"
-                  ? "Order Received · Payment Pending"
-                  : "Payment Verified · Online"}
-              </span>
+                  ? `Order Received, ${order?.customerName}!`
+                  : `Woohoo! Your order is confirmed, ${order?.customerName}.`}
+              </h1>
+
+              <p className="text-xs sm:text-sm text-brand-muted max-w-md mx-auto leading-relaxed">
+                {order?.paymentMethod === "manual"
+                  ? "Your order is logged and awaiting payment via Mobile Money or Cash on Delivery."
+                  : "We've received your order and the kitchen is heating up."}
+              </p>
+
+              <div className="pt-2 text-[11px] font-mono font-bold text-brand-muted">
+                Reference: <span className="text-brand-dark font-black">{order?.paystackReference}</span>
+              </div>
             </div>
-
-            <h1 className="font-display font-extrabold text-2xl sm:text-4xl uppercase tracking-tight text-brand-dark leading-tight">
-              {order?.paymentMethod === "manual"
-                ? `Order Received, ${order?.customerName}!`
-                : `Woohoo! Your order is confirmed, ${order?.customerName}.`}
-            </h1>
-
-            <p className="text-xs sm:text-sm text-brand-muted max-w-md mx-auto leading-relaxed">
-              {order?.paymentMethod === "manual"
-                ? "Your order is logged and awaiting payment via Mobile Money or Cash on Delivery."
-                : "We've received your order and the kitchen is heating up."}
-            </p>
-
-            <div className="pt-2 text-[11px] font-mono font-bold text-brand-muted">
-              Reference: <span className="text-brand-dark font-black">{order?.paystackReference}</span>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ===================================================================== */}
         {/* HIGH-VISIBILITY MANUAL PAYMENT INSTRUCTION BLOCK                      */}
@@ -887,7 +982,7 @@ export default function OrderTrackingPage() {
                 </div>
               </div>
             </motion.section>
-          ) : (
+          ) : currentStatus === "EXPIRED" ? null : (
             /* =================================================================== */
             /* PHASE 2 & 3: ACTIVE TRACKING TIMELINE & PAY RIDER CARD              */
             /* =================================================================== */
@@ -904,13 +999,57 @@ export default function OrderTrackingPage() {
                   <span className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-red">
                     Order Status Progression
                   </span>
-                  <span className="text-xs font-bold text-brand-muted">
-                    Slot: {order?.deliverySlot} GMT
-                  </span>
+                  {order?.deliverySlot &&
+                    !order.deliverySlot.toLowerCase().includes("asap") &&
+                    !order.deliverySlot.toLowerCase().includes("instant") && (
+                      <p className="text-xs font-bold text-brand-muted">
+                        Slot: {order.deliverySlot} GMT
+                      </p>
+                    )}
                 </div>
 
-                {/* Timeline: Vertical on mobile, Horizontal on sm+ */}
-                <div className="flex flex-col sm:grid sm:grid-cols-4 gap-4 sm:gap-2 relative pt-2">
+                {/* Proximity Alert Banner (~3 mins out) */}
+                {currentStatus === "RIDER_ARRIVING" && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="p-5 rounded-2xl bg-amber-500 text-brand-dark border-2 border-amber-600 shadow-md space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="relative flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-red opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-brand-red"></span>
+                        </span>
+                        <span className="text-xs font-black uppercase tracking-wider text-brand-dark">
+                          ⚡ Courier is Arriving! (~3 Mins Out)
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-brand-dark text-brand-yellow font-display">
+                        Meet Rider
+                      </span>
+                    </div>
+
+                    <p className="text-xs font-bold text-brand-dark/95 leading-relaxed">
+                      Please be ready at {order?.delivery_address || order?.deliveryAddress || "your delivery address"} {order?.landmark ? `(${order.landmark})` : ''}!
+                    </p>
+
+                    {activeRider?.phone && (
+                      <div className="pt-1 flex items-center gap-2">
+                        <a
+                          href={`tel:${activeRider.phone}`}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-dark hover:bg-black text-brand-yellow text-xs font-black uppercase tracking-wider transition-all shadow-xs"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          <span>Call Rider: {activeRider.phone}</span>
+                        </a>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+
+                {/* Timeline: Vertical on mobile (flex-col), Horizontal on desktop (md:flex-row) */}
+                <div className="flex flex-col md:flex-row gap-6 md:gap-2 relative pt-2">
                   {[
                     {
                       id: "PENDING",
@@ -924,8 +1063,13 @@ export default function OrderTrackingPage() {
                     },
                     {
                       id: "OUT_FOR_DELIVERY",
-                      label: "Out for Delivery",
+                      label: "Dispatched",
                       icon: Bike,
+                    },
+                    {
+                      id: "RIDER_ARRIVING",
+                      label: "Arriving Soon",
+                      icon: Clock,
                     },
                     {
                       id: "DELIVERED",
@@ -937,6 +1081,7 @@ export default function OrderTrackingPage() {
                       "PENDING",
                       "PREPARING",
                       "OUT_FOR_DELIVERY",
+                      "RIDER_ARRIVING",
                       "DELIVERED",
                     ];
                     const currentIndex = statusOrder.indexOf(currentStatus);
@@ -951,14 +1096,14 @@ export default function OrderTrackingPage() {
                     return (
                       <div
                         key={step.id}
-                        className="flex items-center gap-3 sm:flex-col sm:items-center sm:text-center relative z-10"
+                        className="flex items-center gap-3 md:flex-col md:items-center md:text-center relative z-10 flex-1"
                       >
-                        {/* Connecting Line: vertical on mobile, horizontal on sm+ */}
-                        {idx < 3 && (
+                        {/* Connecting Line: vertical on mobile (w-0.5 h-full), horizontal on desktop (h-0.5 w-full) */}
+                        {idx < 4 && (
                           <>
                             {/* Mobile vertical connector */}
                             <div
-                              className={`absolute left-5 top-[2.75rem] w-[3px] h-[calc(100%+0.5rem)] sm:hidden -z-10 transition-colors ${
+                              className={`absolute left-5 top-10 w-0.5 h-full md:hidden -z-10 transition-colors ${
                                 stepIndex < currentIndex
                                   ? "bg-brand-red"
                                   : "border-l-2 border-dashed border-black/15"
@@ -966,7 +1111,7 @@ export default function OrderTrackingPage() {
                             />
                             {/* Desktop horizontal connector */}
                             <div
-                              className={`absolute hidden sm:block top-5 left-1/2 w-full h-[3px] -z-10 transition-colors ${
+                              className={`absolute hidden md:block top-5 left-1/2 w-full h-0.5 -z-10 transition-colors ${
                                 stepIndex < currentIndex
                                   ? "bg-brand-red"
                                   : "border-t-2 border-dashed border-black/15"
@@ -1005,7 +1150,7 @@ export default function OrderTrackingPage() {
 
                         {/* Node Label */}
                         <span
-                          className={`font-display text-xs sm:text-[11px] uppercase tracking-tight font-extrabold sm:mt-2 ${
+                          className={`font-display text-xs md:text-[11px] uppercase tracking-tight font-extrabold md:mt-2 ${
                             isCurrent
                               ? "text-brand-dark"
                               : isCompleted
@@ -1240,56 +1385,6 @@ export default function OrderTrackingPage() {
             <span>Chat with Kitchen</span>
           </a>
         </div>
-
-        {/* ===================================================================== */}
-        {/* DEV & REVIEWER INTERACTIVE TESTING TOOLS (Gated to review/debug mode) */}
-        {/* ===================================================================== */}
-        {process.env.NODE_ENV === "development" && (searchParams.get("reviewer") === "true" || searchParams.get("debug") === "true") && (
-          <div className="p-4 rounded-2xl bg-black/5 border border-black/10 text-xs space-y-2 mt-8">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-brand-dark uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-brand-yellow-dark" />
-                <span>Reviewer Interactive Controls:</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowPackingCelebration(true);
-                  setCelebrationStep("text");
-                }}
-                className="font-bold text-brand-red hover:underline"
-              >
-                Replay Packing Celebration ↺
-              </button>
-            </div>
-
-            <p className="text-[11px] text-brand-muted">
-              Click states below to test real-time transitions (including the Phase 4 Unboxing &amp; Rating experience):
-            </p>
-
-            <div className="flex flex-wrap gap-2 pt-1">
-              {(["PENDING", "PREPARING", "OUT_FOR_DELIVERY", "DELIVERED"] as TrackingStatus[]).map(
-                (st) => (
-                  <button
-                    key={st}
-                    type="button"
-                    onClick={() => {
-                      setSimulatedStatus(st);
-                      if (st !== "DELIVERED") setReviewSubmitted(false);
-                    }}
-                    className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
-                      currentStatus === st
-                        ? "bg-brand-red text-white shadow-xs"
-                        : "bg-white text-brand-dark border border-black/10 hover:border-black/30"
-                    }`}
-                  >
-                    {st.replace(/_/g, " ")}
-                  </button>
-                )
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

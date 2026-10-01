@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkAndExpireOrder } from "@/lib/orders/expiration";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -18,7 +19,8 @@ export async function GET(
       orderId === "[id]" ||
       orderId === "[orderId]" ||
       orderId.includes("[") ||
-      orderId.includes("%5B")
+      orderId.includes("%5B") ||
+      !UUID_REGEX.test(orderId)
     ) {
       return NextResponse.json(
         { error: "Invalid Order ID format" },
@@ -91,9 +93,21 @@ export async function GET(
       );
     }
 
+    // Lazy Expiry & Reconciliation Guard: Check if awaiting_payment order has passed the 15m window
+    let returnedOrder = order;
+    if (order.order_status === "awaiting_payment" && order.payment_status === "unpaid") {
+      const expirationResult = await checkAndExpireOrder(orderId, order);
+      if (expirationResult.isExpired || expirationResult.reconciledPaid) {
+        returnedOrder = {
+          ...order,
+          ...expirationResult.order,
+        };
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      order,
+      order: returnedOrder,
     });
   } catch (err: any) {
     console.error("Order lookup route error:", err);

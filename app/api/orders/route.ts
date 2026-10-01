@@ -6,6 +6,7 @@ import {
   getDeliveryFeeForArea,
 } from "@/lib/delivery";
 import { isSameDayOrderAllowed } from "@/lib/business-rules/timing";
+import { getAsapOperatingStatus } from "@/lib/operating-hours";
 
 /**
  * POST /api/orders — creates an order in `awaiting_payment` status.
@@ -13,7 +14,7 @@ import { isSameDayOrderAllowed } from "@/lib/business-rules/timing";
  * Server-side business rules enforced here (per docs/PRD.md §10 and RULES.md):
  *   1. Kitchen must be open (kitchen_settings.open)
  *   2. Daily capacity not yet reached (kitchen_settings.orders_today < daily_capacity)
- *   3. Requested delivery slot respects same-day cutoff (10:00 AM Accra time)
+ *   3. Requested delivery slot respects ASAP operating window (08:00 - 15:00) or scheduled batch cutoff (10:00 AM)
  *   4. Delivery area is serviceable and not in EXCLUDED_DELIVERY_AREAS
  *   5. Delivery fee is derived server-side from active DeliveryZone
  *   6. All selected meals and protein options are active (`available = true`)
@@ -67,16 +68,29 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Cutoff Rule (Rule 3): Same-day orders close at 10:00 AM Accra time
-    // For MVP, orders default to same-day delivery slots
-    if (!isSameDayOrderAllowed()) {
-      return NextResponse.json(
-        {
-          error:
-            "Same-day order cutoff (10:00 AM) has passed. Please contact us on WhatsApp for special requests.",
-        },
-        { status: 409 }
-      );
+    // 3. Operating Hours & Cutoff Guard
+    const slotStr = orderData.deliverySlot || "";
+    const isAsap = slotStr.toLowerCase().includes("asap") || slotStr.toLowerCase().includes("instant");
+
+    if (isAsap) {
+      const asapStatus = getAsapOperatingStatus();
+      if (!asapStatus.isOpen) {
+        return NextResponse.json(
+          { error: asapStatus.reason },
+          { status: 409 }
+        );
+      }
+    } else {
+      // Same-day scheduled batch orders close at 10:00 AM Accra time
+      if (!isSameDayOrderAllowed()) {
+        return NextResponse.json(
+          {
+            error:
+              "Same-day order cutoff (10:00 AM) has passed. Please contact us on WhatsApp for special requests.",
+          },
+          { status: 409 }
+        );
+      }
     }
 
     // 4. Delivery Area & Fee Lookup (Rule 2 & 7)
@@ -306,8 +320,9 @@ export async function POST(request: Request) {
         order_status: "awaiting_payment",
         paystack_reference: generatedReference,
         refund_status: "none",
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
       })
-      .select("id, subtotal_pesewas, delivery_fee_pesewas, order_status, payment_status, paystack_reference")
+      .select("id, subtotal_pesewas, delivery_fee_pesewas, order_status, payment_status, paystack_reference, expires_at")
       .single();
 
     if (orderErr || !order) {

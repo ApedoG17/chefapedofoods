@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getAsapOperatingStatus } from "@/lib/operating-hours";
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isValidUUID = (val?: string | null): boolean => typeof val === "string" && UUID_REGEX.test(val);
@@ -24,6 +25,18 @@ export async function POST(req: Request) {
     const area = (customerDetails.area || body.area || "East Legon").trim();
     const landmark = (customerDetails.notes || customerDetails.landmark || body.landmark || "").trim();
     const deliverySlot = (customerDetails.deliverySlot || body.deliverySlot || "11:30 AM").trim();
+
+    // 0. Operating Hours Guard: Enforce ASAP window server-side (08:00 - 15:00 GMT)
+    const isAsap = deliverySlot.toLowerCase().includes("asap") || deliverySlot.toLowerCase().includes("instant");
+    if (isAsap) {
+      const asapStatus = getAsapOperatingStatus();
+      if (!asapStatus.isOpen) {
+        return NextResponse.json(
+          { success: false, message: asapStatus.reason },
+          { status: 409 }
+        );
+      }
+    }
 
     // 1. Calculate the final total in pesewas to guarantee integrity
     const calculatedSubtotal = Number(subtotal || body.subtotal_pesewas || 0);
@@ -122,6 +135,7 @@ export async function POST(req: Request) {
         order_status: "awaiting_payment",
         paystack_reference: manualRef,
         refund_status: "none",
+        expires_at: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
         promo_code_id: isValidUUID(promo_code_id) ? promo_code_id : null,
         original_amount: original_amount !== undefined ? Number(original_amount) : calculatedSubtotal,
         discount_amount: discount_amount !== undefined ? Number(discount_amount) : 0,

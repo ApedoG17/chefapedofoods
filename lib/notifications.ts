@@ -57,3 +57,33 @@ export async function sendFeedbackSMS(phone: string, customerName: string, order
   }
 }
 
+export async function sendRiderArrivingSMS(phone: string, customerName: string, orderId: string, area?: string) {
+  let formattedPhone = phone.replace(/\s+/g, '');
+  if (formattedPhone.startsWith('0')) formattedPhone = '233' + formattedPhone.substring(1);
+  if (formattedPhone.startsWith('+')) formattedPhone = formattedPhone.substring(1);
+
+  const shortOrderId = orderId.split('-')[0]?.toUpperCase() || orderId.toUpperCase();
+  const areaSuffix = area ? ` in ${area}` : '';
+  const message = `Chef Apedo Alert: Rider is ~3 mins away from your location${areaSuffix}! Please be ready at your gate/pickup point for order #${shortOrderId}.`;
+
+  try {
+    const response = await fetch(AGOO_API_URL, {
+      method: 'POST',
+      headers: {
+        'X-API-Key': process.env.SMS_API_KEY || '',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        to: formattedPhone,
+        message: message,
+        senderId: process.env.SMS_SENDER_ID || 'CHEF APEDO',
+      }),
+    });
+    
+    return response.ok;
+  } catch (error) {
+    console.error('Failed to send Agoo proximity SMS:', error);
+    return false;
+  }
+}
+

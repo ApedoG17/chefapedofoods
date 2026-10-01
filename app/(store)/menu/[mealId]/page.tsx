@@ -287,7 +287,7 @@ export default function MealCustomizerPage() {
                   key={sizeKey}
                   type="button"
                   onClick={() => handleSizeSelect(sizeKey)}
-                  className={`relative p-3.5 sm:p-4 rounded-2xl text-left border transition-all duration-200 cursor-pointer ${
+                  className={`relative px-3 py-2 text-xs sm:px-4 sm:py-3 sm:text-sm md:text-base rounded-2xl text-left border transition-all duration-200 cursor-pointer min-h-[44px] ${
                     isSelected
                       ? "bg-brand-yellow text-brand-dark border-brand-yellow-dark shadow-md scale-105 z-10 ring-2 ring-brand-yellow/50"
                       : hasSelection
@@ -296,14 +296,14 @@ export default function MealCustomizerPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="flex items-center gap-2 font-black font-display text-sm sm:text-base uppercase tracking-tight">
+                    <span className="flex items-center gap-1.5 sm:gap-2 font-black font-display text-xs sm:text-sm md:text-base uppercase tracking-tight">
                       {sizeData.label}
                       {isSelected && (
                         <CheckCircle size={16} className="text-brand-dark flex-shrink-0" />
                       )}
                     </span>
                   </div>
-                  <div className="font-bold text-xs sm:text-sm text-brand-dark">
+                  <div className="font-bold text-xs sm:text-sm md:text-base text-brand-dark">
                     {formatGHS(sizeData.basePesewas)}
                   </div>
                 </button>

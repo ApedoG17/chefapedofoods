@@ -40,12 +40,12 @@ Tracked per the core transaction first philosophy: money movement and operationa
 ## 2. Core Transaction Flow (Completed)
 
 - [x] **Meal Customization Engine:** Size selection (Small / Medium / Large) ➔ Included protein options scoped strictly to selected size ➔ Extra protein portions (Chicken +15, Sausage +4, Egg +4, Fish +4) ➔ Dynamic price calculation
-- [x] **Interactive Cart:** Real-time quantity manipulation, customization review, subtotal calculation
+- [x] **Interactive Cart:** Real-time quantity manipulation, customization review, subtotal calculation, dynamic location-based delivery disclaimer ("Calculated at checkout based on location")
 - [x] **Checkout Pipeline:**
-  - Guest customer validation (valid Ghana mobile number & name)
+  - Guest customer validation (10-digit Ghana mobile number restriction & international dial code picker)
   - Interactive OpenStreetMap (Leaflet) pin-drop & campus landmark entry
-  - Dynamic Campus Delivery Zone selector with automated fee recalculation
-  - Delivery slot picker (11:30 AM, 12:30 PM, 1:30 PM, 2:30 PM) respecting 10:00 AM cutoff
+  - Dynamic Geospatial Distance Engine (Haversine formula from South Legon Drive 6a kitchen hub at 5.6265, -0.1706; GH₵7 base for first 3km + GH₵2/km; 15km cutoff)
+  - Dual-mode delivery timing (ASAP dynamic ETA window based on prep + transit time, and 30-min scheduled window picker with real-time Time Guard)
   - Promo code validation engine with real-time percentage deductions
 - [x] **Dual-Payment Split Screen:**
   - Card 1: Food Total prepaid online via Hubtel or selected as Manual MoMo/Cash
@@ -53,7 +53,8 @@ Tracked per the core transaction first philosophy: money movement and operationa
 - [x] **Live Order Tracking (`/order/[id]`):**
   - Celebration packing animation with physical box drop
   - Live progress stepper (Order Received ➔ Preparing ➔ Out for Delivery ➔ Delivered)
-  - Responsive vertical timeline on mobile preventing label overlap
+  - Responsive vertical timeline on mobile (w-0.5) and horizontal on desktop (h-0.5) preventing label overlap
+  - Dynamic courier proximity alert with customer delivery address and landmark
   - Direct WhatsApp kitchen chat and live status indicator
 
 ---
@@ -125,3 +126,27 @@ Tracked per the core transaction first philosophy: money movement and operationa
 - [ ] GRA tax registration (Modified Taxation Scheme for campus food services)
 - [ ] Business Name registration via Registrar General's Department
 
+---
+
+## 9. Platform Resilience & Production Hardening (Completed)
+
+- [x] **Feature 1 — Operating Hours Guard:**
+  - `lib/operating-hours.ts`: `getAsapOperatingStatus()` using server-time GMT (08:00 – 15:00 ASAP window).
+  - `GET /api/operating-hours`: Force-dynamic endpoint returning server-time status.
+  - `POST /api/orders` & `POST /api/orders/manual`: Server-side 409 rejection for out-of-hours ASAP orders.
+  - Checkout UX: Amber alert, scheduled-slot suggestion, disabled Pay button when ASAP is closed.
+  - Tests: `tests/unit/operating-hours.test.ts`, `tests/api/manual-orders.test.ts`.
+- [x] **Feature 2 — Abandoned Payment Expiry & Late Reconciliation:**
+  - Migration `0006_order_expiry_and_reconciliation.sql`: `expires_at` + `manual_review_required` columns.
+  - `lib/orders/expiration.ts`: `checkAndExpireOrder()` with Hubtel status verification before cancellation.
+  - `GET /api/orders/[id]`: Lazy expiration trigger on every order read.
+  - Vercel Cron `*/10 * * * *` at `/api/cron/expire-orders`: Proactive 15-minute expiry sweep.
+  - Hubtel webhook: Idempotent late reconciliation with `manual_review_required = true`.
+  - Order tracker: EXPIRED state card with Reorder + WhatsApp CTAs.
+  - Tests: `tests/unit/expiration.test.ts`, `tests/api/webhooks.test.ts`, `tests/api/hubtel.test.ts`.
+- [x] **Feature 3 — Map Tile Network Timeout & Popular Landmarks Fallback:**
+  - `lib/delivery/landmarks.ts`: `CAMPUS_LANDMARKS[]` with 30+ verified GPS coords across 6 categories (Hostels, Halls, Campus, Gates & Markets, East Legon, Greater Accra). `filterLandmarks(query, category)` helper.
+  - `components/MapPicker.tsx`: 4-second `setTimeout` + `TileMonitor` (`tileload`/`tileerror` events). Fallback UI with category tabs, instant search, GPS geolocation button, and inline error states.
+  - Landmark selection feeds exact lat/lng into `calculateDistanceDeliveryFee()` + `calculateDistanceETA()`.
+  - Tests: `tests/unit/landmarks.test.ts` (19 tests covering data integrity, filtering, and coordinate accuracy).
+  - All 116 tests passing. TypeScript: 0 errors (`npx tsc --noEmit` exit 0).

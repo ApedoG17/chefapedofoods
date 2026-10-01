@@ -15,7 +15,7 @@ API endpoints, request/response formats, authentication, error handling and best
 
 | 07 Error Handling ⚠️ | 08 Best Practices ✅ |
 | :--- | :--- |
-| • **200:** OK (Success)<br>• **400:** Bad Request (Invalid input)<br>• **401:** Unauthorized (Missing/invalid token)<br>• **403:** Forbidden (Insufficient permissions)<br>• **404:** Not Found (Resource doesn't exist)<br>• **500:** Internal Server Error. | • Use consistent naming conventions<br>• Validate and sanitize all inputs<br>• Return meaningful and consistent error messages<br>• Document new endpoints<br>• Use appropriate HTTP methods (GET, POST, PATCH)<br>• Keep API controllers thin. |
+| • **200:** OK (Success)<br>• **400:** Bad Request (Invalid input)<br>• **401:** Unauthorized (Missing/invalid token)<br>• **403:** Forbidden (Insufficient permissions)<br>• **404:** Not Found (Resource doesn't exist)<br>• **500:** Internal Server Error. | • Use consistent naming conventions<br>• Return meaningful and consistent error messages<br>• **Execute external services atomically: only dispatch Agoo SMS notifications after receiving a `201 Created` confirmation from the Supabase database write.**<br>• **Leverage Supabase Realtime subscriptions for live proximity updates instead of building custom Server-Sent Events (SSE).**<br>• Document new endpoints<br>• Use appropriate HTTP methods (GET, POST, PATCH)<br>• Keep API controllers thin. |
 
 ---
 

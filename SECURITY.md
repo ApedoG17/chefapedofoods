@@ -11,7 +11,7 @@ Security practices, configurations and guidelines for keeping this project and o
 
 | 05 Validate & Sanitize Input 🧹 | 06 Secure Deployment 🚀 |
 | :--- | :--- |
-| • Check and clean any data users submit to make sure it's safe and won't harm the system.<br>• Add strict validation to prevent SQL injection and script injection.<br>• Reject invalid data and enforce strict input types via TypeScript and Zod. | • Enforce HTTPS and ensure secrets are stored securely on Vercel.<br>• Restrict direct database access from the public internet.<br>• Block automated scripts and harmful users from exploiting the system to prevent abuse and bot attacks. |
+| • Check and clean any data users submit to make sure it's safe and won't harm the system.<br>• Add strict validation to prevent SQL injection and script injection.<br>• **Enforce strict localized regex patterns (e.g., Ghanaian telecom formats `^(?:0\|\+233)[2-59]\d{8}$`) via Zod to block malformed inputs.**<br>• Reject invalid data and enforce strict input types via TypeScript and Zod. | • Enforce HTTPS and ensure secrets are stored securely on Vercel.<br>• Restrict direct database access from the public internet.<br>• Block automated scripts and harmful users from exploiting the system to prevent abuse and bot attacks. |
 
 | 07 API & Backend Security </> | 08 Incident Reporting 🚨 |
 | :--- | :--- |

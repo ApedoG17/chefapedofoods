@@ -31,14 +31,50 @@ export async function POST(req: Request) {
     if (responseCode === "0000" || status === "Success") {
       const supabase = createAdminClient();
 
+      // 1. Fetch current order state for idempotency and late-payment reconciliation
+      const { data: existingOrder, error: fetchErr } = await supabase
+        .from("orders")
+        .select("id, order_status, payment_status, subtotal_pesewas, created_at, expires_at")
+        .eq("id", clientReference)
+        .single();
+
+      if (fetchErr || !existingOrder) {
+        console.error("Hubtel webhook received for non-existent order:", clientReference);
+        return NextResponse.json({ message: "Order not found" }, { status: 404 });
+      }
+
+      // 2. Idempotency Guard: avoid double-processing if already confirmed/paid
+      if (existingOrder.payment_status === "paid") {
+        return NextResponse.json(
+          {
+            message: "Order already confirmed (idempotent)",
+            orderId: clientReference,
+            status: existingOrder.order_status,
+          },
+          { status: 200 }
+        );
+      }
+
+      // 3. Late Payment Reconciliation: check if payment arrived after the 15-minute expiration
+      const wasCancelledOrExpired = existingOrder.order_status === "cancelled";
+
+      const updateData: any = {
+        order_status: "confirmed",
+        payment_status: "paid",
+        amount_paid_pesewas: existingOrder.subtotal_pesewas,
+      };
+
+      if (wasCancelledOrExpired) {
+        updateData.manual_review_required = true;
+        updateData.cancellation_reason =
+          "Late payment received after 15m expiration — flagged for chef review";
+      }
+
       const { data: updatedOrder, error } = await supabase
         .from("orders")
-        .update({
-          order_status: "confirmed",
-          payment_status: "paid",
-        })
+        .update(updateData)
         .eq("id", clientReference)
-        .select("id, order_status, payment_status")
+        .select("id, order_status, payment_status, manual_review_required")
         .single();
 
       if (error) {
@@ -48,9 +84,12 @@ export async function POST(req: Request) {
 
       return NextResponse.json(
         {
-          message: "Order confirmed successfully",
+          message: wasCancelledOrExpired
+            ? "Order reconciled with late payment flag"
+            : "Order confirmed successfully",
           orderId: clientReference,
           status: updatedOrder?.order_status,
+          lateReconciled: wasCancelledOrExpired,
         },
         { status: 200 }
       );

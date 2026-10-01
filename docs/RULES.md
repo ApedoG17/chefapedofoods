@@ -38,3 +38,13 @@ Stack is locked (Next.js 14 + TypeScript + Tailwind, Supabase, Vercel, Hubtel + 
 - **No Slug Conflicts in App Router:** Dynamic routes sharing a parent directory must share the exact same parameter name (e.g., use `[id]` consistently across `/api/admin/orders/[id]/...`).
 - **Tailwind Tokens Mirror Design System:** Use curated design tokens (`brand-yellow`, `brand-red`, `brand-cream`, `#18110E`, `#141414`) rather than arbitrary inline hex codes or pure `#000000`.
 - **Zero Raw Floats in UI:** Format all currency using the centralized `formatGHS(pesewas)` helper from `lib/pricing.ts`.
+
+---
+
+## 5. Geospatial Distance & Dynamic Logistics Engine (`lib/delivery/`)
+
+- **Kitchen Anchor Coordinate:** Centered strictly at `lat: 5.6265, lng: -0.1706` (South Legon Drive 6a kitchen hub, `CHEF_APEDO_KITCHEN`).
+- **Dynamic Distance Pricing Formula:** GH₵ 7.00 (`700 pesewas`) base fee for the first 3.0 km, plus GH₵ 2.00 (`200 pesewas`) per additional km (`Math.ceil(distance - 3.0)`).
+- **Service Radius Limit:** 15.0 km maximum delivery radius for hot food freshness guarantee. Locations beyond 15.0 km are rejected with an out-of-range alert.
+- **Dynamic ETA Window:** ASAP ETA calculation combines kitchen prep (20 min) with distance transit time (`Math.max(10, Math.round(distanceKm * 3))` mins) + 5-10 min buffer.
+- **Time Guard on Scheduled Slots:** Scheduled 30-minute delivery windows filter out past slots in real time using Ghana Standard Time (UTC).

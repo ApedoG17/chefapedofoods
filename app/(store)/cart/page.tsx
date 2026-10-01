@@ -198,11 +198,11 @@ export default function CartPage() {
                 </div>
 
                 {/* ── Sprint 1 §2: Inline Quantity Stepper with manual input ── */}
-                <div className="flex items-center border border-brand-cream-dark rounded-full bg-brand-cream p-0.5">
+                <div className="flex items-center border border-brand-cream-dark rounded-full bg-brand-cream p-1">
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-brand-dark hover:bg-black/5 transition-colors"
+                    className="w-8 h-8 sm:w-7 sm:h-7 min-w-[32px] min-h-[32px] rounded-full bg-white flex items-center justify-center text-brand-dark hover:bg-black/5 active:scale-95 transition-all shadow-2xs"
                     aria-label="Decrease quantity"
                   >
                     <Minus className="w-3.5 h-3.5" />
@@ -226,7 +226,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                    className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-brand-dark hover:bg-black/5 transition-colors"
+                    className="w-8 h-8 sm:w-7 sm:h-7 min-w-[32px] min-h-[32px] rounded-full bg-white flex items-center justify-center text-brand-dark hover:bg-black/5 active:scale-95 transition-all shadow-2xs"
                     aria-label="Increase quantity"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -269,7 +269,9 @@ export default function CartPage() {
               <Bike className="w-4 h-4 text-brand-yellow-dark" />
               <span>Delivery Fee (Pay Rider on Arrival)</span>
             </div>
-            <span className="font-semibold text-brand-dark">From GH₵10.00</span>
+            <span className="text-xs sm:text-sm text-brand-dark/60 font-medium italic">
+              Calculated at checkout based on location
+            </span>
           </div>
         </div>
 

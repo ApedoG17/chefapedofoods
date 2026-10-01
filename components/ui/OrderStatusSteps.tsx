@@ -16,7 +16,8 @@ const LIFECYCLE_STEPS: StepItem[] = [
   { id: "preparing", label: "Preparing", stepNumber: 2 },
   { id: "ready_for_dispatch", label: "Ready for Dispatch", stepNumber: 3 },
   { id: "dispatched", label: "Dispatched", stepNumber: 4 },
-  { id: "delivered", label: "Delivered", stepNumber: 5 },
+  { id: "rider_arriving", label: "Rider Arriving", stepNumber: 5 },
+  { id: "delivered", label: "Delivered", stepNumber: 6 },
 ];
 
 export function OrderStatusSteps({ currentStatus }: OrderStatusStepsProps) {
