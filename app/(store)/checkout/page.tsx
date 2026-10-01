@@ -46,6 +46,54 @@ const DELIVERY_SLOTS = [
   { id: "14:30", label: "2:30 PM", available: true },
 ];
 
+// ---------------------------------------------------------------------------
+// Empty-cart/checkout state with localStorage order recovery
+// ---------------------------------------------------------------------------
+function CheckoutEmptyState() {
+  const router = useRouter();
+  const [lastOrderId, setLastOrderId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const stored = localStorage.getItem("last_active_order");
+    if (stored) setLastOrderId(stored);
+  }, []);
+
+  return (
+    <main className="w-full max-w-md mx-auto py-16 sm:py-24 px-4 text-center">
+      <div className="w-16 h-16 rounded-full bg-white/10 text-brand-yellow flex items-center justify-center mx-auto mb-6 shadow-sm">
+        <ShoppingBag className="w-7 h-7 stroke-[2]" />
+      </div>
+      <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white uppercase tracking-tight mb-2">
+        Your Tray is Empty
+      </h1>
+      <p className="text-xs sm:text-sm text-white/70 max-w-sm mx-auto leading-relaxed mb-8">
+        You haven&apos;t added any meals to your lunch order yet. Choose your favorite meal to begin checkout.
+      </p>
+      <div className="flex flex-col items-center gap-3">
+        <Link
+          href="/menu"
+          className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-button-yellow"
+        >
+          <span>Browse Today&apos;s Menu</span>
+          <ArrowRight className="w-4 h-4 stroke-[3]" />
+        </Link>
+
+        {/* Sprint 1 §3: Recovery CTA shown when a recent order exists in localStorage */}
+        {lastOrderId && (
+          <button
+            type="button"
+            onClick={() => router.push(`/order/${lastOrderId}`)}
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full border-2 border-brand-yellow/60 text-brand-yellow font-extrabold text-xs sm:text-sm uppercase tracking-wider hover:bg-brand-yellow/10 transition-all"
+          >
+            <MapPin className="w-4 h-4 stroke-[2.5]" />
+            <span>Track Recent Order</span>
+          </button>
+        )}
+      </div>
+    </main>
+  );
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotalPesewas, clearCart, isLoaded: isCartLoaded } = useCart();
@@ -152,23 +200,7 @@ export default function CheckoutPage() {
   }
 
   if (items.length === 0) {
-    return (
-      <main className="py-16 text-center max-w-md mx-auto px-4 space-y-4">
-        <h1 className="font-display font-extrabold text-2xl text-brand-dark uppercase">
-          Your Cart is Empty
-        </h1>
-        <p className="text-xs sm:text-sm text-brand-muted">
-          Add a meal to your cart to begin checkout.
-        </p>
-        <Link
-          href="/menu"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-brand-yellow text-brand-dark font-extrabold text-xs uppercase tracking-wider"
-        >
-          <span>Return to Menu</span>
-          <ArrowRight className="w-4 h-4" />
-        </Link>
-      </main>
-    );
+    return <CheckoutEmptyState />;
   }
 
   // Promo Code Application Handler
@@ -261,8 +293,12 @@ export default function CheckoutPage() {
       const data = await response.json();
 
       if (data.success && data.orderId) {
+        // ── Sprint 1 §3: Persist the new order ID before clearing cart ──
+        // This enables the "Track Recent Order" recovery button on the empty-cart page
+        // if the user refreshes before the order page fully loads.
+        localStorage.setItem("last_active_order", data.orderId);
         clearCart();
-        // Redirect directly to the order confirmation page
+        // Route directly to the order tracking page (server-side fetch, refresh-safe)
         router.push("/order/" + data.orderId);
       } else {
         throw new Error(data.message || "Failed to create order.");
@@ -275,26 +311,7 @@ export default function CheckoutPage() {
   };
 
   if (isCartLoaded && items.length === 0) {
-    return (
-      <main className="w-full max-w-md mx-auto py-16 sm:py-24 px-4 text-center">
-        <div className="w-16 h-16 rounded-full bg-white/10 text-brand-yellow flex items-center justify-center mx-auto mb-6 shadow-sm">
-          <ShoppingBag className="w-7 h-7 stroke-[2]" />
-        </div>
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white uppercase tracking-tight mb-2">
-          Your Tray is Empty
-        </h1>
-        <p className="text-xs sm:text-sm text-white/70 max-w-sm mx-auto leading-relaxed mb-8">
-          You haven&apos;t added any meals to your lunch order yet. Choose your favorite meal to begin checkout.
-        </p>
-        <Link
-          href="/menu"
-          className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-button-yellow"
-        >
-          <span>Browse Today&apos;s Menu</span>
-          <ArrowRight className="w-4 h-4 stroke-[3]" />
-        </Link>
-      </main>
-    );
+    return <CheckoutEmptyState />;
   }
 
   return (

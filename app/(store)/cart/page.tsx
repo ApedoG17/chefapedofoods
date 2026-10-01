@@ -1,13 +1,67 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/lib/cart/store";
 import { formatGHS } from "@/lib/pricing";
 import { getMealMedia } from "@/lib/media/meals";
-import { ShoppingBag, ArrowRight, Plus, Minus, ShieldCheck, Bike, ArrowLeft } from "lucide-react";
+import { ShoppingBag, ArrowRight, Plus, Minus, ShieldCheck, Bike, ArrowLeft, MapPin } from "lucide-react";
 
+// ---------------------------------------------------------------------------
+// Empty-cart state: shows "Track Recent Order" if localStorage has a last order
+// ---------------------------------------------------------------------------
+function EmptyCartState() {
+  const router = useRouter();
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("last_active_order");
+    if (stored) setLastOrderId(stored);
+  }, []);
+
+  return (
+    <main className="py-16 sm:py-24 text-center max-w-md mx-auto px-4">
+      <div className="w-16 h-16 rounded-full bg-brand-cream border border-brand-cream-dark flex items-center justify-center mx-auto text-brand-dark mb-6">
+        <ShoppingBag className="w-7 h-7 stroke-[2]" />
+      </div>
+
+      <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-brand-dark uppercase tracking-tight mb-2">
+        Your Cart is Empty
+      </h1>
+      <p className="text-xs sm:text-sm text-brand-muted max-w-sm mx-auto leading-relaxed mb-8">
+        You haven&apos;t added any meals to your lunch order yet.
+      </p>
+
+      <div className="flex flex-col items-center gap-3">
+        <Link
+          href="/menu"
+          className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-colors shadow-button-yellow"
+        >
+          <span>Browse Today&apos;s Menu</span>
+          <ArrowRight className="w-4 h-4 stroke-[3]" />
+        </Link>
+
+        {/* Recovery CTA: only shown when a recent order is in localStorage */}
+        {lastOrderId && (
+          <button
+            type="button"
+            onClick={() => router.push(`/order/${lastOrderId}`)}
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full border-2 border-brand-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider hover:bg-brand-dark hover:text-white transition-all"
+          >
+            <MapPin className="w-4 h-4 stroke-[2.5]" />
+            <span>Track Recent Order</span>
+          </button>
+        )}
+      </div>
+    </main>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main cart page
+// ---------------------------------------------------------------------------
 export default function CartPage() {
   const { items, subtotalPesewas, removeItem, updateQuantity, isLoaded } = useCart();
 
@@ -20,28 +74,7 @@ export default function CartPage() {
   }
 
   if (items.length === 0) {
-    return (
-      <main className="py-16 sm:py-24 text-center max-w-md mx-auto px-4">
-        <div className="w-16 h-16 rounded-full bg-brand-cream border border-brand-cream-dark flex items-center justify-center mx-auto text-brand-dark mb-6">
-          <ShoppingBag className="w-7 h-7 stroke-[2]" />
-        </div>
-
-        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-brand-dark uppercase tracking-tight mb-2">
-          Your Cart is Empty
-        </h1>
-        <p className="text-xs sm:text-sm text-brand-muted max-w-sm mx-auto leading-relaxed mb-8">
-          You haven&apos;t added any meals to your lunch order yet.
-        </p>
-
-        <Link
-          href="/menu"
-          className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-colors shadow-button-yellow"
-        >
-          <span>Browse Today&apos;s Menu</span>
-          <ArrowRight className="w-4 h-4 stroke-[3]" />
-        </Link>
-      </main>
-    );
+    return <EmptyCartState />;
   }
 
   return (
@@ -73,6 +106,10 @@ export default function CartPage() {
             .filter(([, qty]) => typeof qty === "number" && qty > 0)
             .map(([name, qty]) => `${qty}x Extra ${name.charAt(0).toUpperCase() + name.slice(1)}`);
 
+          // Determine whether this item is a beverage / drink category
+          const isBeverage =
+            item.category === "drinks" || item.category === "beverage";
+
           return (
             <div
               key={item.id}
@@ -80,14 +117,22 @@ export default function CartPage() {
             >
               {/* Left: Thumbnail & Details */}
               <div className="flex items-start gap-4">
-                <div className="relative w-18 h-18 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-brand-cream-dark flex-none border border-black/5">
-                  <Image
-                    src={media.image}
-                    alt={item.mealName}
-                    fill
-                    sizes="80px"
-                    className="object-cover"
-                  />
+                {/* ── Sprint 1 §1: Meal thumbnail with graceful fallback ── */}
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden bg-brand-cream-dark flex-none border border-black/5">
+                  {media?.image ? (
+                    <Image
+                      src={media.image}
+                      alt={item.mealName}
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    /* Fallback: branded placeholder with meal initial */
+                    <div className="w-full h-full flex items-center justify-center bg-brand-cream text-brand-dark font-display font-black text-2xl uppercase">
+                      {item.mealName?.charAt(0) ?? "?"}
+                    </div>
+                  )}
                 </div>
 
                 <div className="space-y-1">
@@ -95,16 +140,36 @@ export default function CartPage() {
                     {item.mealName}
                   </h3>
 
-                  {/* Bulleted Customization List */}
+                  {/* ── Sprint 1 §1: Conditionally show Portion & Protein ── */}
                   <ul className="text-xs text-brand-muted space-y-0.5 font-medium">
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-red" />
-                      <span>Portion: <strong className="text-brand-dark font-semibold">{item.sizeLabel}</strong></span>
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-yellow-dark" />
-                      <span>Protein: <strong className="text-brand-dark font-semibold">{item.includedProteinPackageName}</strong></span>
-                    </li>
+                    {/* Portion: hidden for beverages and when value is "Standard" or "None" */}
+                    {!isBeverage &&
+                      item.sizeLabel !== "Standard" &&
+                      item.sizeLabel !== "None" && (
+                        <li className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-red" />
+                          <span>
+                            Portion:{" "}
+                            <strong className="text-brand-dark font-semibold">
+                              {item.sizeLabel}
+                            </strong>
+                          </span>
+                        </li>
+                      )}
+                    {/* Protein: hidden for beverages and when value is "Standard" or "None" */}
+                    {!isBeverage &&
+                      item.includedProteinPackageName !== "Standard" &&
+                      item.includedProteinPackageName !== "None" && (
+                        <li className="flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-yellow-dark" />
+                          <span>
+                            Protein:{" "}
+                            <strong className="text-brand-dark font-semibold">
+                              {item.includedProteinPackageName}
+                            </strong>
+                          </span>
+                        </li>
+                      )}
                     {extrasList.map((extra, idx) => (
                       <li key={idx} className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-brand-muted" />
@@ -132,7 +197,7 @@ export default function CartPage() {
                   {formatGHS(item.itemSubtotalPesewas)}
                 </div>
 
-                {/* Inline Quantity Stepper */}
+                {/* ── Sprint 1 §2: Inline Quantity Stepper with manual input ── */}
                 <div className="flex items-center border border-brand-cream-dark rounded-full bg-brand-cream p-0.5">
                   <button
                     type="button"
@@ -143,9 +208,20 @@ export default function CartPage() {
                     <Minus className="w-3.5 h-3.5" />
                   </button>
 
-                  <span className="w-8 text-center text-xs font-black text-brand-dark">
-                    {item.quantity}
-                  </span>
+                  {/* Manual numeric input; browser spin buttons are hidden via Tailwind */}
+                  <input
+                    type="number"
+                    min={1}
+                    value={item.quantity}
+                    onChange={(e) => {
+                      const parsed = parseInt(e.target.value, 10);
+                      if (!isNaN(parsed) && parsed >= 1) {
+                        updateQuantity(item.id, parsed);
+                      }
+                    }}
+                    className="w-10 text-center text-xs font-black text-brand-dark bg-transparent outline-none appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none [-moz-appearance:textfield]"
+                    aria-label="Item quantity"
+                  />
 
                   <button
                     type="button"
