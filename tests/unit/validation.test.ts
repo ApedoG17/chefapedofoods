@@ -89,4 +89,21 @@ describe("Order Validation Schemas (lib/validation/orders)", () => {
     expect(createOrderSchema.safeParse({ ...validOrder, phone: "0241234567" }).success).toBe(true);
     expect(createOrderSchema.safeParse({ ...validOrder, phone: "055 987 6543" }).success).toBe(true);
   });
+
+  it("strips HTML tags to prevent XSS injection in text fields", () => {
+    const maliciousOrder = {
+      ...validOrder,
+      customerName: "<script>alert('xss')</script>Kwame Mensah",
+      landmark: "<b>Near Melcom</b><img src=x onerror=alert(1)>",
+      deliveryAddress: "<a href='evil.com'>House 12</a>, Boundary Road",
+    };
+
+    const result = createOrderSchema.safeParse(maliciousOrder);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.customerName).toBe("Kwame Mensah");
+      expect(result.data.landmark).toBe("Near Melcom");
+      expect(result.data.deliveryAddress).toBe("House 12, Boundary Road");
+    }
+  });
 });

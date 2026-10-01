@@ -19,6 +19,7 @@
   <a href="#-delivery-zones--pricing">Campus Zones</a> •
   <a href="#-database-schema">Database</a> •
   <a href="#-api-endpoints">API Reference</a> •
+  <a href="#-engineering--technical-documentation">Engineering Docs</a> •
   <a href="#-local-development">Quickstart</a>
 </p>
 
@@ -257,9 +258,26 @@ Operating in Ghana with mobile phone numbers and payment processing via Hubtel m
 
 ---
 
+## 📚 Engineering & Technical Documentation
+
+The codebase adheres to strict 8-quadrant architectural, security, database, and coding standards:
+
+| Guide / Specification | Scope & Purpose | Core Standard |
+|:---|:---|:---:|
+| **[ARCHITECTURE.md](ARCHITECTURE.md)** | System topology, state machines, dual-lane payments, and courier workflows | Edge-to-PostgreSQL Blueprint |
+| **[CODE_STYLE.md](CODE_STYLE.md)** | 8-Quadrant code style guide, naming conventions, formatting, and pesewas standard | Clean Code & Integrity |
+| **[SECURITY.md](SECURITY.md)** | 8-Quadrant security guide, RLS policies, Hubtel webhook validation, XSS sanitization | Production Hardening |
+| **[DATABASE.md](DATABASE.md)** | 8-Quadrant database guide, schema entities, relations, and migration history | PostgreSQL & Realtime |
+| **[API.md](API.md)** | 8-Quadrant API guide, route catalog, error codes, and external gateways | REST & Webhook Standard |
+| **[DESIGN_SYSTEM.md](DESIGN_SYSTEM.md)** | Visual identity, brand colors (`#FFB800`, `#E53935`), typography, and card designs | Legon Warmth Aesthetic |
+| **[RULES.md](RULES.md)** | Stack-agnostic business rules, payment collection gates, and international SMS formatting | Non-Negotiable Logic |
+
+---
+
 ## 🌐 SEO, Social Preview & Production Hardening
 
 - **Dynamic Sitemap:** Route [`app/sitemap.ts`](file:///C:/Users/ADMIN/Desktop/chefapedofoods/app/sitemap.ts) serves a real-time [`/sitemap.xml`](https://chefapedofoods.com/sitemap.xml) mapping the store, legal policies, and ordering routes.
+- **Robots.txt Engine:** Route [`app/robots.ts`](file:///C:/Users/ADMIN/Desktop/chefapedofoods/app/robots.ts) controls web spider indexing, keeping private routes (`/admin/`, `/rider/`, `/api/`, `/legal/`) protected from search crawlers.
 - **Social Sharing Cards:** High-definition 1200x675 OpenGraph previews (`public/opengraph-image.png`, `app/opengraph-image.png`) configured for rich link unfurling on WhatsApp, iMessage, and Twitter/X.
 - **Branded Fallbacks:** Custom 404 *"Plate Not Found"* screen (`app/not-found.tsx`) and fault-tolerant React error boundaries (`app/error.tsx`) prevent application white-screens.
 - **Clean Console Hygiene:** Zero lingering `console.log` statements in production routes.
