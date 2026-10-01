@@ -877,6 +877,30 @@ export default function CheckoutPage() {
           </div>
         </div>
       )}
+
+      {/* Frequently Asked Questions Accordion */}
+      <div className="mt-12 bg-[#141414] border border-gray-800 rounded-2xl p-6">
+        <h3 className="text-xl font-black text-brand-yellow uppercase tracking-wider mb-6">
+          Frequently Asked Questions
+        </h3>
+        
+        <div className="space-y-4">
+          <div className="pb-4 border-b border-gray-800">
+            <p className="text-sm font-bold text-white uppercase mb-1">When will my food arrive?</p>
+            <p className="text-sm text-gray-400">Our kitchen prepares meals fresh. Once your order hits &quot;Out for Delivery,&quot; our rider will arrive at your Legon/East Legon location within 15–25 minutes.</p>
+          </div>
+          
+          <div className="pb-4 border-b border-gray-800">
+            <p className="text-sm font-bold text-white uppercase mb-1">How does the delivery fee work?</p>
+            <p className="text-sm text-gray-400">To keep our food prices low, you pay the exact delivery fee directly to the dispatch rider via Cash or MoMo upon arrival. The food total is paid online to confirm the kitchen order.</p>
+          </div>
+          
+          <div className="pt-2">
+            <p className="text-sm font-bold text-white uppercase mb-1">Can I cancel my order?</p>
+            <p className="text-sm text-gray-400">You can cancel for a full refund only while the status is &quot;Order Received.&quot; Once the kitchen begins cooking (Preparing), cancellations are no longer accepted.</p>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }

@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(req: Request) {
+  // Check Hubtel's specific signature header or authorization bearer token
+  const signature = req.headers.get("x-hubtel-signature") || req.headers.get("authorization");
+  const webhookSecret = process.env.HUBTEL_WEBHOOK_SECRET;
+
+  if (webhookSecret && signature !== webhookSecret && signature !== `Bearer ${webhookSecret}`) {
+    console.error("CRITICAL: Blocked unauthorized webhook attempt.");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const body = await req.json();
 

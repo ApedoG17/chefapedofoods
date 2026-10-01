@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: vi.fn(),
@@ -161,5 +161,86 @@ describe("POST /api/webhooks/hubtel (Hubtel Webhook Confirmation Engine)", () =>
     expect(res.status).toBe(500);
     const json = await res.json();
     expect(json.message).toBe("Database connection dropped");
+  });
+
+  describe("Webhook Security & Secret Validation", () => {
+    const originalSecret = process.env.HUBTEL_WEBHOOK_SECRET;
+
+    beforeEach(() => {
+      process.env.HUBTEL_WEBHOOK_SECRET = "super-secret-hubtel-key";
+    });
+
+    afterEach(() => {
+      process.env.HUBTEL_WEBHOOK_SECRET = originalSecret;
+    });
+
+    it("returns 401 Unauthorized when signature is missing", async () => {
+      const req = new Request("http://localhost/api/webhooks/hubtel", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          clientReference: "order-123",
+          responseCode: "0000",
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(401);
+      const json = await res.json();
+      expect(json.error).toBe("Unauthorized");
+    });
+
+    it("returns 401 Unauthorized when signature does not match", async () => {
+      const req = new Request("http://localhost/api/webhooks/hubtel", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-hubtel-signature": "wrong-secret",
+        },
+        body: JSON.stringify({
+          clientReference: "order-123",
+          responseCode: "0000",
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(401);
+      const json = await res.json();
+      expect(json.error).toBe("Unauthorized");
+    });
+
+    it("accepts valid signature via x-hubtel-signature header", async () => {
+      vi.mocked(createAdminClient).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          update: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({
+              select: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: { id: "order-sec", order_status: "confirmed", payment_status: "paid" },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        }),
+      } as any);
+
+      const req = new Request("http://localhost/api/webhooks/hubtel", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-hubtel-signature": "super-secret-hubtel-key",
+        },
+        body: JSON.stringify({
+          clientReference: "order-sec",
+          responseCode: "0000",
+        }),
+      });
+
+      const res = await POST(req);
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json.message).toBe("Order confirmed successfully");
+    });
   });
 });
