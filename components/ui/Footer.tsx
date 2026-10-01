@@ -33,7 +33,7 @@ export function Footer() {
               Authentic Ghanaian home cooking. Small morning batches prepared fresh daily with local aromatics and delivered piping hot across Legon and Accra.
             </p>
             <div className="text-[11px] text-white/50 space-y-1 pt-1 font-medium">
-              <p>📍 Operational Base: East Legon, Accra</p>
+              <p>📍 Operational Base: South Legon Drive 6a, Accra</p>
               <p>✉️ <a href="mailto:hello@chefapedofoods.com" className="hover:text-brand-yellow transition-colors">hello@chefapedofoods.com</a></p>
             </div>
           </div>
@@ -148,13 +148,13 @@ export function Footer() {
           </div>
 
           {/* Center: Social & Contact Icons */}
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-2 sm:gap-3">
 
             {/* Phone — shown only when NEXT_PUBLIC_BUSINESS_PHONE is set */}
             {BUSINESS_PHONE && (
               <a
                 href={`tel:${BUSINESS_PHONE}`}
-                className="text-white/50 hover:text-brand-yellow transition-colors"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-full text-white/60 hover:text-brand-yellow hover:bg-white/5 transition-colors"
                 aria-label="Call Chef Apedo Foods"
               >
                 <Phone size={20} />
@@ -167,7 +167,7 @@ export function Footer() {
                 href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent("Hello Chef Apedo Foods!")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/50 hover:text-brand-yellow transition-colors"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-full text-white/60 hover:text-brand-yellow hover:bg-white/5 transition-colors"
                 aria-label="Chat with Chef Apedo Foods on WhatsApp"
               >
                 <MessageSquare size={20} />
@@ -179,7 +179,7 @@ export function Footer() {
               href={INSTAGRAM_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/50 hover:text-brand-yellow transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-full text-white/60 hover:text-brand-yellow hover:bg-white/5 transition-colors"
               aria-label="Follow Chef Apedo Foods on Instagram"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
@@ -194,7 +194,7 @@ export function Footer() {
               href={TIKTOK_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/50 hover:text-brand-yellow transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-full text-white/60 hover:text-brand-yellow hover:bg-white/5 transition-colors"
               aria-label="Follow Chef Apedo Foods on TikTok"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -207,7 +207,7 @@ export function Footer() {
               href={SNAPCHAT_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-white/50 hover:text-brand-yellow transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-full text-white/60 hover:text-brand-yellow hover:bg-white/5 transition-colors"
               aria-label="Add Chef Apedo Foods on Snapchat"
             >
               {/* Standard Snapchat ghost mark — simplified clean path, no clipping */}

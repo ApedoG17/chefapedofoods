@@ -300,6 +300,8 @@ export type Database = {
           promo_code_id: string | null
           original_amount: number | null
           discount_amount: number | null
+          expires_at: string | null
+          manual_review_required: boolean | null
         }
         Insert: {
           address_id: string
@@ -322,6 +324,8 @@ export type Database = {
           promo_code_id?: string | null
           original_amount?: number | null
           discount_amount?: number | null
+          expires_at?: string | null
+          manual_review_required?: boolean | null
         }
         Update: {
           address_id?: string
@@ -344,6 +348,8 @@ export type Database = {
           promo_code_id?: string | null
           original_amount?: number | null
           discount_amount?: number | null
+          expires_at?: string | null
+          manual_review_required?: boolean | null
         }
         Relationships: [
           {

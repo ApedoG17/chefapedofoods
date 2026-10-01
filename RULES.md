@@ -38,3 +38,26 @@ Stack is locked (Next.js 14 + TypeScript + Tailwind, Supabase, Vercel, Hubtel + 
 - **No Slug Conflicts in App Router:** Dynamic routes sharing a parent directory must share the exact same parameter name (e.g., use `[id]` consistently across `/api/admin/orders/[id]/...`).
 - **Tailwind Tokens Mirror Design System:** Use curated design tokens (`brand-yellow`, `brand-red`, `brand-cream`, `#18110E`, `#141414`) rather than arbitrary inline hex codes or pure `#000000`.
 - **Zero Raw Floats in UI:** Format all currency using the centralized `formatGHS(pesewas)` helper from `lib/pricing.ts`.
+
+---
+
+## 5. Geospatial Distance & Dynamic Logistics Engine (`lib/delivery/`)
+
+- **Kitchen Anchor Coordinate:** Centered strictly at `lat: 5.6265, lng: -0.1706` (South Legon Drive 6a kitchen hub, `CHEF_APEDO_KITCHEN`).
+- **Dynamic Distance Pricing Formula:** GH₵ 7.00 (`700 pesewas`) base fee for the first 3.0 km, plus GH₵ 2.00 (`200 pesewas`) per additional km (`Math.ceil(distance - 3.0)`).
+- **Service Radius Limit:** 15.0 km maximum delivery radius for hot food freshness guarantee. Locations beyond 15.0 km are rejected with an out-of-range alert.
+- **Dynamic ETA Window:** ASAP ETA calculation combines kitchen prep (20 min) with distance transit time (`Math.max(10, Math.round(distanceKm * 3))` mins) + 5-10 min buffer.
+- **Time Guard on Scheduled Slots:** Scheduled 30-minute delivery windows filter out past slots in real time using Ghana Standard Time (UTC).
+- **Map Tile Fallback:** `MapPicker.tsx` starts a 4-second `setTimeout` on mount. If OSM tiles have not loaded (`tilesLoadedRef.current === false`) or a `tileerror` fires, the component transitions to a categorised `FALLBACK_LANDMARKS` selector. The timer is cancelled on tile load success and on unmount. Selecting a landmark feeds exact `lat/lng` into the Haversine pricing engine identically to a map pin-drop.
+- **Geolocation Fallback:** GPS geolocation (`navigator.geolocation.getCurrentPosition`) is offered in the fallback UI. On `PERMISSION_DENIED` or `POSITION_UNAVAILABLE`, a clear inline error guides the user to the landmark list instead.
+
+---
+
+## 6. Operating Hours, Payment Expiry & Resilience Rules
+
+- **ASAP Operating Window (Server-Enforced):** ASAP orders are only accepted between **08:00 – 15:00 GMT**. Scheduled batch pre-orders use 06:00 – 17:00 GMT with same-day cutoff at 10:00 GMT. The server time is the sole authority (`lib/operating-hours.ts`, `getAsapOperatingStatus()`). Client-side checks are UX only and must never be the only guard.
+- **ASAP Order Rejection:** `POST /api/orders` and `POST /api/orders/manual` return **HTTP 409 Conflict** with `{ error: "ASAP_CLOSED", message: "..." }` for ASAP orders outside the window. The checkout UI calls `GET /api/operating-hours` (force-dynamic, no-store) on mount to show a friendly closed alert and disable the Pay button.
+- **Abandoned Payment Expiry:** Orders in `awaiting_payment` status automatically expire **15 minutes** after creation (`expires_at = created_at + 15 min`, integer timestamp). Expiration is enforced both lazily (on every `GET /api/orders/[id]` read, before the response is returned) and proactively (Vercel Cron at `*/10 * * * *`).
+- **Hubtel Late Payment Reconciliation:** If a Hubtel webhook arrives for an order that has already been cancelled or expired, the handler must check Hubtel's transaction status before acting. A confirmed late payment sets `order_status = 'confirmed'`, `payment_status = 'paid'`, and `manual_review_required = true`. The admin receives an alert rather than silently discarding funds.
+- **KDS Exclusion:** The kitchen queue (`GET /api/admin/orders`) filters out `awaiting_payment` and `cancelled` orders by default. The query accepts `?include_unpaid=true` only for explicit finance reconciliation views.
+

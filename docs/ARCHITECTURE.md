@@ -156,6 +156,44 @@ Option B: Manual MoMo / Cash on Delivery
 
 ---
 
+## 5B. Geospatial Distance Logistics Engine & Dynamic Timing (`lib/delivery/`)
+
+```
+                         CUSTOMER PIN-DROP (MapPicker / Search)
+                                          │
+                                          ▼
+                      GPS Coordinates Captured (lat, lng)
+                                          │
+                                          ▼
+                  Haversine Great-Circle Distance from Kitchen
+                    Anchor Point: South Legon Drive 6a (5.6265, -0.1706)
+                                          │
+                                          ▼
+                   ┌──────────────────────┴──────────────────────┐
+                   │                                             │
+                   ▼                                             ▼
+          distance <= 15.0 km                             distance > 15.0 km
+                   │                                             │
+                   ▼                                             ▼
+        DYNAMIC PRICING FORMULA                          UNSERVICEABLE RADIUS
+  Base Tier (0 – 3.0 km): GH₵ 7.00 (700p)             Quality heat guarantee blocks
+  Extended: +GH₵ 2.00 (200p) per additional km        checkout with out-of-range alert
+                   │
+                   ▼
+        DUAL-MODE TIMING ENGINE
+  Mode 1 (ASAP): Prep (20m) + Transit (d*3m) + Buffer
+  Mode 2 (Scheduled): 30-min window with Time Guard (UTC)
+```
+
+### Operational Rules:
+1. **Kitchen Anchor Point:** `lat: 5.6265, lng: -0.1706` at South Legon Drive 6a (`CHEF_APEDO_KITCHEN`).
+2. **Formula:** `feePesewas = 700 + Math.ceil(distanceKm - 3.0) * 200` (for distance > 3.0 km). Under 3.0 km, flat `700` pesewas (GH₵ 7.00).
+3. **Hard Ceiling:** Orders beyond 15.0 km are automatically barred from checkout to ensure food arrives steaming hot.
+4. **ETA Calculation:** ASAP Mode predicts arrival by dynamically summing 20 minutes kitchen prep + transit time (`Math.max(10, Math.round(distanceKm * 3))` mins) + 5–10 min buffer.
+5. **Decoupled Dual-Lane Settlement:** Food total is paid online (Hubtel) or reserved via manual MoMo; the dynamic geospatial delivery fee is paid directly to the dispatch rider upon arrival.
+
+---
+
 ## 6. Complete Database Schema (PostgreSQL)
 
 ```mermaid

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Menu, X, ArrowRight } from "lucide-react";
 import { useCart } from "@/lib/cart/store";
+import { Portal } from "@/components/ui/Portal";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -110,7 +111,7 @@ export function Navbar() {
             <Link
               id="global-cart-target"
               href="/cart"
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-[11px] sm:text-xs uppercase tracking-wider shadow-xs transition-colors"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 min-h-[44px] rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-[11px] sm:text-xs uppercase tracking-wider shadow-xs transition-colors"
               aria-label={`Cart with ${itemCount} items`}
             >
               <ShoppingBag className="w-3.5 sm:w-4 h-3.5 sm:h-4 stroke-[2.5]" />
@@ -127,7 +128,7 @@ export function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 rounded-full text-brand-dark hover:bg-black/5 transition-colors focus:outline-none"
+            className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center p-2 rounded-full text-brand-dark hover:bg-black/5 transition-colors focus:outline-none"
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
           >
             {mobileOpen ? (
@@ -139,46 +140,74 @@ export function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Slide-Out Drawer / Dropdown */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.96 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="md:hidden absolute top-[calc(100%+8px)] left-0 right-0 bg-[#FAF5EE]/95 backdrop-blur-xl border border-white/60 shadow-lg rounded-3xl p-5 space-y-3"
-          >
-            <div className="space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`block px-4 py-2.5 rounded-2xl text-sm font-semibold transition-colors ${
-                    pathname === link.href
-                      ? "bg-brand-yellow text-brand-dark"
-                      : "text-brand-dark hover:bg-black/5"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-
-            <div className="pt-2 border-t border-black/10">
-              <Link
-                href="/menu"
+      {/* Mobile Slide-Out Drawer / Dropdown rendered via React Portal */}
+      <Portal>
+        <AnimatePresence>
+          {mobileOpen && (
+            <>
+              {/* Dimmed backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 onClick={() => setMobileOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-brand-yellow text-brand-dark font-extrabold text-xs uppercase tracking-wider shadow-button-yellow"
+                className="md:hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-[998]"
+              />
+
+              {/* Slide-out Menu Panel */}
+              <motion.div
+                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                className="md:hidden fixed top-20 left-4 right-4 max-w-md mx-auto z-[999] bg-[#FAF5EE]/95 backdrop-blur-xl border border-white/60 shadow-2xl rounded-3xl p-5 space-y-3"
               >
-                <span>Order Today&apos;s Lunch</span>
-                <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <div className="flex items-center justify-between border-b border-black/5 pb-2.5">
+                  <span className="text-[11px] font-black uppercase tracking-wider text-brand-dark/70">
+                    Menu Navigation
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobileOpen(false)}
+                    className="p-1 rounded-full text-brand-dark/60 hover:text-brand-dark hover:bg-black/5"
+                    aria-label="Close menu"
+                  >
+                    <X className="w-4 h-4 stroke-[2.5]" />
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`block px-4 py-2.5 rounded-2xl text-sm font-semibold transition-colors ${
+                        pathname === link.href
+                          ? "bg-brand-yellow text-brand-dark font-bold"
+                          : "text-brand-dark hover:bg-black/5"
+                      }`}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="pt-2 border-t border-black/10">
+                  <Link
+                    href="/menu"
+                    onClick={() => setMobileOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-full bg-brand-yellow text-brand-dark font-extrabold text-xs uppercase tracking-wider shadow-button-yellow"
+                  >
+                    <span>Order Today&apos;s Lunch</span>
+                    <ArrowRight className="w-3.5 h-3.5 stroke-[3]" />
+                  </Link>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+      </Portal>
     </motion.header>
   );
 }

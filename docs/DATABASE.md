@@ -7,7 +7,7 @@ Schema design, setup, conventions and best practices for managing our database i
 
 | 03 Setup & Configuration ⚙️ | 04 Schema Design Principles 🏗️ |
 | :--- | :--- |
-| • Create a Supabase project instance<br>• Set environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)<br>• Configure database access controls<br>• Connect the app to the database. | • Keep schema simple and normalized<br>• Use meaningful and consistent naming<br>• Define clear relationships (one-to-one, one-to-many)<br>• Add indexes for frequently queried fields<br>• Include `created_at` and `updated_at` timestamps. |
+| • Create a Supabase project instance<br>• Set environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`)<br>• Configure database access controls<br>• Connect the app to the database. | • Keep schema simple and normalized<br>• Define clear relationships (one-to-one, one-to-many)<br>• **Utilize granular status enums (e.g., `preparing`, `out_for_delivery`, `arriving_soon` / `rider_arriving`) to trigger precise UI and SMS alerts.**<br>• Include `created_at` and `updated_at` timestamps for accurate ETA calculations. |
 
 | 05 Naming Conventions 🏷️ | 06 Migrations & Seeding 🔄 |
 | :--- | :--- |

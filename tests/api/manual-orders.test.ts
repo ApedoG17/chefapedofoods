@@ -139,4 +139,36 @@ describe("POST /api/orders/manual (Manual Order Bypass API)", () => {
     expect(json.success).toBe(false);
     expect(json.message).toContain("Database connection failure");
   });
+
+  it("rejects ASAP orders placed outside operating hours with status 409", async () => {
+    const operatingHours = await import("@/lib/operating-hours");
+    const spy = vi.spyOn(operatingHours, "getAsapOperatingStatus").mockReturnValue({
+      isOpen: false,
+      serverTime: new Date().toISOString(),
+      asapOpen: "08:00",
+      asapClose: "15:00",
+      reason: "ASAP orders are open 8:00 AM to 3:00 PM GMT. Please check back during operating hours or schedule for later.",
+    });
+
+    const asapPayload = {
+      ...validManualPayload,
+      customerDetails: {
+        ...validManualPayload.customerDetails,
+        deliverySlot: "ASAP (25–35 mins)",
+      },
+    };
+
+    const req = new Request("http://localhost/api/orders/manual", {
+      method: "POST",
+      body: JSON.stringify(asapPayload),
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(409);
+    const json = await res.json();
+    expect(json.success).toBe(false);
+    expect(json.message).toContain("ASAP orders are open 8:00 AM to 3:00 PM GMT");
+
+    spy.mockRestore();
+  });
 });

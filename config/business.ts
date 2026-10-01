@@ -41,10 +41,8 @@ export const EXTRA_PROTEIN_PESEWAS = {
   fish: 400,
 } as const;
 
-/** GH₵10 is the only locked delivery-fee figure — real per-zone fees are
- * still open (docs/PRD.md §28 in the planning doc). Never hard-code a
- * per-zone number here; read it from the DeliveryZone table. */
-export const DELIVERY_FEE_STARTING_PESEWAS = 1000;
+/** Base starting delivery fee from South Legon Drive 6a kitchen hub (0–3.0 km tier). */
+export const DELIVERY_FEE_STARTING_PESEWAS = 700;
 
 export const EXCLUDED_DELIVERY_AREAS = [
   "Kasoa",
@@ -62,6 +60,7 @@ export const ORDER_STATUSES = [
   "preparing",
   "ready_for_dispatch",
   "dispatched",
+  "rider_arriving",
   "delivered",
   "cancelled",
 ] as const;

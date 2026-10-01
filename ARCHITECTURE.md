@@ -16,7 +16,7 @@ Tech stack and architecture are **locked and production-implemented**. This docu
 | **Hosting & Edge** | **Vercel** | Edge runtime for API routes, automated branch deployments, and asset caching. |
 | **Payments** | **Hubtel API + Manual MoMo** | Dual-lane: Hubtel for online mobile money/cards, with manual merchant MoMo/Cash on Delivery. |
 | **Messaging** | **Agoo SMS Gateway** | High-throughput Ghanaian transactional SMS (`X-API-Key` auth, single & concurrent broadcast). |
-| **Mapping & Location** | **Leaflet / OpenStreetMap** | Dynamic GPS coordinate pin-dropping and campus landmark address resolution. |
+| **Mapping & Location** | **Leaflet / OpenStreetMap + Landmark Fallback** | Dynamic GPS coordinate pin-dropping, campus landmark address resolution, and a 4-second tile-timeout fallback to a categorised `CAMPUS_LANDMARKS` selector (`lib/delivery/landmarks.ts`). |
 
 ---
 
@@ -156,6 +156,44 @@ Option B: Manual MoMo / Cash on Delivery
 
 ---
 
+## 5B. Geospatial Distance Logistics Engine & Dynamic Timing (`lib/delivery/`)
+
+```
+                         CUSTOMER PIN-DROP (MapPicker / Search)
+                                          │
+                                          ▼
+                      GPS Coordinates Captured (lat, lng)
+                                          │
+                                          ▼
+                  Haversine Great-Circle Distance from Kitchen
+                    Anchor Point: South Legon Drive 6a (5.6265, -0.1706)
+                                          │
+                                          ▼
+                   ┌──────────────────────┴──────────────────────┐
+                   │                                             │
+                   ▼                                             ▼
+          distance <= 15.0 km                             distance > 15.0 km
+                   │                                             │
+                   ▼                                             ▼
+        DYNAMIC PRICING FORMULA                          UNSERVICEABLE RADIUS
+  Base Tier (0 – 3.0 km): GH₵ 7.00 (700p)             Quality heat guarantee blocks
+  Extended: +GH₵ 2.00 (200p) per additional km        checkout with out-of-range alert
+                   │
+                   ▼
+        DUAL-MODE TIMING ENGINE
+  Mode 1 (ASAP): Prep (20m) + Transit (d*3m) + Buffer
+  Mode 2 (Scheduled): 30-min window with Time Guard (UTC)
+```
+
+### Operational Rules:
+1. **Kitchen Anchor Point:** `lat: 5.6265, lng: -0.1706` at South Legon Drive 6a (`CHEF_APEDO_KITCHEN`).
+2. **Formula:** `feePesewas = 700 + Math.ceil(distanceKm - 3.0) * 200` (for distance > 3.0 km). Under 3.0 km, flat `700` pesewas (GH₵ 7.00).
+3. **Hard Ceiling:** Orders beyond 15.0 km are automatically barred from checkout to ensure food arrives steaming hot.
+4. **ETA Calculation:** ASAP Mode predicts arrival by dynamically summing 20 minutes kitchen prep + transit time (`Math.max(10, Math.round(distanceKm * 3))` mins) + 5–10 min buffer.
+5. **Decoupled Dual-Lane Settlement:** Food total is paid online (Hubtel) or reserved via manual MoMo; the dynamic geospatial delivery fee is paid directly to the dispatch rider upon arrival.
+
+---
+
 ## 6. Complete Database Schema (PostgreSQL)
 
 ```mermaid
@@ -257,4 +295,35 @@ Legal, SEO & Fallback Topology
     ├── app/not-found.tsx (Plate Not Found branded 404 page)
     └── app/error.tsx (Client-side crash isolation with reset action)
 ```
+
+
+---
+
+## 9. Platform Resilience Features
+
+Three hardening features were implemented post-MVP to prepare the platform for high-volume campus traffic:
+
+### 9.1 Operating Hours Guard
+
+- **File:** `lib/operating-hours.ts` - `ASAP_HOURS = { open: "08:00", close: "15:00" }`, `OPERATING_TIMEZONE = "Africa/Accra"`, `getAsapOperatingStatus()` returns server-time status.
+- **Endpoint:** `GET /api/operating-hours` (force-dynamic, `no-store` headers) - returns `{ isOpen, currentTimeGMT, message }` using server wall-clock time.
+- **Enforcement:** `POST /api/orders` and `POST /api/orders/manual` reject ASAP orders outside 08:00-15:00 GMT with HTTP 409 and `{ error: "ASAP_CLOSED" }`.
+- **UX:** Checkout fetches `/api/operating-hours` on mount; shows a friendly amber closed-alert, suggests scheduled slots, and disables Pay button.
+- **Scheduling distinction:** Scheduled pre-orders use 06:00-17:00 GMT with same-day cutoff at 10:00 GMT; the ASAP guard does not affect scheduled orders.
+
+### 9.2 Abandoned Payment Expiry & Late Reconciliation
+
+- **Migration:** `supabase/migrations/0006_order_expiry_and_reconciliation.sql` - adds `expires_at TIMESTAMPTZ` and `manual_review_required BOOLEAN DEFAULT FALSE`.
+- **Expiration logic:** `lib/orders/expiration.ts` - `checkAndExpireOrder()` checks Hubtel before cancelling.
+- **Lazy check:** `GET /api/orders/[id]` triggers `checkAndExpireOrder()` before returning data.
+- **Proactive sweep:** Vercel Cron `*/10 * * * *` at `/api/cron/expire-orders`.
+- **Late reconciliation:** Late Hubtel webhooks for cancelled orders set `manual_review_required = true`.
+- **Order tracker UI:** Cancelled status renders an EXPIRED card with Reorder and WhatsApp CTAs.
+
+### 9.3 Map Tile Network Timeout & Landmark Fallback
+
+- **Landmark data:** `lib/delivery/landmarks.ts` - `CAMPUS_LANDMARKS: CampusLandmark[]` (30+ entries, 6 categories). `filterLandmarks(query, category)` enables instant client-side search.
+- **Timeout:** `MapPicker.tsx` starts a 4-second timeout on mount. `TileMonitor` listens for `tileload`/`tileerror` Leaflet events. Timer cleared on tile success and unmount.
+- **Fallback UI:** Category filter tabs, instant text search, GPS geolocation button. Selecting a landmark feeds exact lat/lng into `calculateDistanceDeliveryFee()` and `calculateDistanceETA()`.
+- **Geolocation errors:** `PERMISSION_DENIED` and `POSITION_UNAVAILABLE` show inline guidance.
 

@@ -230,10 +230,25 @@ describe("Hubtel Payment System Tests", () => {
 
   describe("POST /api/webhooks/hubtel (Webhook Listener)", () => {
     it("confirms order and marks payment as paid on responseCode 0000", async () => {
+      const existingOrder = {
+        id: "order-hubtel-confirmed-1",
+        order_status: "awaiting_payment",
+        payment_status: "unpaid",
+        subtotal_pesewas: 7000,
+      };
+
       const mockSupabase: any = {
         from: vi.fn((table: string) => {
           expect(table).toBe("orders");
           return {
+            select: vi.fn().mockReturnValue({
+              eq: vi.fn().mockReturnValue({
+                single: vi.fn().mockResolvedValue({
+                  data: existingOrder,
+                  error: null,
+                }),
+              }),
+            }),
             update: vi.fn((updateData: any) => {
               expect(updateData.order_status).toBe("confirmed");
               expect(updateData.payment_status).toBe("paid");

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { isAreaServiceable } from "@/lib/delivery";
 
-export const ghanaPhoneRegex = /^(?:\+233|0)[25]\d{8}$/;
+export const ghanaPhoneRegex = /^(?:0|\+233)[2-59]\d{8}$/;
 
 /**
  * Validates a Ghanaian mobile phone number against national telecom formats

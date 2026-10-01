@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { Portal } from '@/components/ui/Portal';
+import { CHEF_APEDO_KITCHEN } from "@/lib/delivery/distance";
 import { 
   X, 
   MapPin, 
@@ -69,7 +71,7 @@ interface OrderDrawerProps {
 }
 
 export function parseCoordinates(addressStr: string): { lat: number; lng: number } {
-  if (!addressStr) return { lat: 5.6505, lng: -0.1870 }; // Default East Legon / Campus
+  if (!addressStr) return { lat: CHEF_APEDO_KITCHEN.lat, lng: CHEF_APEDO_KITCHEN.lng }; // Default kitchen hub anchor
 
   // 1. Try explicit GPS pattern: "GPS: 5.6593, -0.1932"
   const gpsMatch = addressStr.match(/GPS:\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/i);
@@ -111,8 +113,8 @@ export function parseCoordinates(addressStr: string): { lat: number; lng: number
   if (lower.includes('cantonments')) return { lat: 5.5780, lng: -0.1740 };
   if (lower.includes('spintex')) return { lat: 5.6300, lng: -0.1000 };
 
-  // Default East Legon
-  return { lat: 5.6505, lng: -0.1870 };
+  // Default kitchen hub anchor
+  return { lat: CHEF_APEDO_KITCHEN.lat, lng: CHEF_APEDO_KITCHEN.lng };
 }
 
 export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: OrderDrawerProps) {
@@ -238,6 +240,9 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
       case 'out_for_delivery':
       case 'dispatched':
         return 'bg-purple-400/10 text-purple-400 border-purple-400/20';
+      case 'rider_arriving':
+      case 'arriving_soon':
+        return 'bg-amber-400/20 text-amber-300 border-amber-400/30';
       case 'completed':
       case 'delivered':
         return 'bg-green-400/10 text-green-400 border-green-400/20';
@@ -255,7 +260,8 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
   const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+    <Portal>
+      <div className="fixed inset-0 z-[1000] overflow-hidden flex justify-end">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-black/70 backdrop-blur-xs transition-opacity"
@@ -322,6 +328,19 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
           >
             <Bike size={13} />
             <span>Dispatch</span>
+          </button>
+
+          <button
+            disabled={updating || currentStatus === 'rider_arriving'}
+            onClick={() => handleUpdateStatus('rider_arriving')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex-none flex items-center gap-1.5 ${
+              currentStatus === 'rider_arriving'
+                ? 'bg-amber-500 text-white'
+                : 'bg-white/5 hover:bg-amber-500/20 hover:text-amber-300 text-white/70'
+            }`}
+          >
+            <Clock size={13} />
+            <span>Arriving (3m)</span>
           </button>
 
           <button
@@ -576,5 +595,6 @@ export default function OrderDrawer({ order, isOpen, onClose, onStatusUpdate }: 
         </div>
       </aside>
     </div>
+    </Portal>
   );
 }

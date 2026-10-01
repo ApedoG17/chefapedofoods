@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendDeliverySMS, sendFeedbackSMS } from "@/lib/notifications";
+import { sendDeliverySMS, sendFeedbackSMS, sendRiderArrivingSMS } from "@/lib/notifications";
 
 interface UpdateOrderBody {
   orderStatus?: string;
@@ -21,12 +21,14 @@ export async function PATCH(
     const rawStatus = (body.status || body.orderStatus || "").trim().toLowerCase();
     
     // Normalize status to valid database enum check constraints:
-    // ('awaiting_payment', 'confirmed', 'preparing', 'ready_for_dispatch', 'dispatched', 'delivered', 'cancelled')
+    // ('awaiting_payment', 'confirmed', 'preparing', 'ready_for_dispatch', 'dispatched', 'rider_arriving', 'delivered', 'cancelled')
     let newStatus: string | undefined = undefined;
     if (rawStatus === "completed" || rawStatus === "delivered") {
       newStatus = "delivered";
     } else if (rawStatus === "out_for_delivery" || rawStatus === "dispatched") {
       newStatus = "dispatched";
+    } else if (rawStatus === "rider_arriving" || rawStatus === "arriving_soon") {
+      newStatus = "rider_arriving";
     } else if (rawStatus === "cooking" || rawStatus === "preparing") {
       newStatus = "preparing";
     } else if (rawStatus === "ready" || rawStatus === "ready_for_dispatch") {
@@ -99,6 +101,13 @@ export async function PATCH(
       // Fire asynchronously without blocking the client response
       sendDeliverySMS(customerPhone, customerName, updated.id).catch((err) => {
         console.error("Async SMS dispatch error:", err);
+      });
+    }
+
+    // Trigger Proximity SMS notification automatically when order transitions to rider_arriving
+    if (newStatus === "rider_arriving" && customerPhone) {
+      sendRiderArrivingSMS(customerPhone, customerName, updated.id).catch((err) => {
+        console.error("Async Proximity SMS dispatch error:", err);
       });
     }
 

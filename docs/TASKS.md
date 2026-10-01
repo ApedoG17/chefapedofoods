@@ -40,12 +40,12 @@ Tracked per the core transaction first philosophy: money movement and operationa
 ## 2. Core Transaction Flow (Completed)
 
 - [x] **Meal Customization Engine:** Size selection (Small / Medium / Large) ➔ Included protein options scoped strictly to selected size ➔ Extra protein portions (Chicken +15, Sausage +4, Egg +4, Fish +4) ➔ Dynamic price calculation
-- [x] **Interactive Cart:** Real-time quantity manipulation, customization review, subtotal calculation
+- [x] **Interactive Cart:** Real-time quantity manipulation, customization review, subtotal calculation, dynamic location-based delivery disclaimer ("Calculated at checkout based on location")
 - [x] **Checkout Pipeline:**
-  - Guest customer validation (valid Ghana mobile number & name)
+  - Guest customer validation (10-digit Ghana mobile number restriction & international dial code picker)
   - Interactive OpenStreetMap (Leaflet) pin-drop & campus landmark entry
-  - Dynamic Campus Delivery Zone selector with automated fee recalculation
-  - Delivery slot picker (11:30 AM, 12:30 PM, 1:30 PM, 2:30 PM) respecting 10:00 AM cutoff
+  - Dynamic Geospatial Distance Engine (Haversine formula from South Legon Drive 6a kitchen hub at 5.6265, -0.1706; GH₵7 base for first 3km + GH₵2/km; 15km cutoff)
+  - Dual-mode delivery timing (ASAP dynamic ETA window based on prep + transit time, and 30-min scheduled window picker with real-time Time Guard)
   - Promo code validation engine with real-time percentage deductions
 - [x] **Dual-Payment Split Screen:**
   - Card 1: Food Total prepaid online via Hubtel or selected as Manual MoMo/Cash
@@ -53,7 +53,8 @@ Tracked per the core transaction first philosophy: money movement and operationa
 - [x] **Live Order Tracking (`/order/[id]`):**
   - Celebration packing animation with physical box drop
   - Live progress stepper (Order Received ➔ Preparing ➔ Out for Delivery ➔ Delivered)
-  - Responsive vertical timeline on mobile preventing label overlap
+  - Responsive vertical timeline on mobile (w-0.5) and horizontal on desktop (h-0.5) preventing label overlap
+  - Dynamic courier proximity alert with customer delivery address and landmark
   - Direct WhatsApp kitchen chat and live status indicator
 
 ---

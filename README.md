@@ -118,22 +118,20 @@ sequenceDiagram
 
 ---
 
-## 📍 Dynamic Campus Delivery Zones & Pricing
+## 📍 Geospatial Distance-Based Delivery Engine & Pricing
 
-Chef Apedo delivers fresh midday staples directly to hostel gates and faculty points across the University of Ghana and surrounding Accra zones:
+Chef Apedo delivers freshly prepared midday staples directly to hostel gates, residential doors, and faculty points across the University of Ghana and Accra. Delivery fees and ETA windows are calculated dynamically using great-circle distance (Haversine formula) from our central South Legon Drive 6a kitchen hub (`5.6265, -0.1706`):
 
-| Campus Zone / Delivery Area | Courier Fee (Pesewas) | Display Amount | Transit Time Guarantee |
+| Distance Band / Coverage | Courier Fee (Pesewas) | Display Amount | Transit Time Guarantee |
 |:---|:---:|:---:|:---:|
-| 🏢 **Evandy Hostel** | `500` | **GH₵ 5.00** | 10 – 15 mins |
-| 🏢 **Pentagon Hostels (Blocks A–D)** | `500` | **GH₵ 5.00** | 10 – 15 mins |
-| 🏛️ **Main Campus (Balme / Night Market / Halls)** | `700` | **GH₵ 7.00** | 15 – 20 mins |
-| 🌆 **East Legon / Shiashie / Bawaleshie** | `1000` | **GH₵ 10.00** | 20 – 30 mins |
-| ✈️ **Airport Residential Area** | `1200` | **GH₵ 12.00** | 25 – 35 mins |
-| 🏙️ **Osu / Cantonments / Labone** | `1500` | **GH₵ 15.00** | 30 – 40 mins |
-| 🛣️ **Spintex / Batsonaa** | `2000` | **GH₵ 20.00** | 35 – 45 mins |
+| 🏢 **Central Campus & South Legon (0 – 3.0 km)** | `700` | **GH₵ 7.00** | 10 – 20 mins |
+| 🌆 **Extended Campus / East Legon / Shiashie (3.1 – 5.0 km)** | `900 – 1100` | **GH₵ 9.00 – 11.00** | 20 – 30 mins |
+| ✈️ **Airport Residential / Dzorwulu (5.1 – 8.0 km)** | `1100 – 1700` | **GH₵ 11.00 – 17.00** | 25 – 35 mins |
+| 🏙️ **Central Accra / Cantonments / Osu (8.1 – 12.0 km)** | `1700 – 2500` | **GH₵ 17.00 – 25.00** | 30 – 45 mins |
+| 🛣️ **Outer Coverage Perimeter (12.1 – 15.0 km)** | `2500 – 3100` | **GH₵ 25.00 – 31.00** | 40 – 55 mins |
 
 > [!NOTE]
-> **Strict Operational Ceiling:** 7 areas outside central coverage (*Kasoa, Teshie, Nungua, Ashaiman, Chorkor, Mamprobi, Abokobi*) are strictly excluded at checkout to ensure all food arrives steaming hot.
+> **Strict Freshness Guarantee:** GH₵ 7.00 base for the first 3.0 km + GH₵ 2.00 per additional km. Locations exceeding 15.0 km are automatically barred at checkout to guarantee hot food quality.
 
 ---
 

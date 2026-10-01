@@ -9,6 +9,7 @@ export type OrderStatus =
   | "preparing"
   | "ready_for_dispatch"
   | "dispatched"
+  | "rider_arriving"
   | "delivered"
   | "cancelled";
 
@@ -84,6 +85,8 @@ export interface Order {
   original_amount?: number | null;
   discount_amount?: number | null;
   payment_collected?: boolean;
+  expires_at?: string | null;
+  manual_review_required?: boolean;
 }
 
 export interface Rider {

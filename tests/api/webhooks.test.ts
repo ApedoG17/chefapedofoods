@@ -22,6 +22,37 @@ describe("POST /api/webhooks/hubtel (Hubtel Webhook Confirmation Engine)", () =>
     });
   }
 
+  function mockSupabaseOrder(existingOrder: any, updateReturn?: any) {
+    const mockUpdate = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          single: vi.fn().mockResolvedValue({
+            data: updateReturn || { ...existingOrder, order_status: "confirmed", payment_status: "paid" },
+            error: null,
+          }),
+        }),
+      }),
+    });
+
+    const mockSelect = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({
+          data: existingOrder,
+          error: existingOrder ? null : new Error("Order not found"),
+        }),
+      }),
+    });
+
+    vi.mocked(createAdminClient).mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        select: mockSelect,
+        update: mockUpdate,
+      }),
+    } as any);
+
+    return { mockSelect, mockUpdate };
+  }
+
   it("returns 400 when clientReference is missing in webhook payload", async () => {
     const req = createHubtelRequest({
       responseCode: "0000",
@@ -35,30 +66,14 @@ describe("POST /api/webhooks/hubtel (Hubtel Webhook Confirmation Engine)", () =>
   });
 
   it("returns 200 and marks order confirmed and paid when responseCode is 0000", async () => {
-    const mockOrder = {
+    const existingOrder = {
       id: "order-123",
-      order_status: "confirmed",
-      payment_status: "paid",
+      order_status: "awaiting_payment",
+      payment_status: "unpaid",
+      subtotal_pesewas: 8500,
     };
 
-    const mockUpdate = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: mockOrder,
-            error: null,
-          }),
-        }),
-      }),
-    });
-
-    const mockFrom = vi.fn().mockReturnValue({
-      update: mockUpdate,
-    });
-
-    vi.mocked(createAdminClient).mockReturnValue({
-      from: mockFrom,
-    } as any);
+    const { mockUpdate } = mockSupabaseOrder(existingOrder);
 
     const req = createHubtelRequest({
       Data: {
@@ -75,36 +90,87 @@ describe("POST /api/webhooks/hubtel (Hubtel Webhook Confirmation Engine)", () =>
     expect(json.orderId).toBe("order-123");
     expect(json.status).toBe("confirmed");
 
-    expect(mockFrom).toHaveBeenCalledWith("orders");
-    expect(mockUpdate).toHaveBeenCalledWith({
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        order_status: "confirmed",
+        payment_status: "paid",
+        amount_paid_pesewas: 8500,
+      })
+    );
+  });
+
+  it("is idempotent: returns 200 without double-processing if order is already paid", async () => {
+    const alreadyPaidOrder = {
+      id: "order-paid-123",
       order_status: "confirmed",
       payment_status: "paid",
+      subtotal_pesewas: 7000,
+    };
+
+    const { mockUpdate } = mockSupabaseOrder(alreadyPaidOrder);
+
+    const req = createHubtelRequest({
+      Data: {
+        clientReference: "order-paid-123",
+        responseCode: "0000",
+      },
     });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.message).toContain("Order already confirmed (idempotent)");
+    // Should NOT call update if already paid
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it("reconciles late payment for an expired/cancelled order and flags for manual review", async () => {
+    const cancelledOrder = {
+      id: "order-late-123",
+      order_status: "cancelled",
+      payment_status: "failed",
+      subtotal_pesewas: 9000,
+    };
+
+    const { mockUpdate } = mockSupabaseOrder(cancelledOrder, {
+      ...cancelledOrder,
+      order_status: "confirmed",
+      payment_status: "paid",
+      manual_review_required: true,
+    });
+
+    const req = createHubtelRequest({
+      Data: {
+        clientReference: "order-late-123",
+        responseCode: "0000",
+      },
+    });
+
+    const res = await POST(req);
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.message).toContain("Order reconciled with late payment flag");
+    expect(json.lateReconciled).toBe(true);
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        order_status: "confirmed",
+        payment_status: "paid",
+        manual_review_required: true,
+        cancellation_reason: expect.stringContaining("Late payment received after 15m expiration"),
+      })
+    );
   });
 
   it("returns 200 and confirms order when status is Success (flat payload)", async () => {
-    const mockOrder = {
+    const existingOrder = {
       id: "order-456",
-      order_status: "confirmed",
-      payment_status: "paid",
+      order_status: "awaiting_payment",
+      payment_status: "unpaid",
+      subtotal_pesewas: 7000,
     };
 
-    const mockUpdate = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({
-            data: mockOrder,
-            error: null,
-          }),
-        }),
-      }),
-    });
-
-    vi.mocked(createAdminClient).mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        update: mockUpdate,
-      }),
-    } as any);
+    mockSupabaseOrder(existingOrder);
 
     const req = createHubtelRequest({
       clientReference: "order-456",
@@ -137,6 +203,14 @@ describe("POST /api/webhooks/hubtel (Hubtel Webhook Confirmation Engine)", () =>
   it("returns 500 when database update fails during webhook processing", async () => {
     vi.mocked(createAdminClient).mockReturnValue({
       from: vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            single: vi.fn().mockResolvedValue({
+              data: { id: "order-err", order_status: "awaiting_payment", payment_status: "unpaid" },
+              error: null,
+            }),
+          }),
+        }),
         update: vi.fn().mockReturnValue({
           eq: vi.fn().mockReturnValue({
             select: vi.fn().mockReturnValue({
@@ -210,20 +284,12 @@ describe("POST /api/webhooks/hubtel (Hubtel Webhook Confirmation Engine)", () =>
     });
 
     it("accepts valid signature via x-hubtel-signature header", async () => {
-      vi.mocked(createAdminClient).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          update: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              select: vi.fn().mockReturnValue({
-                single: vi.fn().mockResolvedValue({
-                  data: { id: "order-sec", order_status: "confirmed", payment_status: "paid" },
-                  error: null,
-                }),
-              }),
-            }),
-          }),
-        }),
-      } as any);
+      mockSupabaseOrder({
+        id: "order-sec",
+        order_status: "awaiting_payment",
+        payment_status: "unpaid",
+        subtotal_pesewas: 7000,
+      });
 
       const req = new Request("http://localhost/api/webhooks/hubtel", {
         method: "POST",

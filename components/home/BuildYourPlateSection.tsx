@@ -39,14 +39,14 @@ export function BuildYourPlateSection() {
               <button
                 key={sizeKey}
                 onClick={() => setActiveSize(sizeKey)}
-                className={`py-3.5 px-6 sm:px-8 rounded-full font-display uppercase tracking-wider text-xs sm:text-sm font-extrabold transition-all duration-200 ${
+                className={`px-3 py-2 text-xs sm:px-4 sm:py-3 sm:text-sm md:text-base rounded-full font-display uppercase tracking-wider font-extrabold transition-all duration-200 min-h-[44px] flex items-center justify-center ${
                   isSelected
                     ? "bg-brand-dark text-white shadow-lg scale-105"
                     : "bg-white/80 text-brand-dark hover:bg-white"
                 }`}
               >
                 <span>{size.label}</span>
-                <span className="ml-2 text-brand-yellow font-black">
+                <span className="ml-2 text-brand-yellow font-black text-xs sm:text-sm md:text-base">
                   {formatGHS(size.basePesewas)}
                 </span>
               </button>
