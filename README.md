@@ -47,7 +47,20 @@ Chef Apedo Foods Architecture
 │   ├── Deep Customization (Portion Size → Protein Packages → Extra Portions)
 │   ├── Dynamic Campus Zone Delivery Pricing (Evandy, Pentagon, Main Campus, East Legon)
 │   ├── Dual-Payment Split (Food Prepaid Online / Delivery Paid to Rider)
-│   └── Real-Time Order Tracking (/order/[id]) with Packing Celebration Animation
+│   ├── Real-Time Order Tracking (/order/[id]) with Packing Celebration Animation
+│   └── Empty Tray Resilient Fallbacks (Zero-item cart & checkout handling)
+│
+├── ⚖️ Legal & Compliance Center (/legal)
+│   ├── Privacy & Cookie Policy (/legal/privacy & PRIVACY.md)
+│   ├── Terms of Service & Delivery Protocols (/legal/terms & TERMS.md)
+│   └── Perishable Food Refund Policy (/legal/refunds)
+│
+├── 🌐 SEO, Sharing & Fallbacks
+│   ├── Dynamic Canonical Sitemap (/sitemap.xml via app/sitemap.ts)
+│   ├── OpenGraph & Twitter Social Cards (public/opengraph-image.png)
+│   ├── Branded Favicon & PWA Icons (public/favicon.ico, app/icon.png)
+│   ├── Branded 404 "Plate Not Found" Handler (app/not-found.tsx)
+│   └── Fault-Tolerant Error Boundary (app/error.tsx)
 │
 ├── 🍳 Kitchen Display System (/admin)
 │   ├── WebSocket-Powered Realtime Order Queue (Supabase Channels)
@@ -228,6 +241,28 @@ Execute the SQL migrations located in `supabase/migrations/` in sequential order
 npm run dev
 ```
 Visit **`http://localhost:3000`** in your browser.
+
+---
+
+## ⚖️ Legal Documentation, Compliance & Security
+
+Operating in Ghana with mobile phone numbers and payment processing via Hubtel mandates rigorous data governance:
+
+| Document / Policy | Scope & Business Parameters | Live Store Endpoint |
+|:---|:---|:---:|
+| **[PRIVACY.md](file:///C:/Users/ADMIN/Desktop/chefapedofoods/PRIVACY.md)** | Data minimization map, encryption protocols, Supabase & Agoo SMS privacy boundaries, strictly necessary cookie classification | [`/legal/privacy`](https://chefapedofoods.com/legal/privacy) |
+| **[TERMS.md](file:///C:/Users/ADMIN/Desktop/chefapedofoods/TERMS.md)** | Delivery zone exclusions, strict **10-minute rider wait window**, order cancellation parameters (pre-preparation only), and fraud prevention | [`/legal/terms`](https://chefapedofoods.com/legal/terms) |
+| **[SECURITY.md](file:///C:/Users/ADMIN/Desktop/chefapedofoods/SECURITY.md)** | Supported versions, PostgreSQL Row Level Security (RLS), server-side input sanitization, and vulnerability reporting via `security@chefapedofoods.com` | Internal & Auditor Reference |
+| **Refund Policy** | Perishable food return constraints and the **30-minute missing item claims window** | [`/legal/refunds`](https://chefapedofoods.com/legal/refunds) |
+
+---
+
+## 🌐 SEO, Social Preview & Production Hardening
+
+- **Dynamic Sitemap:** Route [`app/sitemap.ts`](file:///C:/Users/ADMIN/Desktop/chefapedofoods/app/sitemap.ts) serves a real-time [`/sitemap.xml`](https://chefapedofoods.com/sitemap.xml) mapping the store, legal policies, and ordering routes.
+- **Social Sharing Cards:** High-definition 1200x675 OpenGraph previews (`public/opengraph-image.png`, `app/opengraph-image.png`) configured for rich link unfurling on WhatsApp, iMessage, and Twitter/X.
+- **Branded Fallbacks:** Custom 404 *"Plate Not Found"* screen (`app/not-found.tsx`) and fault-tolerant React error boundaries (`app/error.tsx`) prevent application white-screens.
+- **Clean Console Hygiene:** Zero lingering `console.log` statements in production routes.
 
 ---
 

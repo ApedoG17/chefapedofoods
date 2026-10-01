@@ -59,3 +59,5 @@ Read this first for a 30-second summary; consult `PRD.md`, `ARCHITECTURE.md`, an
 4. **Financial Reconciliation (`/admin/finance`):** Tracks Hubtel online settlements vs. physical rider cash collections using the `payment_collected` database column (Migration 0005).
 5. **Agoo SMS Gateway Engine (`lib/notifications.ts`):** Fired on kitchen dispatch with tracking link, and on delivery with feedback link (`/feedback/[orderId]`).
 6. **Mass SMS Marketing (`/admin/marketing`):** Blast broadcast tool sending concurrent promo messages to the customer database.
+7. **Legal & Compliance Infrastructure:** Full customer routes (`/legal/privacy`, `/legal/terms`, `/legal/refunds`) and root compliance documents (`PRIVACY.md`, `TERMS.md`, `SECURITY.md`). Checkout consent micro-copy gate added.
+8. **SEO, Sharing & Resilient Fallbacks:** Dynamic `app/sitemap.ts` (`/sitemap.xml`), OpenGraph/Twitter 16:9 social share cards, custom branded 404 (`app/not-found.tsx`), and error boundary (`app/error.tsx`). Zero lingering `console.log` statements in production routes.

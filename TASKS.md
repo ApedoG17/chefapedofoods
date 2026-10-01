@@ -106,8 +106,22 @@ Tracked per the core transaction first philosophy: money movement and operationa
 
 ---
 
-## 7. Regulatory & Launch Operations (Next Milestone)
+## 7. Legal Documentation, Compliance, SEO & Production Polish (Completed)
+
+- [x] **Customer Legal Policy Routes:** Built `/legal/privacy` (data collection map & cookie policy), `/legal/terms` (10-minute wait policy & cancellation parameters), and `/legal/refunds` (30-minute missing item claims).
+- [x] **Root Legal & Security Documentation:** Created `PRIVACY.md`, `TERMS.md`, and `SECURITY.md` (responsible disclosure protocol, RLS notes, and supported versions).
+- [x] **Checkout Consent Micro-Copy:** Embedded explicit Terms & Privacy agreement link directly beneath the primary Confirm Order CTA button in `checkout/page.tsx`.
+- [x] **Dynamic Canonical Sitemap:** Implemented `app/sitemap.ts` generating `/sitemap.xml` mapping all campus store and legal pages.
+- [x] **OpenGraph & Twitter Card Metadata:** Bulletproof metadata in `app/layout.tsx` coupled with dedicated 16:9 social share card (`public/opengraph-image.png`, `app/opengraph-image.png`).
+- [x] **Branded Fallbacks:** Built custom 404 *"Plate Not Found"* screen (`app/not-found.tsx`) and fault-tolerant error boundary (`app/error.tsx`).
+- [x] **Empty Tray Handling:** Added zero-order empty tray state in `checkout/page.tsx` with one-tap link back to `/menu`.
+- [x] **Console Log Purge:** Removed all lingering `console.log` statements in notifications and admin views for pristine production console output.
+
+---
+
+## 8. Regulatory & Launch Operations (Next Milestone)
 
 - [ ] FDA Food Hygiene Permit — Online Food Business category
 - [ ] GRA tax registration (Modified Taxation Scheme for campus food services)
 - [ ] Business Name registration via Registrar General's Department
+
