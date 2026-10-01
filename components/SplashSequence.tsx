@@ -123,8 +123,7 @@ export default function SplashSequence() {
                   loop
                   className="absolute inset-0 w-full h-full object-cover"
                 >
-                  <source src="/videos/kitchen-broll.mp4" type="video/mp4" />
-                  <source src="/videos/culinary-reel.webm" type="video/webm" />
+                  <source src="/videos/hero-intro.mp4" type="video/mp4" />
                 </video>
 
                 {/* Dark gradient overlay for text readability */}

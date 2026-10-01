@@ -299,7 +299,7 @@ export default function MenuStorefrontPage() {
                 <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff} GMT</span>
               </div>
 
-              <h1 className="font-display font-black text-6xl md:text-[6rem] leading-[0.85] uppercase mb-6 tracking-tighter text-white">
+              <h1 className="font-display font-black text-[2.5rem] sm:text-5xl md:text-[5rem] leading-[0.9] uppercase mb-6 tracking-tight text-white">
                 THE DAILY<br/>MENU.
               </h1>
 

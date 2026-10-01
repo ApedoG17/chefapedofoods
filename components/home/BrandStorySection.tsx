@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import { Flame, Sparkles, Clock } from "lucide-react";
 
 export function BrandStorySection() {
@@ -74,16 +73,17 @@ export function BrandStorySection() {
           })}
         </div>
 
-        {/* Sprint 3 §3: Authentic Founder Photography */}
+        {/* Sprint 3 §3 → Video: autoplay, muted, looped, mobile-safe */}
         <div className="relative w-full h-[320px] sm:h-[420px] lg:h-[500px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-          <Image
-            src="/images/about/founder-kitchen.jpg"
-            alt="Chef Apedo preparing small-batch jollof rice in the kitchen"
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1152px"
-            className="object-cover"
-            priority={false}
-          />
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src="/videos/about-prep.mp4" type="video/mp4" />
+          </video>
           {/* Gradient overlay for legibility of caption */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
           <div className="absolute bottom-6 left-6 right-6">

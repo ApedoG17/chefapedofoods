@@ -15,12 +15,33 @@ export function isValidGhanaPhone(input: string): boolean {
 
 /**
  * Validates that a customer full name has realistic length, contains alphabetic characters,
- * and is not pure numbers (e.g. "8584") or random punctuation.
+ * does not contain numeric digits, and only allows standard name punctuation (. ' -).
  */
 export function isValidFullName(name: string): boolean {
   if (!name) return false;
   const trimmed = name.trim();
-  return trimmed.length >= 2 && /[a-zA-Z]/.test(trimmed) && !/^\d+$/.test(trimmed);
+  return (
+    trimmed.length >= 2 &&
+    trimmed.length <= 100 &&
+    /[a-zA-Z]/.test(trimmed) &&
+    !/\d/.test(trimmed) &&
+    /^[a-zA-ZÀ-ÿ\s.'\-]+$/.test(trimmed)
+  );
+}
+
+export const internationalPhoneRegex = /^\+[1-9]\d{7,14}$/;
+
+/**
+ * Validates either a Ghanaian mobile phone number (local 10 digits or +233 prefix)
+ * or a valid international phone number in E.164 format (+XXXXXXXXXXX).
+ */
+export function isValidPhoneNumber(input: string): boolean {
+  if (!input) return false;
+  const cleaned = input.replace(/[\s\-()]/g, "");
+  if (cleaned.startsWith("0") || cleaned.startsWith("+233")) {
+    return isValidGhanaPhone(cleaned);
+  }
+  return internationalPhoneRegex.test(cleaned);
 }
 
 /**
@@ -72,8 +93,8 @@ export const createOrderSchema = z.object({
     .string()
     .trim()
     .transform(sanitizeHTML)
-    .refine((val) => isValidGhanaPhone(val), {
-      message: "Please enter a valid Ghana phone number (e.g. 024 000 0000)",
+    .refine((val) => isValidPhoneNumber(val), {
+      message: "Please enter a valid Ghana phone number (e.g. 024 000 0000) or international number",
     }),
   area: z
     .string()

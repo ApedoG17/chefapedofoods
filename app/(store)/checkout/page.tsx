@@ -11,7 +11,9 @@ import { EXCLUDED_DELIVERY_AREAS, ORDERING_HOURS } from "@/config/business";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard, Wallet, MapPin, ShoppingBag } from "lucide-react";
 import dynamic from "next/dynamic";
-import { isValidGhanaPhone, isValidFullName } from "@/lib/validation/orders";
+import { isValidGhanaPhone, isValidPhoneNumber, isValidFullName } from "@/lib/validation/orders";
+import { PhoneInput } from "@/components/ui/PhoneInput";
+import { COUNTRY_CATEGORIES } from "@/lib/validation/countries";
 
 // Dynamically import the Leaflet OpenStreetMap picker to avoid SSR "window is not defined" errors
 const MapPicker = dynamic(() => import("@/components/MapPicker"), {
@@ -112,6 +114,7 @@ export default function CheckoutPage() {
 
   // Form State
   const [fullName, setFullName] = useState("");
+  const [selectedCountry, setSelectedCountry] = useState<string>("GH");
   const [phone, setPhone] = useState("");
   const [selectedArea, setSelectedArea] = useState("East Legon");
   const [customArea, setCustomArea] = useState("");
@@ -124,7 +127,12 @@ export default function CheckoutPage() {
   const [phoneTouched, setPhoneTouched] = useState(false);
 
   const isNameValid = isValidFullName(fullName);
-  const isPhoneValid = isValidGhanaPhone(phone);
+  const dialCode = COUNTRY_CATEGORIES.find((c) => c.id === selectedCountry)?.dialCode || "+233";
+  const fullPhoneForValidation =
+    selectedCountry === "GH"
+      ? phone
+      : `${dialCode}${phone.replace(/^0+/, "").replace(/\s+/g, "")}`;
+  const isPhoneValid = isValidPhoneNumber(fullPhoneForValidation);
   const isStep1Valid = isNameValid && isPhoneValid;
 
   // Operational / Zone State
@@ -279,7 +287,10 @@ export default function CheckoutPage() {
           })),
           customerDetails: {
             name: fullName.trim(),
-            phone: phone.trim(),
+            phone:
+              selectedCountry === "GH"
+                ? phone.trim()
+                : `${dialCode} ${phone.replace(/^0+/, "").trim()}`,
             address: resolvedAddress,
             area: activeArea.trim(),
             notes: landmark.trim() || "",
@@ -359,9 +370,12 @@ export default function CheckoutPage() {
               type="text"
               placeholder="e.g. Kwame Mensah"
               value={fullName}
+              maxLength={60}
               onBlur={() => setFullNameTouched(true)}
               onChange={(e) => {
-                setFullName(e.target.value);
+                // Strictly block numeric characters in full name
+                const clean = e.target.value.replace(/[0-9]/g, "");
+                setFullName(clean);
                 if (errorMessage) setErrorMessage(null);
               }}
               className={`w-full bg-brand-cream/50 border rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50 ${
@@ -373,7 +387,7 @@ export default function CheckoutPage() {
             />
             {(fullNameTouched || hasAttemptedStep1) && !isNameValid ? (
               <p className="text-[11px] text-brand-red font-medium">
-                Please enter a real name (at least 2 letters, no numbers like 8584).
+                Please enter a real name (letters only, at least 2 characters, no numbers).
               </p>
             ) : (
               <p className="text-[11px] text-brand-muted">
@@ -382,44 +396,51 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* Phone Number */}
+          {/* Phone Number with Country Categories and 10-digit limiting */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <label htmlFor="checkout-phone" className="block text-xs font-black uppercase tracking-wider text-brand-dark">
-                Ghana Phone Number <span className="text-brand-red">*</span>
+                Phone Number <span className="text-brand-red">*</span>
               </label>
               {(phoneTouched || hasAttemptedStep1) && !isPhoneValid && (
                 <span className="text-[11px] text-brand-red font-semibold">
-                  Valid Ghana number required
+                  {selectedCountry === "GH" ? "Valid 10-digit number required" : "Valid phone number required"}
                 </span>
               )}
             </div>
-            <input
+
+            <PhoneInput
               id="checkout-phone"
-              type="tel"
-              placeholder="e.g. 024 123 4567 or 050 123 4567"
               value={phone}
-              onBlur={() => setPhoneTouched(true)}
-              onChange={(e) => {
-                // Sanitize input in real-time: keep only digits, spaces, +, and -
-                const clean = e.target.value.replace(/[^0-9+\s\-]/g, "");
-                setPhone(clean);
+              selectedCountryId={selectedCountry}
+              onCountryChange={(c) => {
+                setSelectedCountry(c.id);
                 if (errorMessage) setErrorMessage(null);
               }}
-              className={`w-full bg-brand-cream/50 border rounded-xl p-3.5 text-sm text-brand-dark outline-none transition-all placeholder:text-brand-muted/50 ${
-                (phoneTouched || hasAttemptedStep1) && !isPhoneValid
-                  ? "border-brand-red focus:border-brand-red bg-brand-red/5 ring-1 ring-brand-red/20"
-                  : "border-brand-cream-dark focus:border-brand-yellow focus:bg-white"
-              }`}
+              onChange={(formatted) => {
+                setPhone(formatted);
+                if (errorMessage) setErrorMessage(null);
+              }}
+              onBlur={() => setPhoneTouched(true)}
+              hasError={(phoneTouched || hasAttemptedStep1) && !isPhoneValid}
               required
             />
+
             {(phoneTouched || hasAttemptedStep1) && !isPhoneValid ? (
               <p className="text-[11px] text-brand-red font-medium">
-                Must be a valid 10-digit Ghana mobile number (MTN, Telecel, AT starting with 02 or 05).
+                {selectedCountry === "GH"
+                  ? "Must be a valid 10-digit Ghana mobile number (e.g. 024 123 4567, starting with 02 or 05)."
+                  : `Please enter a valid phone number for ${
+                      COUNTRY_CATEGORIES.find((c) => c.id === selectedCountry)?.name || "the selected country"
+                    }.`}
               </p>
             ) : (
               <p className="text-[11px] text-brand-muted">
-                Used strictly for dispatch courier call upon arrival.
+                {selectedCountry === "GH"
+                  ? "10-digit mobile number used strictly for dispatch courier call upon arrival."
+                  : `Used for dispatch courier call (${
+                      COUNTRY_CATEGORIES.find((c) => c.id === selectedCountry)?.name
+                    }).`}
               </p>
             )}
           </div>
