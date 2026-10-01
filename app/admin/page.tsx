@@ -107,8 +107,7 @@ export default function AdminDashboard() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders' },
-        (payload) => {
-          console.log('Real-time update received:', payload);
+        () => {
           // Re-fetch the orders to ensure we have the latest data and sorting
           fetchOrders();
         }

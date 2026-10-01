@@ -22,7 +22,6 @@ export async function sendDeliverySMS(phone: string, customerName: string, order
       }),
     });
     
-    console.log(`Delivery SMS dispatched to ${formattedPhone} via Agoo (Status: ${response.status})`);
     return response.ok;
   } catch (error) {
     console.error('Failed to send Agoo delivery SMS:', error);
@@ -51,7 +50,6 @@ export async function sendFeedbackSMS(phone: string, customerName: string, order
       }),
     });
     
-    console.log(`Feedback SMS dispatched to ${formattedPhone} via Agoo (Status: ${response.status})`);
     return response.ok;
   } catch (error) {
     console.error('Failed to send Agoo feedback SMS:', error);

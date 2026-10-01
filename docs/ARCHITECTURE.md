@@ -234,3 +234,27 @@ Relational catalog architecture ensuring that food bases (Small GH₵45 / Medium
 1. **Server-Side Enforcement:** Validation rules (cutoff time at 10:00 AM GMT, excluded delivery zones, max order capacity) are strictly executed on API route handlers before committing writes to PostgreSQL.
 2. **Row Level Security:** Public clients cannot arbitrarily query or alter orders belonging to other phone numbers; the admin service-role key is isolated strictly to authenticated API endpoints.
 3. **Database Indexing:** Indexed on `orders(payment_collected)` where `payment_collected = FALSE` for instantaneous ledger loading in the finance dashboard.
+
+---
+
+## 8. Legal, Compliance & Metadata Architecture
+
+```
+Legal, SEO & Fallback Topology
+│
+├── 📜 Regulatory Documents (Root & Store Endpoints)
+│   ├── PRIVACY.md ➔ /legal/privacy (Data Minimization & Cookie Policy)
+│   ├── TERMS.md ➔ /legal/terms (10-minute dropoff timeout & courier hand-off)
+│   ├── /legal/refunds (30-minute perishable item claim policy)
+│   └── SECURITY.md (Vulnerability reporting to security@chefapedofoods.com)
+│
+├── 🌐 SEO & Social Unfurling
+│   ├── app/sitemap.ts ➔ /sitemap.xml (All canonical campus store & policy routes)
+│   ├── app/layout.tsx (Template metadata, canonical alternates, Twitter Card)
+│   └── public/opengraph-image.png (1200x675 16:9 preview card)
+│
+└── 🛡️ Resilient Error Boundaries
+    ├── app/not-found.tsx (Plate Not Found branded 404 page)
+    └── app/error.tsx (Client-side crash isolation with reset action)
+```
+

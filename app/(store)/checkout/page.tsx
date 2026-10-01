@@ -9,7 +9,7 @@ import { isAreaServiceable } from "@/lib/delivery";
 import { formatGHS } from "@/lib/pricing";
 import { EXCLUDED_DELIVERY_AREAS, ORDERING_HOURS } from "@/config/business";
 import { createClient } from "@/lib/supabase/client";
-import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard, Wallet, MapPin } from "lucide-react";
+import { ArrowRight, ArrowLeft, Bike, ShieldCheck, Lock, Clock, Check, CreditCard, Wallet, MapPin, ShoppingBag } from "lucide-react";
 import dynamic from "next/dynamic";
 import { isValidGhanaPhone, isValidFullName } from "@/lib/validation/orders";
 
@@ -273,6 +273,29 @@ export default function CheckoutPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isCartLoaded && items.length === 0) {
+    return (
+      <main className="w-full max-w-md mx-auto py-16 sm:py-24 px-4 text-center">
+        <div className="w-16 h-16 rounded-full bg-white/10 text-brand-yellow flex items-center justify-center mx-auto mb-6 shadow-sm">
+          <ShoppingBag className="w-7 h-7 stroke-[2]" />
+        </div>
+        <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white uppercase tracking-tight mb-2">
+          Your Tray is Empty
+        </h1>
+        <p className="text-xs sm:text-sm text-white/70 max-w-sm mx-auto leading-relaxed mb-8">
+          You haven&apos;t added any meals to your lunch order yet. Choose your favorite meal to begin checkout.
+        </p>
+        <Link
+          href="/menu"
+          className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-brand-yellow hover:bg-brand-yellow-dark text-brand-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider transition-all shadow-button-yellow"
+        >
+          <span>Browse Today&apos;s Menu</span>
+          <ArrowRight className="w-4 h-4 stroke-[3]" />
+        </Link>
+      </main>
+    );
+  }
 
   return (
     <main className="w-full max-w-2xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-6">
