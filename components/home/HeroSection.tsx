@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, Clock, ShieldCheck, Flame } from "lucide-react";
 import { ORDERING_HOURS } from "@/config/business";
 
@@ -101,22 +100,24 @@ export function HeroSection() {
               }}
               className="relative w-full max-w-[520px] aspect-[4/3] rounded-3xl overflow-hidden shadow-food-depth border-2 border-white/15 group"
             >
-              <Image
-                src="/images/meals/jollof-rice.jpg"
-                alt="Chef Apedo Smoky Fire Jollof Rice with brass spoon and fresh herbs"
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 520px"
-                className="object-cover transition-transform duration-700 group-hover:scale-105"
-              />
+              {/* ── Hero Intro Video: autoplay, muted, looped, mobile-safe ── */}
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              >
+                <source src="/videos/hero-intro.mp4" type="video/mp4" />
+              </video>
 
               {/* Tag overlay */}
-              <div className="absolute top-4 left-4 bg-brand-yellow text-brand-dark text-xs font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-md">
+              <div className="absolute top-4 left-4 bg-brand-yellow text-brand-dark text-xs font-black px-3.5 py-1.5 rounded-full uppercase tracking-wider shadow-md z-10">
                 Accra&apos;s Favorite
               </div>
 
               {/* Bottom floating price pill */}
-              <div className="absolute bottom-4 right-4 bg-brand-dark/90 backdrop-blur-sm text-white px-4 py-2 rounded-full border border-white/15 flex items-center gap-2">
+              <div className="absolute bottom-4 right-4 bg-brand-dark/90 backdrop-blur-sm text-white px-4 py-2 rounded-full border border-white/15 flex items-center gap-2 z-10">
                 <span className="text-xs text-white/70">From</span>
                 <span className="font-display font-extrabold text-brand-yellow text-base">
                   GH₵45.00
