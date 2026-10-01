@@ -20,6 +20,14 @@ export function Navbar() {
     setMobileOpen(false);
   }, [pathname]);
 
+  // Sprint 2 §2: Close mobile drawer when user scrolls (cleanup on unmount / close)
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleScroll = () => setMobileOpen(false);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [mobileOpen]);
+
   // Programmatic animation trigger for cart button scale pulse when item count increases
   useEffect(() => {
     if (itemCount > prevCountRef.current) {

@@ -225,6 +225,7 @@ export default function MenuStorefrontPage() {
       size: "small",
       sizeLabel: isRice ? "Small" : "Standard",
       includedProteinPackageName: isRice ? "2 Sausages" : "Standard",
+      category: item.category,
       extras: item.category === "sides" ? { [item.id]: 1 } : {},
       configuration: {
         size: {
@@ -337,7 +338,7 @@ export default function MenuStorefrontPage() {
                   fill
                   priority
                   sizes="(max-width: 768px) 300px, (max-width: 1024px) 450px, 550px"
-                  className="object-contain drop-shadow-2xl scale-100 sm:scale-105 lg:scale-110 origin-center"
+                  className="object-contain drop-shadow-2xl origin-center"
                 />
               </motion.div>
             </motion.div>
@@ -614,7 +615,7 @@ function MealCard3D({ item, isFeatured = false, theme, onQuickAdd }: MealCard3DP
       {/* 3. Text Content */}
       <div className="space-y-2 mb-6">
         <h3
-          className={`font-display font-extrabold uppercase tracking-tight leading-tight ${
+          className={`font-display font-black uppercase tracking-wide leading-tight ${
             isFeatured ? "text-2xl sm:text-3xl" : "text-lg sm:text-xl"
           }`}
         >
@@ -672,7 +673,7 @@ function MealCard3D({ item, isFeatured = false, theme, onQuickAdd }: MealCard3DP
             {item.isCustomizable ? "From" : "Price"}
           </span>
           <span
-            className={`font-display font-black text-2xl tracking-tight mt-0.5 ${
+            className={`font-display font-black text-2xl tracking-wide mt-0.5 ${
               isLight ? "text-brand-dark" : "text-white"
             }`}
           >

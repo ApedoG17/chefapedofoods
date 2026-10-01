@@ -21,6 +21,8 @@ export interface CartItem {
   size: "small" | "medium" | "large";
   sizeLabel: string;
   includedProteinPackageName: string;
+  /** Menu category — used to conditionally hide irrelevant modifiers (e.g. Protein for drinks) */
+  category?: "rice-dishes" | "sides" | "drinks" | "beverage" | string;
   extras: {
     chicken?: number;
     sausage?: number;

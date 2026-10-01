@@ -1,5 +1,6 @@
 import React from "react";
-import { Flame, Sparkles, Clock, Heart } from "lucide-react";
+import Image from "next/image";
+import { Flame, Sparkles, Clock } from "lucide-react";
 
 export function BrandStorySection() {
   const pillars = [
@@ -73,7 +74,29 @@ export function BrandStorySection() {
           })}
         </div>
 
-        {/* Chef Statement */}
+        {/* Sprint 3 §3: Authentic Founder Photography */}
+        <div className="relative w-full h-[320px] sm:h-[420px] lg:h-[500px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+          <Image
+            src="/images/about/founder-kitchen.jpg"
+            alt="Chef Apedo preparing small-batch jollof rice in the kitchen"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 1152px"
+            className="object-cover"
+            priority={false}
+          />
+          {/* Gradient overlay for legibility of caption */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
+          <div className="absolute bottom-6 left-6 right-6">
+            <p className="text-white/60 text-[11px] font-bold uppercase tracking-[0.2em]">
+              Behind the Batch
+            </p>
+            <p className="text-white font-display font-black text-lg sm:text-xl uppercase tracking-wide leading-tight mt-0.5">
+              Chef Apedo &mdash; East Legon Kitchen, Accra
+            </p>
+          </div>
+        </div>
+
+        {/* Founder Quote */}
         <div className="max-w-2xl mx-auto text-center pt-8 border-t border-white/10 space-y-3">
           <p className="font-serif italic text-base sm:text-xl text-white/90 leading-relaxed">
             &ldquo;When you open a box from Chef Apedo Foods, you should feel right at home with every single bite.&rdquo;
