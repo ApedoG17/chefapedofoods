@@ -25,17 +25,18 @@ export default function HomePage() {
       {/* PHASE 1 — IMMERSIVE HERO (90vh to 100vh)                                  */}
       {/* ========================================================================= */}
       <section className="relative w-full min-h-[92vh] sm:min-h-screen flex flex-col justify-between items-center bg-[#18110E] text-white pt-24 sm:pt-32 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Subtle, heavily blurred real food photography in background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
-          <Image
-            src="/images/meals/jollof-isolated.png"
-            alt="Chef Apedo Foods Background"
-            fill
-            sizes="100vw"
-            priority
-            className="object-cover scale-125 blur-3xl translate-y-12"
-          />
-          {/* Gradient overlay from Dark Roast #18110E to Brand Red #9E1B15 */}
+        {/* Hero Intro Video Background: autoplay, muted, looped, mobile-safe */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/videos/hero-intro.mp4" type="video/mp4" />
+          </video>
+          {/* Gradient overlay from Dark Roast #18110E to Brand Red #9E1B15 for text legibility */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#18110E]/90 via-[#18110E]/70 to-[#801410]/85" />
         </div>
 

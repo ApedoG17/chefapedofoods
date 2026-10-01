@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { ORDERING_HOURS, EXCLUDED_DELIVERY_AREAS } from "@/config/business";
 import { MessageSquare, Clock, Phone, MapPin, Send, AlertCircle, CheckCircle2 } from "lucide-react";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ export default function ContactPage() {
     message: "",
   });
 
+  const [selectedCountry, setSelectedCountry] = useState("GH");
   const [formSubmitted, setFormSubmitted] = useState(false);
 
   // Business WhatsApp number from environment if provided, otherwise null (never invent one)
@@ -226,27 +228,31 @@ export default function ContactPage() {
                       id="contact-name"
                       type="text"
                       required
+                      maxLength={60}
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value.replace(/[0-9]/g, "") })}
                       placeholder="e.g. Kwame Mensah"
                       className="w-full px-4 py-3 rounded-2xl bg-[#FAF5EE] border border-black/10 text-brand-dark text-sm placeholder:text-brand-muted/60 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 outline-none transition-all"
                     />
+                    <p className="text-[10px] text-brand-muted">Letters only, no numbers.</p>
                   </div>
 
-                  {/* Phone */}
+                  {/* Phone with Country Categories */}
                   <div className="space-y-1.5">
                     <label htmlFor="contact-phone" className="text-xs font-black uppercase tracking-wider text-brand-dark">
                       Phone Number
                     </label>
-                    <input
+                    <PhoneInput
                       id="contact-phone"
-                      type="tel"
-                      required
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="e.g. 024 123 4567"
-                      className="w-full px-4 py-3 rounded-2xl bg-[#FAF5EE] border border-black/10 text-brand-dark text-sm placeholder:text-brand-muted/60 focus:border-brand-red focus:ring-2 focus:ring-brand-red/20 outline-none transition-all"
+                      selectedCountryId={selectedCountry}
+                      onCountryChange={(c) => setSelectedCountry(c.id)}
+                      onChange={(formatted) => setFormData({ ...formData, phone: formatted })}
+                      required
                     />
+                    <p className="text-[10px] text-brand-muted">
+                      {selectedCountry === "GH" ? "10-digit Ghana mobile number." : "International mobile number."}
+                    </p>
                   </div>
 
                   {/* Subject */}

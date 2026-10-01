@@ -77,17 +77,26 @@ describe("Order Validation Schemas (lib/validation/orders)", () => {
     expect(result.success).toBe(false);
   });
 
-  it("validates full name and rejects pure numeric inputs like 8584", () => {
+  it("validates full name and rejects inputs containing digits", () => {
     expect(createOrderSchema.safeParse({ ...validOrder, customerName: "8584" }).success).toBe(false);
     expect(createOrderSchema.safeParse({ ...validOrder, customerName: "A" }).success).toBe(false);
+    expect(createOrderSchema.safeParse({ ...validOrder, customerName: "Kwame123" }).success).toBe(false);
+    expect(createOrderSchema.safeParse({ ...validOrder, customerName: "8584 Mensah" }).success).toBe(false);
     expect(createOrderSchema.safeParse({ ...validOrder, customerName: "Kwame Mensah" }).success).toBe(true);
     expect(createOrderSchema.safeParse({ ...validOrder, customerName: "Aba K." }).success).toBe(true);
+    expect(createOrderSchema.safeParse({ ...validOrder, customerName: "Jean-Pierre" }).success).toBe(true);
   });
 
-  it("validates Ghana phone and rejects alphabetic inputs like fhbfsfs", () => {
+  it("validates phone numbers, rejects numbers above 10 digits for Ghana, and accepts international codes", () => {
     expect(createOrderSchema.safeParse({ ...validOrder, phone: "fhbfsfs" }).success).toBe(false);
     expect(createOrderSchema.safeParse({ ...validOrder, phone: "0241234567" }).success).toBe(true);
     expect(createOrderSchema.safeParse({ ...validOrder, phone: "055 987 6543" }).success).toBe(true);
+    // Rejects numbers above 10 digits for Ghana
+    expect(createOrderSchema.safeParse({ ...validOrder, phone: "02412345678" }).success).toBe(false);
+    expect(createOrderSchema.safeParse({ ...validOrder, phone: "024 123 4567 89" }).success).toBe(false);
+    // Accepts international numbers with valid country code
+    expect(createOrderSchema.safeParse({ ...validOrder, phone: "+2348012345678" }).success).toBe(true);
+    expect(createOrderSchema.safeParse({ ...validOrder, phone: "+12025550123" }).success).toBe(true);
   });
 
   it("strips HTML tags to prevent XSS injection in text fields", () => {

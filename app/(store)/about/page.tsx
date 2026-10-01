@@ -114,32 +114,16 @@ export default function AboutPage() {
 
           {/* Right Column (Dynamic Kitchen Action Shot bleeding off the edge ~ 42% on Desktop) */}
           <div className="lg:col-span-5 relative min-h-[420px] sm:min-h-[500px] lg:min-h-full w-full bg-[#18110E] overflow-hidden">
-            {/* Cinematic pan animation on high-resolution documentary portrait */}
-            <motion.div
-              animate={
-                shouldReduceMotion
-                  ? { scale: 1 }
-                  : {
-                      scale: [1, 1.05, 1],
-                    }
-              }
-              transition={{
-                duration: 10,
-                repeat: Infinity,
-                repeatType: "reverse",
-                ease: "easeInOut",
-              }}
-              className="absolute inset-0 w-full h-full"
+            {/* Dynamic Kitchen Prep Video: autoplay, muted, looped, mobile-safe */}
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
             >
-              <Image
-                src="/images/about/founder-kitchen.jpg"
-                alt="Chef Apedo preparing fresh Ghanaian Jollof in the morning kitchen"
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 45vw"
-                className="object-cover object-center"
-              />
-            </motion.div>
+              <source src="/videos/about-prep.mp4" type="video/mp4" />
+            </video>
 
             {/* Subtle photographic vignette and editorial film badge */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/30 pointer-events-none" />
