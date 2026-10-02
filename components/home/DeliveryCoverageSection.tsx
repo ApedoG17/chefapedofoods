@@ -24,7 +24,7 @@ export function DeliveryCoverageSection() {
             Fast, Hot Midday Delivery.
           </h2>
           <p className="text-sm sm:text-base text-brand-muted max-w-lg mx-auto">
-            Order before <strong className="text-brand-red">{ORDERING_HOURS.sameDayCutoff} GMT</strong> for same-day delivery right to your desk or home.
+            Order before <strong className="text-brand-red">{ORDERING_HOURS.sameDayCutoff}</strong> for same-day delivery right to your desk or home.
           </p>
         </div>
 

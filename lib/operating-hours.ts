@@ -56,6 +56,6 @@ export function getAsapOperatingStatus(serverDate: Date = new Date()): Operating
     asapClose: ASAP_HOURS.close,
     reason: isOpen
       ? undefined
-      : `ASAP orders are open ${formatFriendlyTime(ASAP_HOURS.open)} to ${formatFriendlyTime(ASAP_HOURS.close)} GMT. Please check back during operating hours or schedule for later.`,
+      : `ASAP orders are open ${formatFriendlyTime(ASAP_HOURS.open)} to ${formatFriendlyTime(ASAP_HOURS.close)}. Please check back during operating hours or schedule for later.`,
   };
 }

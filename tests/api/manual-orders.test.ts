@@ -147,7 +147,7 @@ describe("POST /api/orders/manual (Manual Order Bypass API)", () => {
       serverTime: new Date().toISOString(),
       asapOpen: "08:00",
       asapClose: "15:00",
-      reason: "ASAP orders are open 8:00 AM to 3:00 PM GMT. Please check back during operating hours or schedule for later.",
+      reason: "ASAP orders are open 8:00 AM to 3:00 PM. Please check back during operating hours or schedule for later.",
     });
 
     const asapPayload = {
@@ -167,7 +167,7 @@ describe("POST /api/orders/manual (Manual Order Bypass API)", () => {
     expect(res.status).toBe(409);
     const json = await res.json();
     expect(json.success).toBe(false);
-    expect(json.message).toContain("ASAP orders are open 8:00 AM to 3:00 PM GMT");
+    expect(json.message).toContain("ASAP orders are open 8:00 AM to 3:00 PM");
 
     spy.mockRestore();
   });

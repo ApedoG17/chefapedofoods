@@ -91,19 +91,19 @@ export function Footer() {
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-brand-yellow mt-0.5 flex-none" />
                 <div>
-                  <span className="text-white font-bold">Orders Open:</span> {ORDERING_HOURS.opensAt} GMT
+                  <span className="text-white font-bold">Orders Open:</span> {ORDERING_HOURS.opensAt}
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-brand-red mt-0.5 flex-none" />
                 <div>
-                  <span className="text-brand-yellow font-bold">Lunch Cutoff:</span> {ORDERING_HOURS.sameDayCutoff} GMT
+                  <span className="text-brand-yellow font-bold">Lunch Cutoff:</span> {ORDERING_HOURS.sameDayCutoff}
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-brand-yellow mt-0.5 flex-none" />
                 <div>
-                  <span className="text-white font-bold">First Dispatch:</span> From {ORDERING_HOURS.firstDeliverySlot} GMT
+                  <span className="text-white font-bold">First Dispatch:</span> From {ORDERING_HOURS.firstDeliverySlot}
                 </div>
               </div>
             </div>
@@ -202,18 +202,21 @@ export function Footer() {
               </svg>
             </a>
 
-            {/* Snapchat — clean ghost SVG, consistent 20×20 size */}
+            {/* Snapchat */}
             <a
               href={SNAPCHAT_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-full text-white/60 hover:text-brand-yellow hover:bg-white/5 transition-colors"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 rounded-full hover:bg-white/5 transition-colors"
               aria-label="Add Chef Apedo Foods on Snapchat"
             >
-              {/* Standard Snapchat ghost mark — simplified clean path, no clipping */}
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2C8.5 2 6 4.9 6 8.2v1.1c-.4.2-.9.3-1.4.3-.3 0-.6-.1-.9-.1-.2 0-.3.1-.3.3 0 .3.2.7.7 1 .6.4 1.3.6 1.9.7.2.5.5.9.9 1.3-.5.3-1.2.5-2.1.5-.2 0-.3.1-.3.3 0 .4.9.8 2.4 1 .1.3.2.7.3.9-.1 0-.3.1-.4.1-.5 0-1-.2-1.4-.2-.2 0-.4.1-.4.3 0 .5.6 1 1.6 1.4C7.6 17.9 9.7 19 12 19s4.4-1.1 5.4-2.9c1-.4 1.6-.9 1.6-1.4 0-.2-.2-.3-.4-.3-.4 0-.9.2-1.4.2-.1 0-.3 0-.4-.1.1-.2.2-.6.3-.9 1.5-.2 2.4-.6 2.4-1 0-.2-.1-.3-.3-.3-.9 0-1.6-.2-2.1-.5.4-.4.7-.8.9-1.3.6-.1 1.3-.3 1.9-.7.5-.3.7-.7.7-1 0-.2-.1-.3-.3-.3-.3 0-.6.1-.9.1-.5 0-1-.1-1.4-.3V8.2C18 4.9 15.5 2 12 2z"/>
-              </svg>
+              <Image
+                src="/snap-logo.png"
+                alt="Snapchat"
+                width={24}
+                height={24}
+                className="rounded-full object-contain"
+              />
             </a>
           </div>
 

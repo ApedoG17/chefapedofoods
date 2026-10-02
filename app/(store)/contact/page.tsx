@@ -121,19 +121,19 @@ export default function ContactPage() {
                   <div className="flex justify-between py-1.5">
                     <span className="text-brand-muted">Order Window:</span>
                     <span className="font-bold text-brand-dark">
-                      {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt} GMT
+                      {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt}
                     </span>
                   </div>
                   <div className="flex justify-between py-1.5">
                     <span className="text-brand-muted">Same-Day Cutoff:</span>
                     <span className="font-bold text-brand-red">
-                      {ORDERING_HOURS.sameDayCutoff} GMT
+                      {ORDERING_HOURS.sameDayCutoff}
                     </span>
                   </div>
                   <div className="flex justify-between py-1.5">
                     <span className="text-brand-muted">First Dispatch Slot:</span>
                     <span className="font-bold text-brand-dark">
-                      {ORDERING_HOURS.firstDeliverySlot} GMT
+                      {ORDERING_HOURS.firstDeliverySlot}
                     </span>
                   </div>
                 </div>

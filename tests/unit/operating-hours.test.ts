@@ -24,43 +24,43 @@ describe("ASAP Operating Hours Guard (lib/operating-hours)", () => {
     expect(formatFriendlyTime("15:00")).toBe("3:00 PM");
   });
 
-  it("blocks ASAP orders before 08:00 AM GMT (e.g. 07:59 AM)", () => {
+  it("blocks ASAP orders before 08:00 AM (e.g. 07:59 AM)", () => {
     const morningEarly = new Date("2026-10-01T07:59:00Z");
     const status = getAsapOperatingStatus(morningEarly);
     expect(status.isOpen).toBe(false);
-    expect(status.reason).toContain("ASAP orders are open 8:00 AM to 3:00 PM GMT");
+    expect(status.reason).toContain("ASAP orders are open 8:00 AM to 3:00 PM");
   });
 
-  it("permits ASAP orders at 08:00 AM GMT exactly", () => {
+  it("permits ASAP orders at 08:00 AM exactly", () => {
     const openingTime = new Date("2026-10-01T08:00:00Z");
     const status = getAsapOperatingStatus(openingTime);
     expect(status.isOpen).toBe(true);
     expect(status.reason).toBeUndefined();
   });
 
-  it("permits ASAP orders throughout the midday rush (e.g. 12:45 PM GMT)", () => {
+  it("permits ASAP orders throughout the midday rush (e.g. 12:45 PM)", () => {
     const lunchRush = new Date("2026-10-01T12:45:00Z");
     const status = getAsapOperatingStatus(lunchRush);
     expect(status.isOpen).toBe(true);
   });
 
-  it("permits ASAP orders right before closing (e.g. 14:59 GMT)", () => {
+  it("permits ASAP orders right before closing (e.g. 14:59)", () => {
     const justBeforeClose = new Date("2026-10-01T14:59:00Z");
     const status = getAsapOperatingStatus(justBeforeClose);
     expect(status.isOpen).toBe(true);
   });
 
-  it("blocks ASAP orders at 15:00 GMT exactly", () => {
+  it("blocks ASAP orders at 15:00 exactly", () => {
     const atClose = new Date("2026-10-01T15:00:00Z");
     const status = getAsapOperatingStatus(atClose);
     expect(status.isOpen).toBe(false);
-    expect(status.reason).toContain("ASAP orders are open 8:00 AM to 3:00 PM GMT");
+    expect(status.reason).toContain("ASAP orders are open 8:00 AM to 3:00 PM");
   });
 
-  it("blocks rogue late-night ASAP orders (e.g. 23:30 GMT)", () => {
+  it("blocks rogue late-night ASAP orders (e.g. 23:30)", () => {
     const lateNight = new Date("2026-10-01T23:30:00Z");
     const status = getAsapOperatingStatus(lateNight);
     expect(status.isOpen).toBe(false);
-    expect(status.reason).toContain("ASAP orders are open 8:00 AM to 3:00 PM GMT");
+    expect(status.reason).toContain("ASAP orders are open 8:00 AM to 3:00 PM");
   });
 });

@@ -266,7 +266,7 @@ export default function CheckoutPage() {
     if (isAsapClosed) {
       setErrorMessage(
         asapOperatingStatus?.reason ||
-          "ASAP orders are open 8:00 AM to 3:00 PM GMT. Please check back during operating hours or schedule for later."
+          "ASAP orders are open 8:00 AM to 3:00 PM. Please check back during operating hours or schedule for later."
       );
       return;
     }
@@ -687,7 +687,7 @@ export default function CheckoutPage() {
                         ASAP Kitchen Currently Closed
                       </div>
                       <p className="text-xs font-semibold text-brand-dark/90 leading-relaxed">
-                        {asapOperatingStatus.reason || "ASAP orders are open 8:00 AM to 3:00 PM GMT. Please check back during operating hours or schedule for later."}
+                        {asapOperatingStatus.reason || "ASAP orders are open 8:00 AM to 3:00 PM. Please check back during operating hours or schedule for later."}
                       </p>
                     </div>
                   </div>
@@ -1011,7 +1011,7 @@ export default function CheckoutPage() {
                     </span>
                     <span className="text-white/80 leading-relaxed block">
                       {asapOperatingStatus?.reason ||
-                        "ASAP orders are open 8:00 AM to 3:00 PM GMT. Please check back during operating hours or schedule for later."}
+                        "ASAP orders are open 8:00 AM to 3:00 PM. Please check back during operating hours or schedule for later."}
                     </span>
                   </div>
                 </div>
@@ -1026,7 +1026,7 @@ export default function CheckoutPage() {
                 {isSubmitting ? (
                   <span>Processing...</span>
                 ) : isAsapClosed ? (
-                  <span>ASAP Closed (Open 8:00 AM – 3:00 PM GMT)</span>
+                  <span>ASAP Closed (Open 8:00 AM – 3:00 PM)</span>
                 ) : (
                   <>
                     <span>Confirm Order &amp; View Instructions ➔</span>

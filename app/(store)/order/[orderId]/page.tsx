@@ -1003,7 +1003,7 @@ export default function OrderTrackingPage() {
                     !order.deliverySlot.toLowerCase().includes("asap") &&
                     !order.deliverySlot.toLowerCase().includes("instant") && (
                       <p className="text-xs font-bold text-brand-muted">
-                        Slot: {order.deliverySlot} GMT
+                        Slot: {order.deliverySlot}
                       </p>
                     )}
                 </div>
