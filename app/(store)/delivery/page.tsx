@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
-  ORDERING_HOURS,
+  ORDERING_HOURS_DISPLAY,
   EXCLUDED_DELIVERY_AREAS,
   DELIVERY_FEE_STARTING_PESEWAS,
   CANCELLATION_WINDOW_MINUTES,
@@ -42,7 +42,7 @@ export default function DeliveryPage() {
             <div className="space-y-4 text-left">
               <div className="inline-flex items-center gap-2 bg-black/25 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border border-white/10">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff}</span>
+                <span>Same-Day Cutoff: {ORDERING_HOURS_DISPLAY.sameDayCutoff}</span>
               </div>
 
               <h1 className="font-display font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl leading-[0.85] break-words uppercase mb-6 tracking-tight text-white">
@@ -57,12 +57,12 @@ export default function DeliveryPage() {
               <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-6 text-xs text-white/80 font-medium">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-brand-yellow" />
-                  <span>Ordering: {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt}</span>
+                  <span>Ordering: {ORDERING_HOURS_DISPLAY.opensAt} – {ORDERING_HOURS_DISPLAY.closesAt}</span>
                 </span>
                 <span>·</span>
                 <span className="flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5 text-brand-yellow" />
-                  <span>First Delivery Slot: {ORDERING_HOURS.firstDeliverySlot}</span>
+                  <span>First Delivery Slot: {ORDERING_HOURS_DISPLAY.firstDeliverySlot}</span>
                 </span>
                 <span>·</span>
                 <span>Rider fee from {startingFeeGHS} on delivery</span>
@@ -353,7 +353,7 @@ export default function DeliveryPage() {
                 Order Window Opens
               </span>
               <div className="font-display font-black text-2xl text-brand-dark">
-                {ORDERING_HOURS.opensAt}
+                {ORDERING_HOURS_DISPLAY.opensAt}
               </div>
               <p className="text-xs text-brand-muted">Kitchen accepts lunch orders for the daily service.</p>
             </div>
@@ -363,7 +363,7 @@ export default function DeliveryPage() {
                 Same-Day Cutoff
               </span>
               <div className="font-display font-black text-2xl text-brand-red">
-                {ORDERING_HOURS.sameDayCutoff}
+                {ORDERING_HOURS_DISPLAY.sameDayCutoff}
               </div>
               <p className="text-xs text-brand-muted">Same-day cooking schedule locks to prepare fresh batches.</p>
             </div>
@@ -373,7 +373,7 @@ export default function DeliveryPage() {
                 First Dispatch Slot
               </span>
               <div className="font-display font-black text-2xl text-brand-dark">
-                {ORDERING_HOURS.firstDeliverySlot}
+                {ORDERING_HOURS_DISPLAY.firstDeliverySlot}
               </div>
               <p className="text-xs text-brand-muted">Riders collect sealed orders for midday delivery.</p>
             </div>

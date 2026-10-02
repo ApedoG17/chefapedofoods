@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ArrowRight, Clock, ShieldCheck, Flame } from "lucide-react";
-import { ORDERING_HOURS } from "@/config/business";
+import { ORDERING_HOURS_DISPLAY } from "@/config/business";
 
 export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +44,7 @@ export function HeroSection() {
             {/* Cutoff pill badge */}
             <div className="inline-flex items-center gap-2 bg-black/20 text-brand-yellow px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide border border-white/10">
               <Clock className="w-3.5 h-3.5" />
-              <span>Lunch Cutoff: {ORDERING_HOURS.sameDayCutoff}</span>
+              <span>Lunch Cutoff: {ORDERING_HOURS_DISPLAY.sameDayCutoff}</span>
             </div>
 
             {/* Enormous, high-impact headline */}

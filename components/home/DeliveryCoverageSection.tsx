@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { EXCLUDED_DELIVERY_AREAS, ORDERING_HOURS } from "@/config/business";
+import { EXCLUDED_DELIVERY_AREAS, ORDERING_HOURS_DISPLAY } from "@/config/business";
 import { Bike, ShieldCheck, Clock, ArrowRight, CheckCircle2 } from "lucide-react";
 
 export function DeliveryCoverageSection() {
@@ -24,7 +24,7 @@ export function DeliveryCoverageSection() {
             Fast, Hot Midday Delivery.
           </h2>
           <p className="text-sm sm:text-base text-brand-muted max-w-lg mx-auto">
-            Order before <strong className="text-brand-red">{ORDERING_HOURS.sameDayCutoff}</strong> for same-day delivery right to your desk or home.
+            Order before <strong className="text-brand-red">{ORDERING_HOURS_DISPLAY.sameDayCutoff}</strong> for same-day delivery right to your desk or home.
           </p>
         </div>
 

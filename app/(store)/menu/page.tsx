@@ -11,7 +11,7 @@ import {
   ShoppingBag,
   SlidersHorizontal,
 } from "lucide-react";
-import { ORDERING_HOURS, MEAL_SIZES } from "@/config/business";
+import { ORDERING_HOURS_DISPLAY, MEAL_SIZES } from "@/config/business";
 import { formatGHS } from "@/lib/pricing";
 import { addToCart, type CartItem } from "@/lib/cart/store";
 
@@ -296,7 +296,7 @@ export default function MenuStorefrontPage() {
               {/* Cutoff pill badge */}
               <div className="inline-flex items-center gap-2 bg-black/25 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border border-white/10">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff}</span>
+                <span>Same-Day Cutoff: {ORDERING_HOURS_DISPLAY.sameDayCutoff}</span>
               </div>
 
               <h1 className="font-display font-black text-[2.5rem] sm:text-5xl md:text-[5rem] leading-[0.9] uppercase mb-6 tracking-tight text-white">
@@ -314,7 +314,7 @@ export default function MenuStorefrontPage() {
                   <span>Morning Batch Cooking</span>
                 </span>
                 <span>·</span>
-                <span>First Delivery Slot: {ORDERING_HOURS.firstDeliverySlot}</span>
+                <span>First Delivery Slot: {ORDERING_HOURS_DISPLAY.firstDeliverySlot}</span>
                 <span>·</span>
                 <span>Rider fee from GH₵10 on delivery</span>
               </div>
