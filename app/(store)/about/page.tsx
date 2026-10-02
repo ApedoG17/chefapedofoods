@@ -106,7 +106,7 @@ export default function AboutPage() {
                   Service Window
                 </span>
                 <span className="font-display font-bold text-xs sm:text-sm text-brand-dark uppercase">
-                  {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt} GMT
+                  {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt}
                 </span>
               </div>
             </div>
@@ -342,7 +342,7 @@ export default function AboutPage() {
                   Student-Centric Reliability
                 </h3>
                 <p className="text-xs sm:text-sm text-brand-muted leading-relaxed">
-                  Engineered specifically around the university and office work schedule. Orders lock at {ORDERING_HOURS.sameDayCutoff} GMT sharp so lunch dispatch reliably arrives starting at {ORDERING_HOURS.firstDeliverySlot} GMT between class periods.
+                  Engineered specifically around the university and office work schedule. Orders lock at {ORDERING_HOURS.sameDayCutoff} sharp so lunch dispatch reliably arrives starting at {ORDERING_HOURS.firstDeliverySlot} between class periods.
                 </p>
               </div>
             </div>
@@ -403,7 +403,7 @@ export default function AboutPage() {
               Ready for Lunch?
             </h2>
             <p className="text-sm sm:text-base text-white/85 leading-relaxed font-sans">
-              Browse today&apos;s small-batch selection, customize your proteins, and lock in your order before the 10:00 GMT cutoff.
+              Browse today&apos;s small-batch selection, customize your proteins, and lock in your order before the {ORDERING_HOURS.sameDayCutoff} cutoff.
             </p>
           </div>
 

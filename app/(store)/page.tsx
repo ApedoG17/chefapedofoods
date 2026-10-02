@@ -114,12 +114,12 @@ export default function HomePage() {
           >
             <span className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-brand-yellow" />
-              <span>Ordering: {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt} GMT</span>
+              <span>Ordering: {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt}</span>
             </span>
             <span>·</span>
-            <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff} GMT</span>
+            <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff}</span>
             <span>·</span>
-            <span>First Delivery: {ORDERING_HOURS.firstDeliverySlot} GMT</span>
+            <span>First Delivery: {ORDERING_HOURS.firstDeliverySlot}</span>
           </motion.div>
         </div>
 
@@ -440,7 +440,7 @@ export default function HomePage() {
           </h2>
 
           <p className="text-sm sm:text-base text-brand-muted max-w-xl mx-auto leading-relaxed">
-            We deliver midday meals across central Accra including Legon, Airport, Osu, Cantonments, Labone, and Spintex. Same-day orders lock at {ORDERING_HOURS.sameDayCutoff} GMT with first dispatch starting at {ORDERING_HOURS.firstDeliverySlot} GMT.
+            We deliver midday meals across central Accra including Legon, Airport, Osu, Cantonments, Labone, and Spintex. Same-day orders lock at {ORDERING_HOURS.sameDayCutoff} with first dispatch starting at {ORDERING_HOURS.firstDeliverySlot}.
           </p>
 
           <div className="text-xs text-brand-muted pb-2">

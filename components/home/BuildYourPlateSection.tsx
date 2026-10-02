@@ -39,14 +39,14 @@ export function BuildYourPlateSection() {
               <button
                 key={sizeKey}
                 onClick={() => setActiveSize(sizeKey)}
-                className={`px-3 py-2 text-xs sm:px-4 sm:py-3 sm:text-sm md:text-base rounded-full font-display uppercase tracking-wider font-extrabold transition-all duration-200 min-h-[44px] flex items-center justify-center ${
+                className={`px-3 py-2 sm:px-4 sm:py-3 text-[11px] sm:text-xs md:text-sm rounded-full font-display uppercase tracking-wider font-extrabold transition-all duration-200 min-h-[44px] flex items-center justify-center ${
                   isSelected
                     ? "bg-brand-dark text-white shadow-lg scale-105"
                     : "bg-white/80 text-brand-dark hover:bg-white"
                 }`}
               >
                 <span>{size.label}</span>
-                <span className="ml-2 text-brand-yellow font-black text-xs sm:text-sm md:text-base">
+                <span className="ml-2 text-brand-yellow font-black text-[11px] sm:text-xs md:text-sm">
                   {formatGHS(size.basePesewas)}
                 </span>
               </button>
@@ -81,7 +81,7 @@ export function BuildYourPlateSection() {
                     className="flex items-center gap-3 p-3.5 rounded-xl bg-brand-cream border border-brand-cream-dark"
                   >
                     <div className="w-6 h-6 rounded-full bg-brand-red text-white flex items-center justify-center flex-none">
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      <Check className="w-3.5 h-3.5 stroke-[3] flex-shrink-0" />
                     </div>
                     <span className="font-bold text-xs sm:text-sm text-brand-dark">
                       {proteinName}

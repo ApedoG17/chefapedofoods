@@ -42,10 +42,10 @@ export default function DeliveryPage() {
             <div className="space-y-4 text-left">
               <div className="inline-flex items-center gap-2 bg-black/25 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border border-white/10">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff} GMT</span>
+                <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff}</span>
               </div>
 
-              <h1 className="font-display font-black text-[2.5rem] sm:text-5xl md:text-[5rem] leading-[0.9] uppercase mb-6 tracking-tight text-white">
+              <h1 className="font-display font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl leading-[0.85] break-words uppercase mb-6 tracking-tight text-white">
                 DELIVERED<br/>ACROSS ACCRA.
               </h1>
 
@@ -57,12 +57,12 @@ export default function DeliveryPage() {
               <div className="pt-2 flex flex-wrap items-center gap-3 sm:gap-6 text-xs text-white/80 font-medium">
                 <span className="flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-brand-yellow" />
-                  <span>Ordering: {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt} GMT</span>
+                  <span>Ordering: {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt}</span>
                 </span>
                 <span>·</span>
                 <span className="flex items-center gap-1.5">
                   <Flame className="w-3.5 h-3.5 text-brand-yellow" />
-                  <span>First Delivery Slot: {ORDERING_HOURS.firstDeliverySlot} GMT</span>
+                  <span>First Delivery Slot: {ORDERING_HOURS.firstDeliverySlot}</span>
                 </span>
                 <span>·</span>
                 <span>Rider fee from {startingFeeGHS} on delivery</span>
@@ -353,7 +353,7 @@ export default function DeliveryPage() {
                 Order Window Opens
               </span>
               <div className="font-display font-black text-2xl text-brand-dark">
-                {ORDERING_HOURS.opensAt} GMT
+                {ORDERING_HOURS.opensAt}
               </div>
               <p className="text-xs text-brand-muted">Kitchen accepts lunch orders for the daily service.</p>
             </div>
@@ -363,7 +363,7 @@ export default function DeliveryPage() {
                 Same-Day Cutoff
               </span>
               <div className="font-display font-black text-2xl text-brand-red">
-                {ORDERING_HOURS.sameDayCutoff} GMT
+                {ORDERING_HOURS.sameDayCutoff}
               </div>
               <p className="text-xs text-brand-muted">Same-day cooking schedule locks to prepare fresh batches.</p>
             </div>
@@ -373,7 +373,7 @@ export default function DeliveryPage() {
                 First Dispatch Slot
               </span>
               <div className="font-display font-black text-2xl text-brand-dark">
-                {ORDERING_HOURS.firstDeliverySlot} GMT
+                {ORDERING_HOURS.firstDeliverySlot}
               </div>
               <p className="text-xs text-brand-muted">Riders collect sealed orders for midday delivery.</p>
             </div>
