@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ORDERING_HOURS, EXCLUDED_DELIVERY_AREAS } from "@/config/business";
+import { ORDERING_HOURS_DISPLAY, EXCLUDED_DELIVERY_AREAS } from "@/config/business";
 import { MessageSquare, Clock, Phone, MapPin, Send, AlertCircle, CheckCircle2 } from "lucide-react";
 import { PhoneInput } from "@/components/ui/PhoneInput";
 
@@ -121,19 +121,19 @@ export default function ContactPage() {
                   <div className="flex justify-between py-1.5">
                     <span className="text-brand-muted">Order Window:</span>
                     <span className="font-bold text-brand-dark">
-                      {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt}
+                      {ORDERING_HOURS_DISPLAY.opensAt} – {ORDERING_HOURS_DISPLAY.closesAt}
                     </span>
                   </div>
                   <div className="flex justify-between py-1.5">
                     <span className="text-brand-muted">Same-Day Cutoff:</span>
                     <span className="font-bold text-brand-red">
-                      {ORDERING_HOURS.sameDayCutoff}
+                      {ORDERING_HOURS_DISPLAY.sameDayCutoff}
                     </span>
                   </div>
                   <div className="flex justify-between py-1.5">
                     <span className="text-brand-muted">First Dispatch Slot:</span>
                     <span className="font-bold text-brand-dark">
-                      {ORDERING_HOURS.firstDeliverySlot}
+                      {ORDERING_HOURS_DISPLAY.firstDeliverySlot}
                     </span>
                   </div>
                 </div>

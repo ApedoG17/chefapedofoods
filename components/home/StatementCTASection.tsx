@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight, Clock, ShieldCheck } from "lucide-react";
-import { ORDERING_HOURS } from "@/config/business";
+import { ORDERING_HOURS_DISPLAY } from "@/config/business";
 
 export function StatementCTASection() {
   return (
@@ -9,7 +9,7 @@ export function StatementCTASection() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 relative z-10">
         <div className="inline-flex items-center gap-2 bg-black/20 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
           <Clock className="w-3.5 h-3.5" />
-          <span>Accra Lunch Service · Orders Close at {ORDERING_HOURS.sameDayCutoff}</span>
+          <span>Accra Lunch Service · Orders Close at {ORDERING_HOURS_DISPLAY.sameDayCutoff}</span>
         </div>
 
         {/* Oversized High-Impact Headline */}

@@ -33,7 +33,7 @@ export function BrandStorySection() {
           <div className="text-xs font-black uppercase tracking-[0.2em] text-brand-yellow">
             The Kitchen Promise
           </div>
-          <h2 className="font-display font-extrabold text-3xl sm:text-5xl lg:text-6xl uppercase tracking-tight leading-tight text-white">
+          <h2 className="font-display font-extrabold text-2xl sm:text-4xl md:text-5xl lg:text-6xl uppercase tracking-tight leading-tight break-words text-white">
             Small Batch Cooking. <br />
             <span className="text-brand-yellow">Big Accra Flavors.</span>
           </h2>

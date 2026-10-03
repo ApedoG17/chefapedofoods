@@ -11,6 +11,13 @@ export const ORDERING_HOURS = {
   firstDeliverySlot: "11:30",
 } as const;
 
+export const ORDERING_HOURS_DISPLAY = {
+  opensAt: "6:00 AM",
+  closesAt: "5:00 PM",
+  sameDayCutoff: "10:00 AM",
+  firstDeliverySlot: "11:30 AM",
+} as const;
+
 export const CANCELLATION_WINDOW_MINUTES = 60;
 
 /** Starting operational ceiling, not permanent — see docs/TASKS.md §0. */
