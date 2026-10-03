@@ -1182,7 +1182,7 @@ export default function OrderTrackingPage() {
 
               {/* 3. The Critical "Pay Rider" Action Card (Matches Checkout Muted Card 2) */}
               <section className="bg-black/5 border border-black/10 rounded-3xl p-6 sm:p-8 space-y-4 shadow-sm">
-                <div className="flex items-center justify-between border-b border-black/10 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 border-b border-black/10 pb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-brand-dark shadow-xs flex-none">
                       <Bike className="w-5 h-5 stroke-[2.5]" />
@@ -1191,12 +1191,12 @@ export default function OrderTrackingPage() {
                       <span className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-muted">
                         Payment 2 of 2 · Due on Arrival
                       </span>
-                      <h3 className="font-display font-extrabold text-xl sm:text-2xl text-brand-dark uppercase tracking-tight mt-0.5">
+                      <h3 className="font-display font-extrabold text-lg sm:text-xl md:text-2xl text-brand-dark uppercase tracking-tight mt-0.5 leading-tight break-words">
                         DELIVERY FEE (PAY RIDER)
                       </h3>
                     </div>
                   </div>
-                  <div className="font-display font-extrabold text-2xl text-brand-dark">
+                  <div className="font-display font-extrabold text-2xl text-brand-dark flex-none sm:ml-auto">
                     {formatGHS(order?.deliveryFee || 1000)}
                   </div>
                 </div>
