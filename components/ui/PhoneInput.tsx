@@ -155,13 +155,13 @@ export function PhoneInput({
           onBlur={onBlur}
           onChange={handleInputChange}
           placeholder={placeholder || currentCountry.placeholder}
-          className="flex-1 bg-transparent px-3.5 py-3.5 text-sm text-brand-dark outline-none placeholder:text-brand-muted/50 font-medium"
+          className="flex-1 min-w-0 bg-transparent px-3.5 py-3.5 pr-2 text-sm text-brand-dark outline-none placeholder:text-brand-muted/50 font-medium"
         />
 
-        {/* Counter Badge */}
-        <div className="pr-3 flex items-center select-none pointer-events-none">
+        {/* Counter Badge — flex-none prevents it from shrinking on narrow screens */}
+        <div className="pr-3 flex items-center select-none pointer-events-none flex-none">
           <span
-            className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+            className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${
               rawDigits.length === currentCountry.maxDigits
                 ? "bg-emerald-100 text-emerald-800"
                 : rawDigits.length > 0

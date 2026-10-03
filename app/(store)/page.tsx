@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, Clock, Bike, ShieldCheck, Flame, CreditCard, Banknote, CheckCircle2 } from "lucide-react";
-import { ORDERING_HOURS, EXCLUDED_DELIVERY_AREAS } from "@/config/business";
+import { ORDERING_HOURS_DISPLAY, EXCLUDED_DELIVERY_AREAS } from "@/config/business";
 
 export default function HomePage() {
   const shouldReduceMotion = useReducedMotion();
@@ -114,12 +114,12 @@ export default function HomePage() {
           >
             <span className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-brand-yellow" />
-              <span>Ordering: {ORDERING_HOURS.opensAt} – {ORDERING_HOURS.closesAt}</span>
+              <span>Ordering: {ORDERING_HOURS_DISPLAY.opensAt} – {ORDERING_HOURS_DISPLAY.closesAt}</span>
             </span>
             <span>·</span>
-            <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff}</span>
+            <span>Same-Day Cutoff: {ORDERING_HOURS_DISPLAY.sameDayCutoff}</span>
             <span>·</span>
-            <span>First Delivery: {ORDERING_HOURS.firstDeliverySlot}</span>
+            <span>First Delivery: {ORDERING_HOURS_DISPLAY.firstDeliverySlot}</span>
           </motion.div>
         </div>
 
@@ -440,7 +440,7 @@ export default function HomePage() {
           </h2>
 
           <p className="text-sm sm:text-base text-brand-muted max-w-xl mx-auto leading-relaxed">
-            We deliver midday meals across central Accra including Legon, Airport, Osu, Cantonments, Labone, and Spintex. Same-day orders lock at {ORDERING_HOURS.sameDayCutoff} with first dispatch starting at {ORDERING_HOURS.firstDeliverySlot}.
+            We deliver midday meals across central Accra including Legon, Airport, Osu, Cantonments, Labone, and Spintex. Same-day orders lock at {ORDERING_HOURS_DISPLAY.sameDayCutoff} with first dispatch starting at {ORDERING_HOURS_DISPLAY.firstDeliverySlot}.
           </p>
 
           <div className="text-xs text-brand-muted pb-2">

@@ -11,7 +11,7 @@ import {
   ShoppingBag,
   SlidersHorizontal,
 } from "lucide-react";
-import { ORDERING_HOURS, MEAL_SIZES } from "@/config/business";
+import { ORDERING_HOURS_DISPLAY, MEAL_SIZES } from "@/config/business";
 import { formatGHS } from "@/lib/pricing";
 import { addToCart, type CartItem } from "@/lib/cart/store";
 
@@ -296,7 +296,7 @@ export default function MenuStorefrontPage() {
               {/* Cutoff pill badge */}
               <div className="inline-flex items-center gap-2 bg-black/25 text-brand-yellow px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider border border-white/10">
                 <Clock className="w-3.5 h-3.5" />
-                <span>Same-Day Cutoff: {ORDERING_HOURS.sameDayCutoff}</span>
+                <span>Same-Day Cutoff: {ORDERING_HOURS_DISPLAY.sameDayCutoff}</span>
               </div>
 
               <h1 className="font-display font-black text-[2.5rem] sm:text-5xl md:text-[5rem] leading-[0.9] uppercase mb-6 tracking-tight text-white">
@@ -314,9 +314,9 @@ export default function MenuStorefrontPage() {
                   <span>Morning Batch Cooking</span>
                 </span>
                 <span>·</span>
-                <span>First Delivery Slot: {ORDERING_HOURS.firstDeliverySlot}</span>
+                <span>First Delivery Slot: {ORDERING_HOURS_DISPLAY.firstDeliverySlot}</span>
                 <span>·</span>
-                <span>Rider fee from GH₵10 on delivery</span>
+                <span>Rider fee from GH₵7.00 on delivery</span>
               </div>
             </div>
 
@@ -391,7 +391,7 @@ export default function MenuStorefrontPage() {
               <span className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-red">
                 Section 01 · Handcrafted Staples
               </span>
-              <h2 className="font-display font-extrabold text-3xl sm:text-5xl uppercase tracking-tight text-brand-dark mt-1">
+              <h2 className="font-display font-extrabold text-2xl sm:text-4xl md:text-5xl uppercase tracking-tight text-brand-dark mt-1 leading-tight break-words">
                 Signature Rice Dishes
               </h2>
             </div>
@@ -452,7 +452,7 @@ export default function MenuStorefrontPage() {
               <span className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-yellow">
                 Section 02 · Extra Portions
               </span>
-              <h2 className="font-display font-extrabold text-3xl sm:text-5xl uppercase tracking-tight text-white mt-1">
+              <h2 className="font-display font-extrabold text-2xl sm:text-4xl md:text-5xl uppercase tracking-tight text-white mt-1 leading-tight break-words">
                 Extras &amp; Proteins
               </h2>
             </div>
@@ -490,7 +490,7 @@ export default function MenuStorefrontPage() {
               <span className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-yellow">
                 Section 03 · Cold Brewed &amp; Chilled
               </span>
-              <h2 className="font-display font-extrabold text-3xl sm:text-5xl uppercase tracking-tight text-white mt-1">
+              <h2 className="font-display font-extrabold text-2xl sm:text-4xl md:text-5xl uppercase tracking-tight text-white mt-1 leading-tight break-words">
                 Drinks &amp; Refreshments
               </h2>
             </div>

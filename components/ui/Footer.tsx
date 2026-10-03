@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ORDERING_HOURS } from "@/config/business";
+import { ORDERING_HOURS_DISPLAY } from "@/config/business";
 import { Clock, Phone, MessageSquare } from "lucide-react";
 
 // ─── Social / contact configuration from env vars ────────────────────────────
@@ -91,19 +91,19 @@ export function Footer() {
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-brand-yellow mt-0.5 flex-none" />
                 <div>
-                  <span className="text-white font-bold">Orders Open:</span> {ORDERING_HOURS.opensAt}
+                  <span className="text-white font-bold">Orders Open:</span> {ORDERING_HOURS_DISPLAY.opensAt}
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-brand-red mt-0.5 flex-none" />
                 <div>
-                  <span className="text-brand-yellow font-bold">Lunch Cutoff:</span> {ORDERING_HOURS.sameDayCutoff}
+                  <span className="text-brand-yellow font-bold">Lunch Cutoff:</span> {ORDERING_HOURS_DISPLAY.sameDayCutoff}
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-brand-yellow mt-0.5 flex-none" />
                 <div>
-                  <span className="text-white font-bold">First Dispatch:</span> From {ORDERING_HOURS.firstDeliverySlot}
+                  <span className="text-white font-bold">First Dispatch:</span> From {ORDERING_HOURS_DISPLAY.firstDeliverySlot}
                 </div>
               </div>
             </div>
@@ -216,6 +216,7 @@ export function Footer() {
                 width={24}
                 height={24}
                 className="rounded-full object-contain"
+                unoptimized
               />
             </a>
           </div>
